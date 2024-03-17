@@ -3,6 +3,7 @@ package sintax
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/rs/zerolog/log"
 )
@@ -17,9 +18,16 @@ type StringManager struct {
 	render Renderer
 }
 
-func NewManager() Manager {
+func NewManager(funcs map[string]GlobalModifier) *StringManager {
+	allFuncs := make(map[string]GlobalModifier)
+	for k, v := range BuiltinFunctions {
+		allFuncs[k] = v
+	}
+	for k, v := range funcs {
+		allFuncs[k] = v
+	}
 	tplParser := NewStringParser()
-	tplRender := NewStringRenderer(BuiltinFunctions)
+	tplRender := NewStringRenderer(allFuncs)
 
 	return NewStringManager(tplParser, tplRender)
 }
@@ -29,17 +37,6 @@ func NewStringManager(parser Parser, render Renderer) *StringManager {
 }
 
 var _ Manager = (*StringManager)(nil)
-
-//
-// func (sm *StringManager) ExtractVariables(input string) (map[string]string, error) {
-// 	tokens, err := sm.parser.Parse(input)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to parse template: %w", err)
-// 	}
-// 	_ = tokens
-//
-// 	return map[string]string{}, nil
-// }
 
 func (sm *StringManager) Render(input string, vars map[string]any) (string, error) {
 	tokens, err := sm.parser.Parse(input)
@@ -56,6 +53,7 @@ func (sm *StringManager) Render(input string, vars map[string]any) (string, erro
 }
 
 func (sm *StringManager) ResolveVariables(systemVars map[string]any, configVars map[string]any, actionVars map[string]any, outputVars map[string]any) (map[string]any, error) {
+	systemVars["now"] = time.Now()
 	resolvedConfigVars, err := sm.resolveVariables(systemVars, configVars)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve config variables: %w", err)
@@ -96,6 +94,9 @@ func (sm *StringManager) resolveVariables(systemVars map[string]any, vars map[st
 			tokens, err := sm.parser.ParseVariable(val)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse template for variable '%s': %w", varName, err)
+			}
+			if varName == "prompt" {
+				log.Trace().Interface("tokens", tokens).Msg("prompt tokens")
 			}
 
 			variableValue, err := sm.render.Render(tokens, resolvedVars)

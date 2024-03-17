@@ -80,20 +80,24 @@ func Test_Parser_ParseVariable(t *testing.T) {
 	type testCase struct {
 		name     string
 		input    string
-		expected Token
+		expected []Token
 		err      error
 	}
 
 	testCases := []testCase{
 		{
-			name:     "basic variable",
-			input:    "{{ content }}",
-			expected: BaseToken{TokenType: VariableToken, RawValue: "content"},
+			name:  "basic variable",
+			input: "{{ content }}",
+			expected: []Token{
+				BaseToken{TokenType: VariableToken, RawValue: "content"},
+			},
 		},
 		{
-			name:     "variable with filters",
-			input:    "{{ vars.content | xss | summary:255,300 }}",
-			expected: BaseToken{TokenType: FilteredVariableToken, RawValue: "vars.content | xss | summary:255,300"},
+			name:  "variable with filters",
+			input: "{{ vars.content | xss | summary:255,300 }}",
+			expected: []Token{
+				BaseToken{TokenType: FilteredVariableToken, RawValue: "vars.content | xss | summary:255,300"},
+			},
 		},
 	}
 
@@ -101,13 +105,13 @@ func Test_Parser_ParseVariable(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			token, err := p.ParseVariable(tt.input)
+			tokens, err := p.ParseVariable(tt.input)
 			if tt.err != nil {
 				assert.Equal(t, tt.err, err)
 				return
 			}
 			assert.NoError(t, tt.err, err)
-			assert.Equal(t, tt.expected, token)
+			assert.Equal(t, tt.expected, tokens)
 		})
 	}
 }

@@ -60,15 +60,20 @@ func (r *StringRenderer) RenderString(tokens []Token, vars map[string]any) (stri
 }
 
 func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error) {
-	var out any
+	var str strings.Builder
+	// var hasText = hasTextToken(tokens)
 	for _, token := range tokens {
 		switch token.Type() {
 		case TextToken:
-			return token.Raw(), nil
+			str.WriteString(token.Raw())
 		case VariableToken, FilteredVariableToken:
 			variable, err := r.renderVariable(token, vars)
 			if err != nil {
 				return nil, fmt.Errorf("failed to render variable token '%s': %w", token.Raw(), err)
+			}
+			if val, ok := variable.(string); ok {
+				str.WriteString(val)
+				continue
 			}
 			return variable, nil
 		case IfToken:
@@ -79,7 +84,7 @@ func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error
 		}
 	}
 
-	return out, nil
+	return str.String(), nil
 }
 
 // RenderVariable renders a single variable token.
@@ -102,34 +107,14 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 	}
 
 	// handle filtered variable token
-	split := strings.Split(token.Raw(), "|")
-	varName := strings.TrimSpace(split[0])
-
-	funcs := make([]Func, 0)
-	for _, fnWithArgs := range split[1:] {
-		fnWithArgs = strings.TrimSpace(fnWithArgs)
-		// summary:255,300 or summary
-		splitFnWithArgs := strings.Split(fnWithArgs, ":")
-		if len(splitFnWithArgs) > 1 {
-			fn := splitFnWithArgs[0]
-			args := strings.Split(splitFnWithArgs[1], ",")
-
-			funcs = append(funcs, Func{Name: fn, Args: castToAny(args)})
-			continue
-		}
-
-		fn := splitFnWithArgs[0]
-		args := make([]any, 0)
-
-		funcs = append(funcs, Func{Name: fn, Args: args})
-	}
-
-	var hasFunctionsToApply = len(funcs) > 0
+	varName, funcs := r.getVarAndFunctions(token)
+	hasFunctionsToApply := len(funcs) > 0
 
 	// get the variable value on which the function will be applied
-	varValue, ok := vars[varName]
-	if !ok {
+	varValue, varExists := vars[varName]
+	if !varExists {
 		// only return an error if there are no functions to apply
+		// if there are functions to apply, we can assume that the variable can be optional e.g. using "default" function
 		if !hasFunctionsToApply {
 			return nil, fmt.Errorf("variable '%s' not found", varName)
 		}
@@ -169,11 +154,122 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 	return varValue, nil
 }
 
-func castToAny(val []string) []any {
-	anyVal := make([]any, len(val))
-	for i, v := range val {
-		anyVal[i] = v
+func (r *StringRenderer) getVarAndFunctions(token Token) (string, []Func) {
+	raw := token.Raw()
+	// first, split the input based on '|' while respecting quoted sections
+	split := splitRespectingQuotes(raw, "|")
+	varName := strings.TrimSpace(split[0])
+
+	// spew.Dump(split)
+	funcs := make([]Func, 0)
+	for _, fnWithArgs := range split[1:] {
+		fnWithArgs = strings.TrimSpace(fnWithArgs)
+
+		// find the first ':' not within quotes to split function name from args
+		indexOfColon := strings.IndexFunc(fnWithArgs, func(r rune) bool {
+			return r == ':' && !strings.ContainsAny(string(r), `"'`)
+		})
+		var fn string
+		var argsStr string
+		if indexOfColon != -1 {
+			fn = strings.TrimSpace(fnWithArgs[:indexOfColon])
+			argsStr = fnWithArgs[indexOfColon+1:]
+		} else {
+			fn = fnWithArgs
+		}
+
+		// split args respecting quotes
+		args := splitRespectingQuotes(argsStr, ",")
+		// spew.Dump(args)
+		for i, arg := range args {
+			// unquote and unescape arguments, but only once and only if they are quoted with the same character
+			// "'arg'" -> 'arg'
+			// '"arg"' -> "arg"
+
+			if isQuotedWith(arg, `"`) {
+				log.Trace().Str("arg", arg).Msg("unquoting double")
+				args[i] = unquote(arg, `"`)
+				continue
+			}
+			if isQuotedWith(arg, `'`) {
+				log.Trace().Str("arg", arg).Msg("unquoting single")
+				args[i] = unquote(arg, `'`)
+				continue
+			}
+		}
+
+		funcs = append(funcs, Func{Name: fn, Args: castToAny(args)})
 	}
 
-	return anyVal
+	return varName, funcs
+}
+
+func castToAny(args []string) []any {
+	if args == nil || len(args) == 0 {
+		return make([]any, 0)
+	}
+	var result []any
+	for _, arg := range args {
+		result = append(result, arg)
+	}
+	return result
+}
+
+// unquote removes surrounding quotes from a string and unescapes internal quotes
+func unquote(str, quoteChar string) string {
+	if isQuotedWith(str, quoteChar) {
+		str = str[1 : len(str)-1]                                // remove surrounding quotes
+		str = strings.ReplaceAll(str, "\\"+quoteChar, quoteChar) // unescape quotes
+	}
+	return str
+}
+
+func isQuotedWith(str string, quoteChar string) bool {
+	return strings.HasPrefix(str, quoteChar) && strings.HasSuffix(str, quoteChar)
+}
+
+func splitRespectingQuotes(s, sep string) []string {
+	var parts []string
+	var currentPart strings.Builder
+	inQuotes := false
+	quoteChar := byte(0)
+
+	for i := 0; i < len(s); i++ {
+		currentChar := s[i]
+
+		if inQuotes {
+			if currentChar == quoteChar {
+				// check if the quote is escaped by counting the backslashes before it
+				backslashCount := 0
+				for j := i - 1; j >= 0 && s[j] == '\\'; j-- {
+					backslashCount++
+				}
+				// if the number of backslashes is even (including zero), it's not an escaped quote
+				if backslashCount%2 == 0 {
+					inQuotes = false
+					quoteChar = 0
+				}
+			}
+			currentPart.WriteByte(currentChar)
+		} else {
+			// if the current character is a quote, start a quoted section
+			if currentChar == '"' || currentChar == '\'' {
+				inQuotes = true
+				quoteChar = currentChar
+				// skip the quote character
+			} else if strings.HasPrefix(s[i:], sep) {
+				parts = append(parts, strings.TrimSpace(currentPart.String()))
+				currentPart.Reset()
+				i += len(sep) - 1 // skip the separator
+				continue
+			}
+			currentPart.WriteByte(currentChar)
+		}
+	}
+
+	if currentPart.Len() > 0 {
+		parts = append(parts, strings.TrimSpace(currentPart.String()))
+	}
+
+	return parts
 }

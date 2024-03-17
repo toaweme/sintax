@@ -3,17 +3,54 @@ package sintax
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/contentforward/sintax/date"
 )
 
-type GlobalModifier func(any, []any) (any, error)
+type GlobalModifier func(val any, params []any) (any, error)
 
 var BuiltinFunctions = map[string]GlobalModifier{
+	"format":  toFormat,
 	"default": toDefault,
 	"json":    toJSON,
 	"yaml":    toYAML,
 	"sexy":    toSexy,
+	"lines":   toLines,
+	"join":    toJoin,
+}
+
+func toFormat(val any, params []any) (any, error) {
+	switch timeValue := val.(type) {
+	case string:
+		return timeValue, nil
+	case time.Time:
+		d := date.NewDate(timeValue)
+		format := date.DefaultFormat
+		if len(params) > 0 {
+			format = params[0].(string)
+		}
+
+		ourFormatToGo, err := d.Format(format)
+		if err != nil {
+			return nil, fmt.Errorf("failed to apply format filter '%s': %w", params[0], err)
+		}
+		return timeValue.Format(ourFormatToGo), nil
+	}
+
+	return nil, fmt.Errorf("format function expected string or time.Time, got %T", val)
+}
+
+func toJoin(val any, params []any) (any, error) {
+	switch v := val.(type) {
+	case []string:
+		return strings.Join(v, "\n"), nil
+	}
+
+	return nil, fmt.Errorf("join function expected array of strings, got %T", val)
 }
 
 func toSexy(val any, params []any) (any, error) {
@@ -66,4 +103,19 @@ func toYAML(val any, params []any) (any, error) {
 	}
 
 	return string(yamlBytes), nil
+}
+
+func toLines(val any, params []any) (any, error) {
+	if val == nil {
+		return nil, nil
+	}
+
+	switch v := val.(type) {
+	case string:
+		return strings.Split(v, "\n"), nil
+	case []byte:
+		return strings.Split(string(v), "\n"), nil
+	}
+
+	return nil, fmt.Errorf("lines function expected string, got %T", val)
 }
