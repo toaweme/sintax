@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Date struct {
@@ -18,31 +20,25 @@ func NewDate(t time.Time) *Date {
 // Unsupported format characters will cause an error.
 func (d *Date) Format(format string) (string, error) {
 	var result strings.Builder
-
+	log.Trace().Msgf("formatting time: %s", d.Time)
 	for i := 0; i < len(format); i++ {
+		log.Trace().Msgf("formatting character: %s", string(format[i]))
 		layout, ok := Format[string(format[i])]
 		if !ok {
+			err := fmt.Errorf("skipping character '%s' invalid date format attribute", string(format[i]))
+			log.Warn().Err(err).Msg("failed to apply format filter")
 			result.WriteString(string(format[i]))
 			continue
 		}
 		if layout == "" {
+			err := fmt.Errorf("character '%s' does not have a direct mapping to a date format attribute", string(format[i]))
+
+			log.Err(err).Msg("failed to apply format filter")
 			result.WriteString(string(format[i]))
 			continue
 		}
 
-		// Handle custom cases or return an error if unsupported.
-		switch format[i] {
-		// Example of custom handling: "N" - ISO-8601 numeric representation of the day of the week
-		case 'N':
-			day := int(d.Time.Weekday())
-			if day == 0 { // Go's Weekday starts from Sunday as 0
-				day = 7
-			}
-			result.WriteString(fmt.Sprintf("%d", day))
-		// Additional cases need to be implemented here.
-		default:
-			return "", fmt.Errorf("unsupported format character: '%s' in '%s'", string(format[i]), format)
-		}
+		result.WriteString(layout)
 	}
 
 	return result.String(), nil

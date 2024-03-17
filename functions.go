@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 
 	"github.com/contentforward/sintax/date"
@@ -26,8 +27,10 @@ var BuiltinFunctions = map[string]GlobalModifier{
 func toFormat(val any, params []any) (any, error) {
 	switch timeValue := val.(type) {
 	case string:
+		log.Trace().Msgf("formatting string: %s", timeValue)
 		return timeValue, nil
 	case time.Time:
+		log.Trace().Msgf("formatting time: %s", timeValue)
 		d := date.NewDate(timeValue)
 		format := date.DefaultFormat
 		if len(params) > 0 {
