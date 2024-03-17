@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 
-	"github.com/contentforward/sintax/date"
+	"github.com/contentforward/date"
 )
 
 type GlobalModifier func(val any, params []any) (any, error)
@@ -31,17 +31,17 @@ func toFormat(val any, params []any) (any, error) {
 		return timeValue, nil
 	case time.Time:
 		log.Trace().Msgf("formatting time: %s", timeValue)
-		d := date.NewDate(timeValue)
+		d := date.NewFormatter(timeValue, date.DefaultMapping)
 		format := date.DefaultFormat
 		if len(params) > 0 {
 			format = params[0].(string)
 		}
 
-		ourFormatToGo, err := d.Format(format)
+		goDateFormat, err := d.Render(format)
 		if err != nil {
 			return nil, fmt.Errorf("failed to apply format filter '%s': %w", params[0], err)
 		}
-		return timeValue.Format(ourFormatToGo), nil
+		return timeValue.Format(goDateFormat), nil
 	}
 
 	return nil, fmt.Errorf("format function expected string or time.Time, got %T", val)
