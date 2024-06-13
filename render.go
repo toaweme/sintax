@@ -60,8 +60,8 @@ func (r *StringRenderer) RenderString(tokens []Token, vars map[string]any) (stri
 }
 
 func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error) {
+	// log.Trace().Interface("tokens", tokens).Interface("vars", vars).Msg("rendering tokens")
 	var str strings.Builder
-	// var hasText = hasTextToken(tokens)
 	for _, token := range tokens {
 		switch token.Type() {
 		case TextToken:
@@ -100,7 +100,7 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 	if token.Type() == VariableToken {
 		varValue, ok := vars[token.Raw()]
 		if !ok {
-			return nil, fmt.Errorf("variable '%s' not found", token.Raw())
+			return nil, fmt.Errorf("plain variable '%s' not found", token.Raw())
 		}
 
 		return varValue, nil
@@ -116,7 +116,7 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 		// only return an error if there are no functions to apply
 		// if there are functions to apply, we can assume that the variable can be optional e.g. using "default" function
 		if !hasFunctionsToApply {
-			return nil, fmt.Errorf("variable '%s' not found", varName)
+			return nil, fmt.Errorf("variable '%s' does not exist", varName)
 		}
 	}
 
@@ -133,12 +133,12 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 			return nil, err
 		}
 
-		log.Trace().
-			Str("function", fn.Name).
-			Str("variable", varName).
-			Any("value", varValue).
-			Interface("args", fn.Args).
-			Msg("applying function on variable value")
+		// log.Trace().
+		// 	Str("function", fn.Name).
+		// 	Str("variable", varName).
+		// 	Any("value", varValue).
+		// 	Interface("args", fn.Args).
+		// 	Msg("applying function on variable value")
 
 		// apply the function
 		newVarValueAfterFunctions, err := function(varValue, fn.Args)
@@ -155,12 +155,10 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 }
 
 func (r *StringRenderer) getVarAndFunctions(token Token) (string, []Func) {
-	raw := token.Raw()
 	// first, split the input based on '|' while respecting quoted sections
-	split := splitRespectingQuotes(raw, "|")
+	split := splitRespectingQuotes(token.Raw(), "|")
 	varName := strings.TrimSpace(split[0])
 
-	// spew.Dump(split)
 	funcs := make([]Func, 0)
 	for _, fnWithArgs := range split[1:] {
 		fnWithArgs = strings.TrimSpace(fnWithArgs)
