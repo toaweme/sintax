@@ -2,10 +2,7 @@ package sintax
 
 import (
 	"fmt"
-	"reflect"
 	"time"
-
-	"github.com/rs/zerolog/log"
 )
 
 type Syntax interface {
@@ -25,11 +22,11 @@ func New(funcs map[string]GlobalModifier) *Sintax {
 	return NewWith(tplParser, tplRender)
 }
 
+var _ Syntax = (*Sintax)(nil)
+
 func NewWith(parser Parser, render Renderer) *Sintax {
 	return &Sintax{parser: parser, render: render}
 }
-
-var _ Syntax = (*Sintax)(nil)
 
 func (sm *Sintax) Render(input string, vars map[string]any) (string, error) {
 	tokens, err := sm.parser.Parse(input)
@@ -51,12 +48,10 @@ func (sm *Sintax) ResolveVariables(systemVars map[string]any, configVars map[str
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve config variables: %w", err)
 	}
-
-	log.Trace().Interface("res", resolvedConfigVars).Msg("resolved config vars")
-
+	
 	all := mergeMaps(systemVars, resolvedConfigVars, outputVars)
 
-	log.Trace().Interface("all", all).Msg("all vars")
+	// log.Trace().Interface("all", all).Msg("all vars")
 
 	resolvedActionVars, err := sm.resolveVariables(all, actionVars)
 	if err != nil {
@@ -148,12 +143,12 @@ func (sm *Sintax) resolveVariables2(systemVars map[string]any, vars map[string]a
 			}
 
 			resolvedVars[varName] = variableValue
-			log.Trace().
-				Any("input", varValue).
-				Str("input-type", reflect.TypeOf(varValue).String()).
-				Str("var", varName).
-				Any("value", variableValue).
-				Msg("resolved template variable")
+			// log.Trace().
+			// 	Any("input", varValue).
+			// 	Str("input-type", reflect.TypeOf(varValue).String()).
+			// 	Str("var", varName).
+			// 	Any("value", variableValue).
+			// 	Msg("resolved template variable")
 
 		case map[string]any:
 			resolvedMap, err := sm.resolveVariables(systemVars, val)

@@ -3,8 +3,6 @@ package sintax
 import (
 	"fmt"
 	"strings"
-
-	"github.com/rs/zerolog/log"
 )
 
 type Renderer interface {
@@ -129,7 +127,7 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 		function, ok := r.funcs[fn.Name]
 		if !ok {
 			err := fmt.Errorf("function '%s' not found", fn.Name)
-			log.Err(err).Interface("args", fn.Args).Msg("")
+			// log.Err(err).Interface("args", fn.Args).Msg("")
 			return nil, err
 		}
 
@@ -144,7 +142,7 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 		newVarValueAfterFunctions, err := function(varValue, fn.Args)
 		if err != nil {
 			err = fmt.Errorf("failed to apply function '%s': %w", fn.Name, err)
-			log.Err(err).Interface("args", fn.Args).Msg("")
+			// log.Err(err).Interface("args", fn.Args).Msg("")
 			return nil, err
 		}
 
@@ -185,12 +183,12 @@ func (r *StringRenderer) getVarAndFunctions(token Token) (string, []Func) {
 			// '"arg"' -> "arg"
 
 			if isQuotedWith(arg, `"`) {
-				log.Trace().Str("arg", arg).Msg("unquoting double")
+				// log.Trace().Str("arg", arg).Msg("unquoting double")
 				args[i] = unquote(arg, `"`)
 				continue
 			}
 			if isQuotedWith(arg, `'`) {
-				log.Trace().Str("arg", arg).Msg("unquoting single")
+				// log.Trace().Str("arg", arg).Msg("unquoting single")
 				args[i] = unquote(arg, `'`)
 				continue
 			}

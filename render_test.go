@@ -3,13 +3,12 @@ package sintax
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
-
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +20,7 @@ func Test_StringRenderer_RenderVariable(t *testing.T) {
 		expected string
 		err      error
 	}
-
+	
 	testCases := []testCase{
 		{
 			name:     "basic variable",
@@ -87,13 +86,13 @@ func Test_StringRenderer_RenderVariable(t *testing.T) {
 			expected: "5",
 		},
 	}
-
+	
 	r := NewStringRenderer(map[string]GlobalModifier{
 		"trim":    trim,
 		"shorten": shorten,
 		"length":  length,
 	})
-
+	
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := r.renderVariable(tt.token, tt.vars)
@@ -101,7 +100,7 @@ func Test_StringRenderer_RenderVariable(t *testing.T) {
 				assert.Equal(t, err.Error(), tt.err.Error())
 				return
 			}
-
+			
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
 		})
@@ -115,7 +114,7 @@ func Test_StringRenderer_getVarAndFunctions(t *testing.T) {
 		expectedVarName string
 		expectedFuncs   []Func
 	}
-
+	
 	testCases := []testCase{
 		{
 			name:            "basic variable",
@@ -336,13 +335,13 @@ func Test_StringRenderer_getVarAndFunctions(t *testing.T) {
 			},
 		},
 	}
-
+	
 	r := NewStringRenderer(map[string]GlobalModifier{
 		"trim":    trim,
 		"shorten": shorten,
 		"length":  length,
 	})
-
+	
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			varName, funcs := r.getVarAndFunctions(tt.token)
@@ -359,7 +358,7 @@ func Test_splitRespectingQuotes_simple(t *testing.T) {
 		sep      string
 		expected []string
 	}
-
+	
 	testCases := []testCase{
 		{
 			name:     "basic split",
@@ -392,7 +391,7 @@ func Test_splitRespectingQuotes_simple(t *testing.T) {
 			expected: []string{`"Hello, 'World'"`, "Test"},
 		},
 	}
-
+	
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			result := splitRespectingQuotes(tt.input, tt.sep)
@@ -408,7 +407,7 @@ func Test_splitRespectingQuotes_pipes(t *testing.T) {
 		sep      string
 		expected []string
 	}
-
+	
 	testCases := []testCase{
 		{
 			name:     "basic split",
@@ -427,7 +426,7 @@ func Test_splitRespectingQuotes_pipes(t *testing.T) {
 			},
 		},
 	}
-
+	
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			result := splitRespectingQuotes(tt.input, tt.sep)
@@ -451,7 +450,7 @@ var shorten = func(s any, args []any) (any, error) {
 	if !ok {
 		return "", fmt.Errorf("shorten requires a text argument")
 	}
-
+	
 	if len(args) != 1 {
 		return "", fmt.Errorf("shorten requires 1 argument")
 	}
@@ -459,11 +458,11 @@ var shorten = func(s any, args []any) (any, error) {
 	if err != nil {
 		return "", fmt.Errorf("shorten requires a numeric argument")
 	}
-
+	
 	if len(str) > length {
 		return str[:length], nil
 	}
-
+	
 	return str, nil
 }
 
@@ -472,11 +471,10 @@ var length = func(s any, _ []any) (any, error) {
 	if !ok {
 		return "", fmt.Errorf("length requires a text argument")
 	}
-
+	
 	return strconv.Itoa(len(str)), nil
 }
 
 func TestMain(m *testing.M) {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	m.Run()
 }
