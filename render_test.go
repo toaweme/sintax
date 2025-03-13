@@ -3,8 +3,6 @@ package sintax
 import (
 	"errors"
 	"fmt"
-	"log"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
