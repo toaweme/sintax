@@ -31,24 +31,24 @@ func (p *StringParser) Parse(template string) ([]Token, error) {
 	if !strings.ContainsRune(template, opener) && !strings.ContainsRune(template, closer) {
 		return []Token{BaseToken{TokenType: TextToken, RawValue: template}}, nil
 	}
-
+	
 	var sb = &strings.Builder{}
 	var tokens []Token
 	startIndex := -1
-
+	
 	i := 0
 	totalRunes := len(template)
 	for i < totalRunes {
 		char := template[i]
-
+		
 		if char == opener && peek(template, i) == opener {
 			if sb.Len() > 0 {
 				tokens = append(tokens, BaseToken{TokenType: TextToken, RawValue: sb.String()})
 				sb.Reset()
 			}
-
+			
 			afterOpeningIndex := p.skipWhitespace(template, i+2)
-
+			
 			i = afterOpeningIndex
 			startIndex = i
 			sb.Reset()
@@ -65,13 +65,13 @@ func (p *StringParser) Parse(template string) ([]Token, error) {
 		}
 		i++
 	}
-
+	
 	// if there's any text left in the buffer, add it as a text token
 	if sb.Len() > 0 {
 		tokens = append(tokens, BaseToken{TokenType: TextToken, RawValue: sb.String()})
 		sb.Reset()
 	}
-
+	
 	return tokens, nil
 }
 
@@ -80,9 +80,7 @@ func (p *StringParser) ParseVariable(s string) ([]Token, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse variable: %w", err)
 	}
-
-	// log.Trace().Interface("tokens", tokens).Msg("parsed tokens")
-
+	
 	return tokens, nil
 }
 
@@ -90,7 +88,7 @@ func (p *StringParser) skipWhitespace(s string, i int) int {
 	for i < len(s) && unicode.IsSpace(rune(s[i])) {
 		i++
 	}
-
+	
 	return i
 }
 
@@ -106,7 +104,7 @@ func (p *StringParser) isVariable(s string) bool {
 
 func (p *StringParser) detectTokenType(s string) TokenType {
 	s = strings.TrimSpace(s)
-
+	
 	if strings.HasPrefix(s, "if") {
 		return IfToken
 	} else if strings.HasPrefix(s, "/if") {
@@ -120,7 +118,7 @@ func (p *StringParser) detectTokenType(s string) TokenType {
 	} else if strings.Contains(s, "|") {
 		return FilteredVariableToken
 	}
-
+	
 	return UndefinedToken
 }
 
