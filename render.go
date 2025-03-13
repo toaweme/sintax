@@ -3,12 +3,9 @@ package sintax
 import (
 	"fmt"
 	"strings"
+	
+	"github.com/toaweme/log"
 )
-
-type Renderer interface {
-	RenderString(tokens []Token, vars map[string]any) (string, error)
-	Render(tokens []Token, vars map[string]any) (any, error)
-}
 
 type Func struct {
 	Name string
@@ -32,7 +29,7 @@ func NewStringRenderer(funcs map[string]GlobalModifier) *StringRenderer {
 // RenderString renders the template based on the parsed tokens.
 func (r *StringRenderer) RenderString(tokens []Token, vars map[string]any) (string, error) {
 	var sb strings.Builder
-
+	
 	for _, token := range tokens {
 		switch token.Type() {
 		case TextToken:
@@ -53,12 +50,11 @@ func (r *StringRenderer) RenderString(tokens []Token, vars map[string]any) (stri
 		default:
 		}
 	}
-
+	
 	return sb.String(), nil
 }
 
 func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error) {
-	// log.Trace().Interface("tokens", tokens).Interface("vars", vars).Msg("rendering tokens")
 	var str strings.Builder
 	for _, token := range tokens {
 		switch token.Type() {
@@ -72,6 +68,9 @@ func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error
 			if val, ok := variable.(string); ok {
 				str.WriteString(val)
 				continue
+			} else if val, ok := variable.(bool); ok {
+				str.WriteString(fmt.Sprintf("%t", val))
+				continue
 			}
 			return variable, nil
 		case IfToken:
@@ -81,33 +80,47 @@ func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error
 		default:
 		}
 	}
-
+	
 	return str.String(), nil
 }
 
 // RenderVariable renders a single variable token.
 func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, error) {
+	log.Debug("rendering variable", "token", token.Raw(), "type", token.Type(), "vars", vars)
 	if token.Type() == TextToken {
 		return token.Raw(), nil
 	}
-
+	
 	if token.Type() != VariableToken && token.Type() != FilteredVariableToken {
 		return nil, fmt.Errorf("invalid token type: %d: %s", token.Type(), token.Raw())
 	}
-
+	
 	if token.Type() == VariableToken {
 		varValue, ok := vars[token.Raw()]
 		if !ok {
 			return nil, fmt.Errorf("plain variable '%s' not found", token.Raw())
 		}
-
+		
+		switch val := varValue.(type) {
+		case string:
+			return val, nil
+		case bool:
+			if val {
+				return "true", nil
+			} else {
+				return "false", nil
+			}
+		case int:
+			return fmt.Sprintf("%d", val), nil
+		}
+		
 		return varValue, nil
 	}
-
+	
 	// handle filtered variable token
 	varName, funcs := r.getVarAndFunctions(token)
 	hasFunctionsToApply := len(funcs) > 0
-
+	
 	// get the variable value on which the function will be applied
 	varValue, varExists := vars[varName]
 	if !varExists {
@@ -117,11 +130,11 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 			return nil, fmt.Errorf("variable '%s' does not exist", varName)
 		}
 	}
-
+	
 	if !hasFunctionsToApply {
 		return varValue, nil
 	}
-
+	
 	for _, fn := range funcs {
 		// get the function
 		function, ok := r.funcs[fn.Name]
@@ -130,14 +143,14 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 			// log.Err(err).Interface("args", fn.Args).Msg("")
 			return nil, err
 		}
-
+		
 		// log.Trace().
 		// 	Str("function", fn.Name).
 		// 	Str("variable", varName).
 		// 	Any("value", varValue).
 		// 	Interface("args", fn.Args).
 		// 	Msg("applying function on variable value")
-
+		
 		// apply the function
 		newVarValueAfterFunctions, err := function(varValue, fn.Args)
 		if err != nil {
@@ -145,10 +158,10 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 			// log.Err(err).Interface("args", fn.Args).Msg("")
 			return nil, err
 		}
-
+		
 		varValue = newVarValueAfterFunctions
 	}
-
+	
 	return varValue, nil
 }
 
@@ -156,11 +169,11 @@ func (r *StringRenderer) getVarAndFunctions(token Token) (string, []Func) {
 	// first, split the input based on '|' while respecting quoted sections
 	split := splitRespectingQuotes(token.Raw(), "|")
 	varName := strings.TrimSpace(split[0])
-
+	
 	funcs := make([]Func, 0)
 	for _, fnWithArgs := range split[1:] {
 		fnWithArgs = strings.TrimSpace(fnWithArgs)
-
+		
 		// find the first ':' not within quotes to split function name from args
 		indexOfColon := strings.IndexFunc(fnWithArgs, func(r rune) bool {
 			return r == ':' && !strings.ContainsAny(string(r), `"'`)
@@ -173,7 +186,7 @@ func (r *StringRenderer) getVarAndFunctions(token Token) (string, []Func) {
 		} else {
 			fn = fnWithArgs
 		}
-
+		
 		// split args respecting quotes
 		args := splitRespectingQuotes(argsStr, ",")
 		// spew.Dump(args)
@@ -181,7 +194,7 @@ func (r *StringRenderer) getVarAndFunctions(token Token) (string, []Func) {
 			// unquote and unescape arguments, but only once and only if they are quoted with the same character
 			// "'arg'" -> 'arg'
 			// '"arg"' -> "arg"
-
+			
 			if isQuotedWith(arg, `"`) {
 				// log.Trace().Str("arg", arg).Msg("unquoting double")
 				args[i] = unquote(arg, `"`)
@@ -193,10 +206,10 @@ func (r *StringRenderer) getVarAndFunctions(token Token) (string, []Func) {
 				continue
 			}
 		}
-
+		
 		funcs = append(funcs, Func{Name: fn, Args: castToAny(args)})
 	}
-
+	
 	return varName, funcs
 }
 
@@ -229,10 +242,10 @@ func splitRespectingQuotes(s, sep string) []string {
 	var currentPart strings.Builder
 	inQuotes := false
 	quoteChar := byte(0)
-
+	
 	for i := 0; i < len(s); i++ {
 		currentChar := s[i]
-
+		
 		if inQuotes {
 			if currentChar == quoteChar {
 				// check if the quote is escaped by counting the backslashes before it
@@ -262,10 +275,10 @@ func splitRespectingQuotes(s, sep string) []string {
 			currentPart.WriteByte(currentChar)
 		}
 	}
-
+	
 	if currentPart.Len() > 0 {
 		parts = append(parts, strings.TrimSpace(currentPart.String()))
 	}
-
+	
 	return parts
 }

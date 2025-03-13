@@ -1,21 +1,10 @@
 package sintax
 
 import (
-	"errors"
 	"fmt"
 	
 	"github.com/toaweme/log"
 )
-
-type Syntax interface {
-	// ResolveVariables resolves all variables in the given system, config, and action variables.
-	// systemVars are variables that are always available to the pipeline e.g. env, now, etc.
-	// configVars are variables defined in the pipeline config
-	// actionVars are variables defined in the action
-	// previousOutputVars are variables that were output from the previous action
-	ResolveVariables(systemVars map[string]any, configVars map[string]any, actionVars map[string]any, previousOutputVars map[string]any) (map[string]any, error)
-	Render(input string, vars map[string]any) (string, error)
-}
 
 type Sintax struct {
 	parser Parser
@@ -56,6 +45,11 @@ func (sm *Sintax) ResolveVariables(systemVars map[string]any, configVars map[str
 		return nil, fmt.Errorf("failed to resolve config variables: %w", err)
 	}
 	
+	log.Debug("system", "vars", systemVars)
+	log.Debug("config", "vars", configVars)
+	log.Debug("action", "vars", actionVars)
+	log.Debug("output", "vars", outputVars)
+	
 	all := mergeMaps(systemVars, resolvedConfigVars, outputVars)
 	
 	resolvedActionVars, err := sm.resolveVariables(all, actionVars)
@@ -75,96 +69,101 @@ func (sm *Sintax) ResolveVariables(systemVars map[string]any, configVars map[str
 }
 
 func (sm *Sintax) resolveVariables(systemVars map[string]any, vars map[string]any) (map[string]any, error) {
+	allVars := mergeMaps(systemVars, vars)
 	resolvedVars := make(map[string]any)
-	for k, v := range systemVars {
-		resolvedVars[k] = v
+	dependencyGraph := make(map[string][]string)
+	
+	// Step 1: Build dependency graph only for vars defined in `vars`
+	for varName, value := range vars {
+		if strVal, ok := value.(string); ok {
+			tokens, err := sm.parser.ParseVariable(strVal)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse variable '%s': %w", varName, err)
+			}
+			for _, token := range tokens {
+				if token.Type() == VariableToken || token.Type() == FilteredVariableToken {
+					dependency := token.Raw()
+					if _, inVars := vars[dependency]; inVars {
+						dependencyGraph[varName] = append(dependencyGraph[varName], dependency)
+					}
+				}
+			}
+		}
 	}
-	// initially resolve all variables to their raw or directly resolvable values
-	for k, v := range vars {
-		resolvedVars[k] = v
+	
+	// topological sort to determine resolution order
+	sortedVars, err := topologicalSort(dependencyGraph)
+	if err != nil {
+		return nil, err
 	}
 	
-	log.Debug("combined", "vars", resolvedVars)
-	
-	// var tokenizedVars = make(map[string][]Token)
-	
-	// helper function to resolve a variable value, supporting 1 level of recursion
-	var resolveVarValue = func(key string, value any) (any, error) {
+	// resolve variables based on type (string needing interpolation, others copied directly)
+	for _, varName := range sortedVars {
+		value := vars[varName]
 		switch val := value.(type) {
 		case string:
-			log.Debug("resolving", "string", val)
 			tokens, err := sm.parser.ParseVariable(val)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse template for variable '%s': %w", key, err)
+				return nil, fmt.Errorf("failed to parse variable '%s': %w", varName, err)
 			}
-			log.Debug("tokens", "tokens", tokens)
-			variableValue, err := sm.render.Render(tokens, resolvedVars)
+			renderedValue, err := sm.render.Render(tokens, allVars)
 			if err != nil {
-				return nil, fmt.Errorf("failed to render variable '%s': %w", key, err)
+				return nil, fmt.Errorf("failed to render variable '%s': %w", varName, err)
 			}
-			return variableValue, nil
-		case map[string]any:
-			log.Debug("resolving", "map", val)
-			resolvedMap, err := sm.resolveVariables(systemVars, val) // Recursive call for nested maps
-			if err != nil {
-				return nil, fmt.Errorf("failed to resolve map variable '%s': %w", key, err)
-			}
-			return resolvedMap, nil
+			resolvedVars[varName] = renderedValue
+			allVars[varName] = renderedValue
 		default:
-			return val, nil
+			// directly copy values that don't require interpolation
+			resolvedVars[varName] = val
+			allVars[varName] = val
 		}
 	}
 	
-	// second pass: resolve any variable references
-	for varName, varValue := range vars {
-		resolvedValue, err := resolveVarValue(varName, varValue)
-		if err != nil {
-			return nil, err
+	// Step 4: Include variables that were not part of the graph (no dependencies)
+	for varName, value := range vars {
+		if _, alreadyResolved := resolvedVars[varName]; !alreadyResolved {
+			resolvedVars[varName] = value
+			allVars[varName] = value
 		}
-		resolvedVars[varName] = resolvedValue
 	}
 	
-	return resolvedVars, nil
+	finalVars := mergeMaps(systemVars, resolvedVars)
+	return finalVars, nil
 }
 
-// topoSort performs a topological sort on the dependency graph.
-// It returns an error if a circular dependency is detected.
-func topoSort(graph map[string][]string) ([]string, error) {
-	var order []string
-	temp := make(map[string]bool)
-	perm := make(map[string]bool)
+func topologicalSort(graph map[string][]string) ([]string, error) {
+	var sorted []string
+	visited := make(map[string]bool)
+	tempMarked := make(map[string]bool)
 	
-	var visit func(string) error
+	var visit func(node string) error
 	visit = func(node string) error {
-		if perm[node] {
-			return nil
+		if tempMarked[node] {
+			return fmt.Errorf("%w: at variable '%s'", ErrCircularDependency, node)
 		}
-		if temp[node] {
-			return errors.New("circular dependency detected")
-		}
-		temp[node] = true
-		for _, dep := range graph[node] {
-			// Only visit dependencies that are part of the graph.
-			if _, exists := graph[dep]; exists {
+		if !visited[node] {
+			tempMarked[node] = true
+			for _, dep := range graph[node] {
 				if err := visit(dep); err != nil {
 					return err
 				}
 			}
+			tempMarked[node] = false
+			visited[node] = true
+			sorted = append(sorted, node)
 		}
-		temp[node] = false
-		perm[node] = true
-		order = append(order, node)
 		return nil
 	}
 	
 	for node := range graph {
-		if !perm[node] {
+		if !visited[node] {
 			if err := visit(node); err != nil {
 				return nil, err
 			}
 		}
 	}
-	return order, nil
+	
+	return sorted, nil
 }
 
 func mergeMaps(maps ...map[string]any) map[string]any {

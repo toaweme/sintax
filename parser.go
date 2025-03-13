@@ -1,17 +1,11 @@
 package sintax
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
 )
-
-type Parser interface {
-	Parse(template string) ([]Token, error)
-	ParseVariable(val string) ([]Token, error)
-}
 
 type StringParser struct{}
 
@@ -20,8 +14,6 @@ func NewStringParser() *StringParser {
 }
 
 var _ Parser = (*StringParser)(nil)
-
-var ErrInvalidToken = errors.New("invalid token")
 
 // start of a token
 const opener = '{'
