@@ -38,7 +38,7 @@ func Test_Parser_Parse(t *testing.T) {
 			input: "{{ if condition }}{{ content }}{{ /if }}",
 			expected: []Token{
 				BaseToken{TokenType: IfToken, RawValue: "condition"},
-				BaseToken{TokenType: VariableToken, RawValue: "content"},
+				BaseToken{TokenType: VariableToken, RawValue: "content", Var: "content"},
 				BaseToken{TokenType: IfEndToken, RawValue: ""},
 			},
 		},
@@ -47,7 +47,7 @@ func Test_Parser_Parse(t *testing.T) {
 			input: "{{ if condition }}{{ content | xss | summary:255,300 }}{{ /if }}",
 			expected: []Token{
 				BaseToken{TokenType: IfToken, RawValue: "condition"},
-				BaseToken{TokenType: FilteredVariableToken, RawValue: "content | xss | summary:255,300"},
+				BaseToken{TokenType: FilteredVariableToken, RawValue: "content | xss | summary:255,300", Var: "content"},
 				BaseToken{TokenType: IfEndToken, RawValue: ""},
 			},
 		},
@@ -58,7 +58,7 @@ func Test_Parser_Parse(t *testing.T) {
 				BaseToken{TokenType: TextToken, RawValue: "something cool "},
 				BaseToken{TokenType: IfToken, RawValue: "condition"},
 				BaseToken{TokenType: TextToken, RawValue: " beep "},
-				BaseToken{TokenType: FilteredVariableToken, RawValue: "content | xss | summary:255,300"},
+				BaseToken{TokenType: FilteredVariableToken, RawValue: "content | xss | summary:255,300", Var: "content"},
 				BaseToken{TokenType: IfEndToken, RawValue: ""},
 				BaseToken{TokenType: TextToken, RawValue: " cool ending "},
 			},
@@ -89,14 +89,14 @@ func Test_Parser_ParseVariable(t *testing.T) {
 			name:  "basic variable",
 			input: "{{ content }}",
 			expected: []Token{
-				BaseToken{TokenType: VariableToken, RawValue: "content"},
+				BaseToken{TokenType: VariableToken, RawValue: "content", Var: "content"},
 			},
 		},
 		{
 			name:  "variable with filters",
 			input: "{{ vars.content | xss | summary:255,300 }}",
 			expected: []Token{
-				BaseToken{TokenType: FilteredVariableToken, RawValue: "vars.content | xss | summary:255,300"},
+				BaseToken{TokenType: FilteredVariableToken, RawValue: "vars.content | xss | summary:255,300", Var: "vars.content"},
 			},
 		},
 	}
