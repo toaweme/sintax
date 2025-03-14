@@ -2,8 +2,6 @@ package sintax
 
 import (
 	"fmt"
-	
-	"github.com/toaweme/log"
 )
 
 type Sintax struct {
@@ -16,7 +14,7 @@ var _ Syntax = (*Sintax)(nil)
 func New(funcs map[string]GlobalModifier) *Sintax {
 	tplParser := NewStringParser()
 	tplRender := NewStringRenderer(funcs)
-	
+
 	return NewWith(tplParser, tplRender)
 }
 
@@ -25,23 +23,20 @@ func NewWith(parser Parser, render Renderer) *Sintax {
 }
 
 func (sm *Sintax) ResolveVariables(vars map[string]any) (map[string]any, error) {
-	// holds the final resolved variables
 	resolvedVars := make(map[string]any)
-	
-	// dependency graph variables
 	dependencyGraph := make(map[string][]string)
-	
+
+	// build dependency graph
 	for varName, value := range vars {
-		log.Debug("var", "name", varName, "value", value)
 		if strVal, ok := value.(string); ok {
 			tokens, err := sm.parser.ParseVariable(strVal)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse variable '%s': %w", varName, err)
 			}
-			// log.Debug("tokens", "tokens", tokens)
+
 			for _, token := range tokens {
 				if token.Type() == VariableToken || token.Type() == FilteredVariableToken {
-					dependency := token.Raw()
+					dependency := token.Name()
 					if _, inVars := vars[dependency]; inVars {
 						dependencyGraph[varName] = append(dependencyGraph[varName], dependency)
 					}
@@ -49,68 +44,50 @@ func (sm *Sintax) ResolveVariables(vars map[string]any) (map[string]any, error) 
 			}
 		}
 	}
-	
+
 	// topological sort to determine resolution order
 	sortedVars, err := topologicalSort(dependencyGraph)
 	if err != nil {
 		return nil, err
 	}
-	
-	// resolve variables based on type (string needing interpolation, others copied directly)
+
+	// resolve variables in order
 	for _, varName := range sortedVars {
 		value := vars[varName]
-		switch val := value.(type) {
-		case string:
-			tokens, err := sm.parser.ParseVariable(val)
+
+		if strVal, ok := value.(string); ok {
+			tokens, err := sm.parser.ParseVariable(strVal)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse variable '%s': %w", varName, err)
 			}
-			renderedValue, err := sm.render.Render(tokens, vars)
-			if err != nil {
-				return nil, fmt.Errorf("failed to render variable '%s': %w", varName, err)
-			}
-			resolvedVars[varName] = renderedValue
-			vars[varName] = renderedValue
-		default:
-			// directly copy values that don't require interpolation
-			resolvedVars[varName] = val
-			vars[varName] = val
-		}
-	}
-	
-	// include variables that were not part of the graph (no dependencies or depending on system vars)
-	for varName, value := range vars {
-		if _, alreadyResolved := resolvedVars[varName]; alreadyResolved {
-			continue
-		}
-		
-		switch val := value.(type) {
-		case string:
-			tokens, err := sm.parser.ParseVariable(val)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse variable '%s': %w", varName, err)
-			}
-			
-			// optimisation: skip rendering if the variable is a plain text
+
+			// optimization: skip rendering if it's a plain text variable
 			if len(tokens) == 1 && tokens[0].Type() == TextToken {
-				vars[varName] = val
-				resolvedVars[varName] = val
+				resolvedVars[varName] = strVal
 				continue
 			}
-			
+
 			renderedValue, err := sm.render.Render(tokens, vars)
 			if err != nil {
 				return nil, fmt.Errorf("failed to render variable '%s': %w", varName, err)
 			}
-			
+
 			resolvedVars[varName] = renderedValue
 			vars[varName] = renderedValue
-		default:
-			resolvedVars[varName] = val
-			vars[varName] = val
+		} else {
+			// directly copy non-string values
+			resolvedVars[varName] = value
+			vars[varName] = value
 		}
 	}
-	
+
+	// ensure non-interpolated vars are copied over
+	for varName, value := range vars {
+		if _, exists := resolvedVars[varName]; !exists {
+			resolvedVars[varName] = value
+		}
+	}
+
 	return resolvedVars, nil
 }
 
@@ -119,12 +96,12 @@ func (sm *Sintax) Render(input string, vars map[string]any) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to parse template: %w", err)
 	}
-	
+
 	render, err := sm.render.RenderString(tokens, vars)
 	if err != nil {
 		return "", fmt.Errorf("failed to render template: %w", err)
 	}
-	
+
 	return render, nil
 }
 
@@ -132,7 +109,7 @@ func topologicalSort(graph map[string][]string) ([]string, error) {
 	var sorted []string
 	visited := make(map[string]bool)
 	tempMarked := make(map[string]bool)
-	
+
 	var visit func(node string) error
 	visit = func(node string) error {
 		if tempMarked[node] {
@@ -151,7 +128,7 @@ func topologicalSort(graph map[string][]string) ([]string, error) {
 		}
 		return nil
 	}
-	
+
 	for node := range graph {
 		if !visited[node] {
 			if err := visit(node); err != nil {
@@ -159,6 +136,6 @@ func topologicalSort(graph map[string][]string) ([]string, error) {
 			}
 		}
 	}
-	
+
 	return sorted, nil
 }

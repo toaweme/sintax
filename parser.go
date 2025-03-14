@@ -19,28 +19,37 @@ var _ Parser = (*StringParser)(nil)
 const opener = '{'
 const closer = '}'
 
+func (p *StringParser) ParseVariable(s string) ([]Token, error) {
+	tokens, err := p.Parse(s)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse variable: %w", err)
+	}
+
+	return tokens, nil
+}
+
 func (p *StringParser) Parse(template string) ([]Token, error) {
 	if !strings.ContainsRune(template, opener) && !strings.ContainsRune(template, closer) {
 		return []Token{BaseToken{TokenType: TextToken, RawValue: template}}, nil
 	}
-	
+
 	var sb = &strings.Builder{}
 	var tokens []Token
 	startIndex := -1
-	
+
 	i := 0
 	totalRunes := len(template)
 	for i < totalRunes {
 		char := template[i]
-		
+
 		if char == opener && peek(template, i) == opener {
 			if sb.Len() > 0 {
 				tokens = append(tokens, BaseToken{TokenType: TextToken, RawValue: sb.String()})
 				sb.Reset()
 			}
-			
+
 			afterOpeningIndex := p.skipWhitespace(template, i+2)
-			
+
 			i = afterOpeningIndex
 			startIndex = i
 			sb.Reset()
@@ -57,22 +66,13 @@ func (p *StringParser) Parse(template string) ([]Token, error) {
 		}
 		i++
 	}
-	
+
 	// if there's any text left in the buffer, add it as a text token
 	if sb.Len() > 0 {
 		tokens = append(tokens, BaseToken{TokenType: TextToken, RawValue: sb.String()})
 		sb.Reset()
 	}
-	
-	return tokens, nil
-}
 
-func (p *StringParser) ParseVariable(s string) ([]Token, error) {
-	tokens, err := p.Parse(s)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse variable: %w", err)
-	}
-	
 	return tokens, nil
 }
 
@@ -80,7 +80,7 @@ func (p *StringParser) skipWhitespace(s string, i int) int {
 	for i < len(s) && unicode.IsSpace(rune(s[i])) {
 		i++
 	}
-	
+
 	return i
 }
 
@@ -96,7 +96,7 @@ func (p *StringParser) isVariable(s string) bool {
 
 func (p *StringParser) detectTokenType(s string) TokenType {
 	s = strings.TrimSpace(s)
-	
+
 	if strings.HasPrefix(s, "if") {
 		return IfToken
 	} else if strings.HasPrefix(s, "/if") {
@@ -110,7 +110,7 @@ func (p *StringParser) detectTokenType(s string) TokenType {
 	} else if strings.Contains(s, "|") {
 		return FilteredVariableToken
 	}
-	
+
 	return UndefinedToken
 }
 
@@ -122,22 +122,30 @@ func trimPrefix(s string, prefix string) string {
 	return s
 }
 
+func splitAndGetFirst(s string) string {
+	parts := strings.Split(s, "|")
+	if len(parts) > 0 {
+		return parts[0]
+	}
+	return ""
+}
+
 func (p *StringParser) createToken(tokenType TokenType, value string) Token {
 	switch tokenType {
 	case VariableToken:
-		return BaseToken{VariableToken, trimPrefix(value, "")}
+		return BaseToken{VariableToken, strings.TrimSpace(value), strings.TrimSpace(value)}
 	case FilteredVariableToken:
-		return BaseToken{FilteredVariableToken, trimPrefix(value, "")}
+		return BaseToken{FilteredVariableToken, strings.TrimSpace(value), strings.TrimSpace(splitAndGetFirst(value))}
 	case IfToken:
-		return BaseToken{IfToken, trimPrefix(value, "if")}
+		return BaseToken{IfToken, trimPrefix(value, "if"), ""}
 	case ElseToken:
-		return BaseToken{ElseToken, ""}
+		return BaseToken{ElseToken, "", ""}
 	case IfEndToken:
-		return BaseToken{IfEndToken, ""}
+		return BaseToken{IfEndToken, "", ""}
 	case ShorthandIfToken:
-		return BaseToken{ShorthandIfToken, trimPrefix(value, "")}
+		return BaseToken{ShorthandIfToken, value, ""}
 	default:
-		return BaseToken{TextToken, value}
+		return BaseToken{TextToken, value, value}
 	}
 }
 

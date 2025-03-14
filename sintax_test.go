@@ -5,7 +5,6 @@ import (
 	"time"
 	
 	"github.com/stretchr/testify/assert"
-	"github.com/toaweme/log"
 )
 
 func Test_Sintax_ResolveVariables(t *testing.T) {
@@ -40,6 +39,23 @@ func Test_Sintax_ResolveVariables(t *testing.T) {
 				"output_file_content": "date: " + formattedDate,
 				"path":                "data/daily/test-" + formatted + ".md",
 				"content":             "```shell\ndata/daily/test-" + formatted + ".md\ndate: " + formattedDate + "```",
+			},
+		},
+		{
+			name: "complex dependency tree with filters",
+			vars: map[string]any{
+				"base": "root",
+				"varA": "{{ base }}-A",
+				"varB": "{{ varA }}-B",
+				"varC": "{{ varB }}-C",
+				"varD": `{{ varC | default:"1" }}-D`,
+			},
+			expected: map[string]any{
+				"base": "root",
+				"varA": "root-A",
+				"varB": "root-A-B",
+				"varC": "root-A-B-C",
+				"varD": "root-A-B-C-D",
 			},
 		},
 		{
@@ -172,7 +188,61 @@ func Test_Sintax_ResolveVariables(t *testing.T) {
 				return
 			}
 			assert.NoError(t, err)
-			log.Debug("actual", "vars", actual)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+func Test_Sintax_ResolveVariablesFunc(t *testing.T) {
+	type testCase struct {
+		name        string
+		vars        map[string]any
+		expected    map[string]any
+		expectedErr error
+	}
+	
+	now := time.Now()
+	formatted := now.Format("2006-01-02-15:04:05")
+	
+	testCases := []testCase{
+		{
+			name: "interpolated variables",
+			vars: map[string]any{
+				"now":       now,
+				"base_name": `{{ now | format:"Y-m-d-H:i:s" }}`,
+			},
+			expected: map[string]any{
+				"now":       now,
+				"base_name": formatted,
+			},
+		},
+		{
+			name: "complex dependency tree with filters",
+			vars: map[string]any{
+				"base": "root",
+				"varA": "{{ base }}-A",
+				"varB": "{{ varA }}-B",
+				"varC": "{{ varB }}-C",
+				"varD": `{{ varC | default:"1" }}-D`,
+			},
+			expected: map[string]any{
+				"base": "root",
+				"varA": "root-A",
+				"varB": "root-A-B",
+				"varC": "root-A-B-C",
+				"varD": "root-A-B-C-D",
+			},
+		},
+	}
+	
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := New(BuiltinFunctions)
+			actual, err := s.ResolveVariables(tc.vars)
+			if tc.expectedErr != nil {
+				assert.ErrorIs(t, err, tc.expectedErr)
+				return
+			}
+			assert.NoError(t, err)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
