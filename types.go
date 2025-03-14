@@ -2,11 +2,15 @@ package sintax
 
 import "errors"
 
-var ErrInvalidTokenType = errors.New("invalid token")
-var ErrVariableNotFound = errors.New("variable not found")
-var ErrFunctionNotFound = errors.New("function not found")
-var ErrFunctionApplyFailed = errors.New("function failed to apply")
-var ErrCircularDependency = errors.New("circular dependency detected at 'self'")
+var (
+	ErrInvalidTokenType    = errors.New("invalid token")
+	ErrVariableNotFound    = errors.New("variable not found")
+	ErrFunctionNotFound    = errors.New("function not found")
+	ErrFunctionApplyFailed = errors.New("function failed to apply")
+	ErrCircularDependency  = errors.New("circular dependency detected")
+	ErrParseFailed         = errors.New("failed to parse template")
+	ErrRenderFailed        = errors.New("failed to render template")
+)
 
 type Parser interface {
 	Parse(template string) ([]Token, error)

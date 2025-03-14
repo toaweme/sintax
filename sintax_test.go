@@ -3,8 +3,9 @@ package sintax
 import (
 	"testing"
 	"time"
-	
+
 	"github.com/stretchr/testify/assert"
+	"github.com/toaweme/log"
 )
 
 func Test_Sintax_ResolveVariables(t *testing.T) {
@@ -14,12 +15,24 @@ func Test_Sintax_ResolveVariables(t *testing.T) {
 		expected    map[string]any
 		expectedErr error
 	}
-	
+
 	now := time.Now()
 	formatted := now.Format("2006-01-02-15:04:05")
 	formattedDate := now.Format("2006-01-02")
-	
+
 	testCases := []testCase{
+		{
+			name: "var not found",
+			vars: map[string]any{
+				"base": "root",
+				"varD": `{{ varC | default:"1" }}-D`,
+			},
+			expected: map[string]any{
+				"base": "root",
+				"varD": "root-A-B-C-D",
+			},
+			expectedErr: ErrVariableNotFound,
+		},
 		{
 			name: "interpolated variables",
 			vars: map[string]any{
@@ -178,12 +191,13 @@ func Test_Sintax_ResolveVariables(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			s := New(BuiltinFunctions)
 			actual, err := s.ResolveVariables(tc.vars)
 			if tc.expectedErr != nil {
+				log.Debug("expected", "error", err)
 				assert.ErrorIs(t, err, tc.expectedErr)
 				return
 			}
@@ -199,10 +213,10 @@ func Test_Sintax_ResolveVariablesFunc(t *testing.T) {
 		expected    map[string]any
 		expectedErr error
 	}
-	
+
 	now := time.Now()
 	formatted := now.Format("2006-01-02-15:04:05")
-	
+
 	testCases := []testCase{
 		{
 			name: "interpolated variables",
@@ -233,7 +247,7 @@ func Test_Sintax_ResolveVariablesFunc(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			s := New(BuiltinFunctions)

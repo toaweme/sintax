@@ -24,6 +24,7 @@ func NewWith(parser Parser, render Renderer) *Sintax {
 
 func (sm *Sintax) ResolveVariables(vars map[string]any) (map[string]any, error) {
 	resolvedVars := make(map[string]any)
+	missingInterpolatedVars := make(map[string]any)
 	dependencyGraph := make(map[string][]string)
 
 	// build dependency graph
@@ -36,12 +37,21 @@ func (sm *Sintax) ResolveVariables(vars map[string]any) (map[string]any, error) 
 
 			for _, token := range tokens {
 				if token.Type() == VariableToken || token.Type() == FilteredVariableToken {
-					dependency := token.Name()
-					if _, inVars := vars[dependency]; inVars {
-						dependencyGraph[varName] = append(dependencyGraph[varName], dependency)
+					variable := token.Name()
+					if _, inVars := vars[variable]; inVars {
+						dependencyGraph[varName] = append(dependencyGraph[varName], variable)
+					} else {
+						missingInterpolatedVars[variable] = nil
 					}
 				}
 			}
+		}
+	}
+
+	// error out if there are missing interpolated vars
+	if len(missingInterpolatedVars) > 0 {
+		for varName := range missingInterpolatedVars {
+			return nil, fmt.Errorf("%w: %s", ErrVariableNotFound, varName)
 		}
 	}
 
@@ -94,12 +104,12 @@ func (sm *Sintax) ResolveVariables(vars map[string]any) (map[string]any, error) 
 func (sm *Sintax) Render(input string, vars map[string]any) (string, error) {
 	tokens, err := sm.parser.Parse(input)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse template: %w", err)
+		return "", fmt.Errorf("%w: %s", ErrParseFailed, err)
 	}
 
 	render, err := sm.render.RenderString(tokens, vars)
 	if err != nil {
-		return "", fmt.Errorf("failed to render template: %w", err)
+		return "", fmt.Errorf("%w: %s", ErrRenderFailed, err)
 	}
 
 	return render, nil
@@ -113,7 +123,7 @@ func topologicalSort(graph map[string][]string) ([]string, error) {
 	var visit func(node string) error
 	visit = func(node string) error {
 		if tempMarked[node] {
-			return fmt.Errorf("%w: at variable '%s'", ErrCircularDependency, node)
+			return fmt.Errorf("%w: %s", ErrCircularDependency, node)
 		}
 		if !visited[node] {
 			tempMarked[node] = true
