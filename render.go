@@ -3,8 +3,6 @@ package sintax
 import (
 	"fmt"
 	"strings"
-	
-	"github.com/toaweme/log"
 )
 
 type Func struct {
@@ -42,11 +40,11 @@ func (r *StringRenderer) RenderString(tokens []Token, vars map[string]any) (stri
 			val := fmt.Sprintf("%v", variable)
 			sb.WriteString(val)
 		case IfToken:
-			// Implementation for conditional rendering will go here
+			// implementation for conditional rendering will go here
 		case ElseToken, IfEndToken:
-			// Handle else and end tokens as part of conditionals
+			// handle else and end tokens as part of conditionals
 		case FilteredVariableToken:
-			// Filters handling will be implemented here
+			// filters handling will be implemented here
 		default:
 		}
 	}
@@ -74,9 +72,9 @@ func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error
 			}
 			return variable, nil
 		case IfToken:
-			// Implementation for conditional rendering will go here
+			// implementation for conditional rendering will go here
 		case ElseToken, IfEndToken:
-			// Handle else and end tokens as part of conditionals
+			// handle else and end tokens as part of conditionals
 		default:
 		}
 	}
@@ -86,19 +84,19 @@ func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error
 
 // RenderVariable renders a single variable token.
 func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, error) {
-	log.Debug("rendering variable", "token", token.Raw(), "type", token.Type(), "vars", vars)
+	// log.Debug("rendering variable", "token", token.Raw(), "type", token.Type(), "vars", vars)
 	if token.Type() == TextToken {
 		return token.Raw(), nil
 	}
 	
 	if token.Type() != VariableToken && token.Type() != FilteredVariableToken {
-		return nil, fmt.Errorf("invalid token type: %d: %s", token.Type(), token.Raw())
+		return nil, fmt.Errorf("%w: %d: %s", ErrInvalidTokenType, token.Type(), token.Raw())
 	}
 	
 	if token.Type() == VariableToken {
 		varValue, ok := vars[token.Raw()]
 		if !ok {
-			return nil, fmt.Errorf("plain variable '%s' not found", token.Raw())
+			return nil, fmt.Errorf("%w: %s", ErrVariableNotFound, token.Raw())
 		}
 		
 		switch val := varValue.(type) {
@@ -127,7 +125,7 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 		// only return an error if there are no functions to apply
 		// if there are functions to apply, we can assume that the variable can be optional e.g. using "default" function
 		if !hasFunctionsToApply {
-			return nil, fmt.Errorf("variable '%s' does not exist", varName)
+			return nil, fmt.Errorf("%w: %s", ErrVariableNotFound, varName)
 		}
 	}
 	
@@ -139,9 +137,7 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 		// get the function
 		function, ok := r.funcs[fn.Name]
 		if !ok {
-			err := fmt.Errorf("function '%s' not found", fn.Name)
-			// log.Err(err).Interface("args", fn.Args).Msg("")
-			return nil, err
+			return nil, fmt.Errorf("%w: %s", ErrFunctionNotFound, fn.Name)
 		}
 		
 		// log.Trace().
@@ -154,9 +150,7 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 		// apply the function
 		newVarValueAfterFunctions, err := function(varValue, fn.Args)
 		if err != nil {
-			err = fmt.Errorf("failed to apply function '%s': %w", fn.Name, err)
-			// log.Err(err).Interface("args", fn.Args).Msg("")
-			return nil, err
+			return nil, fmt.Errorf("%w: %s", ErrFunctionApplyFailed, err)
 		}
 		
 		varValue = newVarValueAfterFunctions
@@ -214,7 +208,7 @@ func (r *StringRenderer) getVarAndFunctions(token Token) (string, []Func) {
 }
 
 func castToAny(args []string) []any {
-	if args == nil || len(args) == 0 {
+	if len(args) == 0 {
 		return make([]any, 0)
 	}
 	var result []any

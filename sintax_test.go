@@ -2,6 +2,7 @@ package sintax
 
 import (
 	"testing"
+	"time"
 	
 	"github.com/stretchr/testify/assert"
 	"github.com/toaweme/log"
@@ -10,50 +11,43 @@ import (
 func Test_Sintax_ResolveVariables(t *testing.T) {
 	type testCase struct {
 		name        string
-		systemVars  map[string]any
-		configVars  map[string]any
-		actionVars  map[string]any
-		outputVars  map[string]any
-		expected    map[string]any
-		expectedErr error
-	}
-	
-	testCases := []testCase{
-		{},
-	}
-	
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			s := New(BuiltinFunctions)
-			actual, err := s.ResolveVariables(tc.systemVars, tc.configVars, tc.actionVars, tc.outputVars)
-			if tc.expectedErr != nil {
-				assert.ErrorIs(t, err, tc.expectedErr)
-				return
-			}
-			assert.NoError(t, err)
-			log.Debug("actual", "vars", actual)
-			assert.Equal(t, tc.expected, actual)
-		})
-	}
-}
-
-func Test_Sintax_resolveVariables(t *testing.T) {
-	type testCase struct {
-		name        string
-		systemVars  map[string]any
 		vars        map[string]any
 		expected    map[string]any
 		expectedErr error
 	}
 	
+	now := time.Now()
+	formatted := now.Format("2006-01-02-15:04:05")
+	formattedDate := now.Format("2006-01-02")
+	
 	testCases := []testCase{
 		{
+			name: "interpolated variables",
+			vars: map[string]any{
+				"now":                 now,
+				"ext":                 "md",
+				"base_name":           `{{ now | format:"Y-m-d-H:i:s" }}`,
+				"output_file":         "data/daily/test-{{ base_name }}.{{ ext }}",
+				"output_file_content": `date: {{ now | format:"Y-m-d" }}`,
+				"path":                "{{ output_file }}",
+				"content":             "```shell\n{{ path }}\n{{ output_file_content }}```",
+			},
+			expected: map[string]any{
+				"now":                 now,
+				"ext":                 "md",
+				"base_name":           formatted,
+				"output_file":         "data/daily/test-" + formatted + ".md",
+				"output_file_content": "date: " + formattedDate,
+				"path":                "data/daily/test-" + formatted + ".md",
+				"content":             "```shell\ndata/daily/test-" + formatted + ".md\ndate: " + formattedDate + "```",
+			},
+		},
+		{
 			name: "no interpolated variables",
-			systemVars: map[string]any{
+			vars: map[string]any{
 				"key1": "value1",
 				"key2": "value2",
 			},
-			vars: map[string]any{},
 			expected: map[string]any{
 				"key1": "value1",
 				"key2": "value2",
@@ -61,14 +55,13 @@ func Test_Sintax_resolveVariables(t *testing.T) {
 		},
 		{
 			name: "inter-dependant interpolated variables",
-			systemVars: map[string]any{
+			vars: map[string]any{
 				"global1": "globalvalue1",
 				"global2": "globalvalue2",
-			},
-			vars: map[string]any{
-				"var1": "{{ global1 }}",
-				"var2": "v2-{{ var1 }}",
-				"var3": 50,
+				"var1":    "{{ global1 }}",
+				"var2":    "v2-{{ var1 }}",
+				"var3":    50,
+				"var4":    "{{ var2}}:{{ var3 }}",
 			},
 			expected: map[string]any{
 				"global1": "globalvalue1",
@@ -76,14 +69,13 @@ func Test_Sintax_resolveVariables(t *testing.T) {
 				"var1":    "globalvalue1",
 				"var2":    "v2-globalvalue1",
 				"var3":    50,
+				"var4":    "v2-globalvalue1:50",
 			},
 		},
 		{
 			name: "nested interpolation",
-			systemVars: map[string]any{
-				"host": "localhost",
-			},
 			vars: map[string]any{
+				"host":   "localhost",
 				"url":    "http://{{ host }}:8080",
 				"apiUrl": "{{ url }}/api",
 			},
@@ -94,8 +86,7 @@ func Test_Sintax_resolveVariables(t *testing.T) {
 			},
 		},
 		{
-			name:       "variable referencing itself (error case)",
-			systemVars: map[string]any{},
+			name: "variable referencing itself (error case)",
 			vars: map[string]any{
 				"self": "{{ self }}",
 			},
@@ -103,14 +94,12 @@ func Test_Sintax_resolveVariables(t *testing.T) {
 		},
 		{
 			name: "complex dependency tree",
-			systemVars: map[string]any{
-				"base": "root",
-			},
 			vars: map[string]any{
+				"base": "root",
+				"varD": "{{ varC }}-D",
 				"varA": "{{ base }}-A",
 				"varB": "{{ varA }}-B",
 				"varC": "{{ varB }}-C",
-				"varD": "{{ varC }}-D",
 			},
 			expected: map[string]any{
 				"base": "root",
@@ -121,8 +110,7 @@ func Test_Sintax_resolveVariables(t *testing.T) {
 			},
 		},
 		{
-			name:       "integer and boolean values",
-			systemVars: map[string]any{},
+			name: "integer and boolean values",
 			vars: map[string]any{
 				"intVar":       123,
 				"boolVar":      true,
@@ -140,17 +128,13 @@ func Test_Sintax_resolveVariables(t *testing.T) {
 		},
 		{
 			name: "vars override is not allowed",
-			systemVars: map[string]any{
-				"override": "original",
-			},
 			vars: map[string]any{
 				"override": "{{ override }}-modified",
 			},
 			expectedErr: ErrCircularDependency,
 		},
 		{
-			name:       "multi-level nested map",
-			systemVars: map[string]any{},
+			name: "multi-level nested map",
 			vars: map[string]any{
 				"level1": map[string]any{
 					"level2": map[string]any{
@@ -167,8 +151,7 @@ func Test_Sintax_resolveVariables(t *testing.T) {
 			},
 		},
 		{
-			name:       "empty variable values",
-			systemVars: map[string]any{},
+			name: "empty variable values",
 			vars: map[string]any{
 				"emptyString": "",
 				"nilValue":    nil,
@@ -183,7 +166,7 @@ func Test_Sintax_resolveVariables(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			s := New(BuiltinFunctions)
-			actual, err := s.resolveVariables(tc.systemVars, tc.vars)
+			actual, err := s.ResolveVariables(tc.vars)
 			if tc.expectedErr != nil {
 				assert.ErrorIs(t, err, tc.expectedErr)
 				return
