@@ -1,7 +1,6 @@
 package sintax
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -12,11 +11,11 @@ import (
 
 func Test_StringRenderer_RenderVariable(t *testing.T) {
 	type testCase struct {
-		name     string
-		token    Token
-		vars     map[string]any
-		expected string
-		err      error
+		name        string
+		token       Token
+		vars        map[string]any
+		expected    string
+		expectedErr error
 	}
 	
 	testCases := []testCase{
@@ -45,25 +44,25 @@ func Test_StringRenderer_RenderVariable(t *testing.T) {
 			expected: "13",
 		},
 		{
-			name:     "variable not found",
-			token:    BaseToken{TokenType: VariableToken, RawValue: "missing"},
-			vars:     map[string]any{"content": "Hello, World!"},
-			expected: "",
-			err:      errors.New("variable 'missing' not found"),
+			name:        "variable not found",
+			token:       BaseToken{TokenType: VariableToken, RawValue: "missing"},
+			vars:        map[string]any{"content": "Hello, World!"},
+			expected:    "",
+			expectedErr: ErrVariableNotFound,
 		},
 		{
-			name:     "invalid token type",
-			token:    BaseToken{TokenType: IfToken, RawValue: "condition"},
-			vars:     map[string]any{"content": "Hello, World!"},
-			expected: "",
-			err:      errors.New("invalid token type: 3: condition"),
+			name:        "invalid token type",
+			token:       BaseToken{TokenType: IfToken, RawValue: "condition"},
+			vars:        map[string]any{"content": "Hello, World!"},
+			expected:    "",
+			expectedErr: ErrInvalidTokenType,
 		},
 		{
-			name:     "invalid function",
-			token:    BaseToken{TokenType: FilteredVariableToken, RawValue: "content | invalid"},
-			vars:     map[string]any{"content": "Hello, World!"},
-			expected: "",
-			err:      errors.New("function 'invalid' not found"),
+			name:        "invalid function",
+			token:       BaseToken{TokenType: FilteredVariableToken, RawValue: "content | invalid"},
+			vars:        map[string]any{"content": "Hello, World!"},
+			expected:    "",
+			expectedErr: ErrFunctionNotFound,
 		},
 		{
 			// trim: "Hello, World!"
@@ -94,8 +93,8 @@ func Test_StringRenderer_RenderVariable(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := r.renderVariable(tt.token, tt.vars)
-			if tt.err != nil {
-				assert.Equal(t, err.Error(), tt.err.Error())
+			if tt.expectedErr != nil {
+				assert.ErrorIs(t, err, tt.expectedErr)
 				return
 			}
 			
