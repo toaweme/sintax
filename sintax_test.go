@@ -3,7 +3,7 @@ package sintax
 import (
 	"testing"
 	"time"
-
+	
 	"github.com/stretchr/testify/assert"
 	"github.com/toaweme/log"
 )
@@ -15,11 +15,11 @@ func Test_Sintax_ResolveVariables(t *testing.T) {
 		expected    map[string]any
 		expectedErr error
 	}
-
+	
 	now := time.Now()
 	formatted := now.Format("2006-01-02-15:04:05")
 	formattedDate := now.Format("2006-01-02")
-
+	
 	testCases := []testCase{
 		{
 			name: "var not found",
@@ -190,8 +190,52 @@ func Test_Sintax_ResolveVariables(t *testing.T) {
 				"nilValue":    nil,
 			},
 		},
+		{
+			name: "independent vars that falsely look like vars",
+			vars: map[string]any{
+				"a": "{ something | boop }}",
+				"b": "plain text",
+			},
+			expected: map[string]any{
+				"a": "{ something | boop }}",
+				"b": "plain text",
+			},
+		},
+		{
+			name: "independent vars that falsely look like vars",
+			vars: map[string]any{
+				"a": "{ something | boop }}}}",
+				"b": "plain text",
+			},
+			expected: map[string]any{
+				"a": "{ something | boop }}}}",
+				"b": "plain text",
+			},
+		},
+		{
+			name: "keeps JSON strings as is",
+			vars: map[string]any{
+				"a": `{"beep":"}} some {{ text"}`,
+				"b": "plain text",
+			},
+			expected: map[string]any{
+				"a": `{"beep":"}} some {{ text"}`,
+				"b": "plain text",
+			},
+		},
+		{
+			name: "keeps JSON strings as is",
+			vars: map[string]any{
+				"a": `{"beep":"}} some {{ text"}`,
+				"b": "plain text",
+			},
+			expected: map[string]any{
+				"a": `{"beep":"}} some {{ text"}`,
+				"b": "plain text",
+			},
+		},
 	}
-
+	
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			s := New(BuiltinFunctions)
@@ -213,10 +257,10 @@ func Test_Sintax_ResolveVariablesFunc(t *testing.T) {
 		expected    map[string]any
 		expectedErr error
 	}
-
+	
 	now := time.Now()
 	formatted := now.Format("2006-01-02-15:04:05")
-
+	
 	testCases := []testCase{
 		{
 			name: "interpolated variables",
@@ -247,7 +291,7 @@ func Test_Sintax_ResolveVariablesFunc(t *testing.T) {
 			},
 		},
 	}
-
+	
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			s := New(BuiltinFunctions)

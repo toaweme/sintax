@@ -7,72 +7,84 @@ import (
 	"unicode"
 )
 
-type StringParser struct{}
+type StringParser struct {
+	opener string
+	closer string
+}
 
 func NewStringParser() *StringParser {
-	return &StringParser{}
+	return &StringParser{
+		opener: "{{",
+		closer: "}}",
+	}
 }
 
 var _ Parser = (*StringParser)(nil)
-
-// start of a token
-const opener = '{'
-const closer = '}'
 
 func (p *StringParser) ParseVariable(s string) ([]Token, error) {
 	tokens, err := p.Parse(s)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse variable: %w", err)
 	}
-
+	
 	return tokens, nil
 }
 
 func (p *StringParser) Parse(template string) ([]Token, error) {
-	if !strings.ContainsRune(template, opener) && !strings.ContainsRune(template, closer) {
-		return []Token{BaseToken{TokenType: TextToken, RawValue: template}}, nil
-	}
-
-	var sb = &strings.Builder{}
 	var tokens []Token
-	startIndex := -1
-
+	
 	i := 0
-	totalRunes := len(template)
-	for i < totalRunes {
-		char := template[i]
-
-		if char == opener && peek(template, i) == opener {
-			if sb.Len() > 0 {
-				tokens = append(tokens, BaseToken{TokenType: TextToken, RawValue: sb.String()})
-				sb.Reset()
+	for {
+		// find the next occurrence of `opener`
+		openerIndex := strings.Index(template[i:], p.opener)
+		if openerIndex == -1 {
+			// no more `opener` in the substring; treat the rest as text
+			if i < len(template) {
+				tokens = append(tokens, BaseToken{
+					TokenType: TextToken,
+					RawValue:  template[i:],
+				})
 			}
-
-			afterOpeningIndex := p.skipWhitespace(template, i+2)
-
-			i = afterOpeningIndex
-			startIndex = i
-			sb.Reset()
-			continue
-		} else if char == closer && peek(template, i) == closer {
-			contents := template[startIndex:i]
-			token := p.createToken(p.detectTokenType(contents), contents)
-			tokens = append(tokens, token)
-			i = i + 2
-			startIndex = -1
-			continue
-		} else if startIndex == -1 {
-			sb.WriteByte(char)
+			break
 		}
-		i++
+		
+		// adjust to absolute index from the slice-based Index
+		openerIndex += i
+		
+		// everything before opener is text
+		if openerIndex > i {
+			tokens = append(tokens, BaseToken{
+				TokenType: TextToken,
+				RawValue:  template[i:openerIndex],
+			})
+		}
+		
+		// find the next occurrence of `closer`, after the opener
+		startOfInner := openerIndex + len(p.opener)
+		closerIndex := strings.Index(template[startOfInner:], p.closer)
+		if closerIndex == -1 {
+			// no matching closer found: might treat the rest of the string as text
+			tokens = append(tokens, BaseToken{
+				TokenType: TextToken,
+				RawValue:  template[openerIndex:], // everything from opener
+			})
+			break
+		}
+		
+		// adjust to absolute index
+		closerIndex += startOfInner
+		
+		// extract the substring (contents) between opener and closer
+		contents := template[startOfInner:closerIndex]
+		
+		// create the appropriate token
+		tokenType := p.detectTokenType(contents)
+		tokens = append(tokens, p.createToken(tokenType, contents))
+		
+		// move `i` beyond the closer
+		i = closerIndex + len(p.closer)
 	}
-
-	// if there's any text left in the buffer, add it as a text token
-	if sb.Len() > 0 {
-		tokens = append(tokens, BaseToken{TokenType: TextToken, RawValue: sb.String()})
-		sb.Reset()
-	}
-
+	
 	return tokens, nil
 }
 
@@ -80,7 +92,7 @@ func (p *StringParser) skipWhitespace(s string, i int) int {
 	for i < len(s) && unicode.IsSpace(rune(s[i])) {
 		i++
 	}
-
+	
 	return i
 }
 
@@ -96,7 +108,7 @@ func (p *StringParser) isVariable(s string) bool {
 
 func (p *StringParser) detectTokenType(s string) TokenType {
 	s = strings.TrimSpace(s)
-
+	
 	if strings.HasPrefix(s, "if") {
 		return IfToken
 	} else if strings.HasPrefix(s, "/if") {
@@ -110,7 +122,7 @@ func (p *StringParser) detectTokenType(s string) TokenType {
 	} else if strings.Contains(s, "|") {
 		return FilteredVariableToken
 	}
-
+	
 	return UndefinedToken
 }
 
@@ -147,11 +159,4 @@ func (p *StringParser) createToken(tokenType TokenType, value string) Token {
 	default:
 		return BaseToken{TextToken, value, value}
 	}
-}
-
-func peek(s string, i int) byte {
-	if i+1 < len(s) {
-		return s[i+1]
-	}
-	return 0
 }
