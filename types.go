@@ -18,12 +18,11 @@ type Parser interface {
 }
 
 type Renderer interface {
-	RenderString(tokens []Token, vars map[string]any) (string, error)
 	Render(tokens []Token, vars map[string]any) (any, error)
 }
 
 type Syntax interface {
 	// ResolveVariables resolves all variables in the given system, config, and action variables.
 	ResolveVariables(vars map[string]any) (map[string]any, error)
-	Render(input string, vars map[string]any) (string, error)
+	Render(input string, vars map[string]any) (any, error)
 }

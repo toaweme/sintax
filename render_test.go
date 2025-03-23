@@ -76,6 +76,20 @@ func Test_StringRenderer_RenderVariable(t *testing.T) {
 			vars:     map[string]any{"content": "Hello"},
 			expected: "Hello",
 		},
+		{
+			name: "pick key function",
+			token: BaseToken{
+				TokenType: FilteredVariableToken,
+				RawValue:  "mapping | key:content",
+				Var:       "content",
+			},
+			vars: map[string]any{
+				"mapping": map[string]any{
+					"content": "Hello",
+				},
+			},
+			expected: "Hello",
+		},
 	}
 
 	r := NewStringRenderer(BuiltinFunctions)
@@ -323,11 +337,7 @@ func Test_StringRenderer_getVarAndFunctions(t *testing.T) {
 		},
 	}
 
-	r := NewStringRenderer(map[string]GlobalModifier{
-		"trim":    trim,
-		"shorten": shorten,
-		"length":  length,
-	})
+	r := NewStringRenderer(BuiltinFunctions)
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {

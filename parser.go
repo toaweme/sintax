@@ -26,13 +26,13 @@ func (p *StringParser) ParseVariable(s string) ([]Token, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse variable: %w", err)
 	}
-	
+
 	return tokens, nil
 }
 
 func (p *StringParser) Parse(template string) ([]Token, error) {
 	var tokens []Token
-	
+
 	i := 0
 	for {
 		// find the next occurrence of `opener`
@@ -47,10 +47,10 @@ func (p *StringParser) Parse(template string) ([]Token, error) {
 			}
 			break
 		}
-		
+
 		// adjust to absolute index from the slice-based Index
 		openerIndex += i
-		
+
 		// everything before opener is text
 		if openerIndex > i {
 			tokens = append(tokens, BaseToken{
@@ -58,7 +58,7 @@ func (p *StringParser) Parse(template string) ([]Token, error) {
 				RawValue:  template[i:openerIndex],
 			})
 		}
-		
+
 		// find the next occurrence of `closer`, after the opener
 		startOfInner := openerIndex + len(p.opener)
 		closerIndex := strings.Index(template[startOfInner:], p.closer)
@@ -70,21 +70,21 @@ func (p *StringParser) Parse(template string) ([]Token, error) {
 			})
 			break
 		}
-		
+
 		// adjust to absolute index
 		closerIndex += startOfInner
-		
+
 		// extract the substring (contents) between opener and closer
 		contents := template[startOfInner:closerIndex]
-		
+
 		// create the appropriate token
 		tokenType := p.detectTokenType(contents)
 		tokens = append(tokens, p.createToken(tokenType, contents))
-		
+
 		// move `i` beyond the closer
 		i = closerIndex + len(p.closer)
 	}
-	
+
 	return tokens, nil
 }
 
@@ -92,7 +92,7 @@ func (p *StringParser) skipWhitespace(s string, i int) int {
 	for i < len(s) && unicode.IsSpace(rune(s[i])) {
 		i++
 	}
-	
+
 	return i
 }
 
@@ -108,7 +108,7 @@ func (p *StringParser) isVariable(s string) bool {
 
 func (p *StringParser) detectTokenType(s string) TokenType {
 	s = strings.TrimSpace(s)
-	
+
 	if strings.HasPrefix(s, "if") {
 		return IfToken
 	} else if strings.HasPrefix(s, "/if") {
@@ -122,7 +122,7 @@ func (p *StringParser) detectTokenType(s string) TokenType {
 	} else if strings.Contains(s, "|") {
 		return FilteredVariableToken
 	}
-	
+
 	return UndefinedToken
 }
 

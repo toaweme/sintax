@@ -26,33 +26,38 @@ func NewStringRenderer(funcs map[string]GlobalModifier) *StringRenderer {
 
 // RenderString renders the template based on the parsed tokens.
 func (r *StringRenderer) RenderString(tokens []Token, vars map[string]any) (string, error) {
-	var sb strings.Builder
+	var str strings.Builder
 
 	for _, token := range tokens {
 		switch token.Type() {
 		case TextToken:
-			sb.WriteString(token.Raw())
-		case VariableToken:
+			str.WriteString(token.Raw())
+		case VariableToken, FilteredVariableToken:
 			variable, err := r.renderVariable(token, vars)
 			if err != nil {
-				return "", fmt.Errorf("failed to render variable: %w", err)
+				return "", fmt.Errorf("failed to render variable token '%s': %w", token.Name(), err)
 			}
-			val := fmt.Sprintf("%v", variable)
-			sb.WriteString(val)
+			if val, ok := variable.(string); ok {
+				str.WriteString(val)
+				continue
+			} else if val, ok := variable.(bool); ok {
+				str.WriteString(fmt.Sprintf("%t", val))
+				continue
+			}
+			return str.String(), nil
 		case IfToken:
 			// implementation for conditional rendering will go here
 		case ElseToken, IfEndToken:
 			// handle else and end tokens as part of conditionals
-		case FilteredVariableToken:
-			// filters handling will be implemented here
 		default:
 		}
 	}
 
-	return sb.String(), nil
+	return str.String(), nil
 }
 
 func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error) {
+	// log.Trace("render", "tokens", tokens, "vars", vars)
 	var str strings.Builder
 	for _, token := range tokens {
 		switch token.Type() {

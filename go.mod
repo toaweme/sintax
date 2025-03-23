@@ -7,7 +7,7 @@ toolchain go1.24.0
 require (
 	github.com/stretchr/testify v1.10.0
 	github.com/toaweme/date v0.0.0-20250311202441-afef78f67dac
-	github.com/toaweme/log v0.0.0-20250313020138-3757101ac5cf
+	github.com/toaweme/log v0.0.0-20250321184815-08602ebb4ec5
 	gopkg.in/yaml.v3 v3.0.1
 )
 

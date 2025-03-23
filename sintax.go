@@ -23,6 +23,11 @@ func NewWith(parser Parser, render Renderer) *Sintax {
 }
 
 func (sm *Sintax) ResolveVariables(vars map[string]any) (map[string]any, error) {
+	resolve, err := sm.resolve(vars)
+	return resolve, err
+}
+
+func (sm *Sintax) resolve(vars map[string]any) (map[string]any, error) {
 	resolvedVars := make(map[string]any)
 	missingInterpolatedVars := make(map[string]any)
 	dependencyGraph := make(map[string][]string)
@@ -101,13 +106,18 @@ func (sm *Sintax) ResolveVariables(vars map[string]any) (map[string]any, error) 
 	return resolvedVars, nil
 }
 
-func (sm *Sintax) Render(input string, vars map[string]any) (string, error) {
+func (sm *Sintax) Render(input string, vars map[string]any) (any, error) {
+	resolvedVars, err := sm.ResolveVariables(vars)
+	if err != nil {
+		return "", err
+	}
+
 	tokens, err := sm.parser.Parse(input)
 	if err != nil {
 		return "", fmt.Errorf("%w: %s", ErrParseFailed, err)
 	}
 
-	render, err := sm.render.RenderString(tokens, vars)
+	render, err := sm.render.Render(tokens, resolvedVars)
 	if err != nil {
 		return "", fmt.Errorf("%w: %s", ErrRenderFailed, err)
 	}

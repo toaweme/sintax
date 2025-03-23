@@ -2,7 +2,7 @@ package sintax
 
 import (
 	"testing"
-	
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +13,7 @@ func Test_Parser_Parse(t *testing.T) {
 		expected []Token
 		err      error
 	}
-	
+
 	testCases := []testCase{
 		{
 			name:  "basic conditional",
@@ -64,9 +64,9 @@ func Test_Parser_Parse(t *testing.T) {
 			},
 		},
 	}
-	
+
 	p := NewStringParser()
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := p.Parse(tc.input)
@@ -83,7 +83,7 @@ func Test_Parser_ParseVariable(t *testing.T) {
 		expected []Token
 		err      error
 	}
-	
+
 	testCases := []testCase{
 		{
 			name:  "basic variable",
@@ -107,9 +107,9 @@ func Test_Parser_ParseVariable(t *testing.T) {
 			},
 		},
 	}
-	
+
 	p := NewStringParser()
-	
+
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			tokens, err := p.ParseVariable(tt.input)
