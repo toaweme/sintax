@@ -3,7 +3,7 @@ package sintax
 import (
 	"testing"
 	"time"
-
+	
 	"github.com/stretchr/testify/assert"
 	"github.com/toaweme/log"
 )
@@ -15,11 +15,11 @@ func Test_Sintax_ResolveVariables(t *testing.T) {
 		expected    map[string]any
 		expectedErr error
 	}
-
+	
 	now := time.Now()
 	formatted := now.Format("2006-01-02-15:04:05")
 	formattedDate := now.Format("2006-01-02")
-
+	
 	testCases := []testCase{
 		{
 			name: "var not found",
@@ -235,7 +235,7 @@ func Test_Sintax_ResolveVariables(t *testing.T) {
 			},
 		},
 	}
-
+	
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			s := New(BuiltinFunctions)
@@ -257,10 +257,10 @@ func Test_Sintax_ResolveVariablesFunc(t *testing.T) {
 		expected    map[string]any
 		expectedErr error
 	}
-
+	
 	now := time.Now()
 	formatted := now.Format("2006-01-02-15:04:05")
-
+	
 	testCases := []testCase{
 		{
 			name: "interpolated variables",
@@ -290,47 +290,47 @@ func Test_Sintax_ResolveVariablesFunc(t *testing.T) {
 				"varD": "root-A-B-C-D",
 			},
 		},
-		// {
-		// 	name: "nested dependency tree with filters",
-		// 	vars: map[string]any{
-		// 		"base_url": "http://localhost:8080",
-		// 		"url":      "{{ base_url }}/endpoint",
-		// 		"method":   "POST",
-		// 		"body":     "{{ body_map | json }}",
-		// 		"obj": map[string]any{
-		// 			"id":       "xkcd",
-		// 			"title":    "some title",
-		// 			"currency": "USD",
-		// 		},
-		// 		"body_map": map[string]any{
-		// 			"title":       "{{ obj | key:title }} {{ obj | key:currency | default:USD }}",
-		// 			"ai_model":    "{{ obj | key:id }}",
-		// 			"cost_input":  11,
-		// 			"cost_output": 22,
-		// 			"cost_cached": false,
-		// 		},
-		// 	},
-		// 	expected: map[string]any{
-		// 		"base_url": "http://localhost:8080",
-		// 		"url":      "http://localhost:8080/endpoint",
-		// 		"method":   "POST",
-		// 		"body":     `{"title":"some title USD","ai_model":"xkcd","cost_input":11,"cost_output":22,"cost_cached":false}`,
-		// 		"obj": map[string]any{
-		// 			"id":       "xkcd",
-		// 			"title":    "some title",
-		// 			"currency": "USD",
-		// 		},
-		// 		"body_map": map[string]any{
-		// 			"title":       "some title USD",
-		// 			"ai_model":    "xkcd",
-		// 			"cost_input":  11,
-		// 			"cost_output": 22,
-		// 			"cost_cached": false,
-		// 		},
-		// 	},
-		// },
+		{
+			name: "nested dependency tree with filters",
+			vars: map[string]any{
+				"base_url": "http://localhost:8080",
+				"url":      "{{ base_url }}/endpoint",
+				"method":   "POST",
+				"body":     "{{ body_map | json }}",
+				"obj": map[string]any{
+					"id":       "xkcd",
+					"title":    "some title",
+					"currency": "USD",
+				},
+				"body_map": map[string]any{
+					"title":       "{{ obj | key:title }} {{ obj | key:currency | default:USD }}",
+					"ai_model":    "{{ obj | key:id }}",
+					"cost_input":  11,
+					"cost_output": 22,
+					"cost_cached": false,
+				},
+			},
+			expected: map[string]any{
+				"base_url": "http://localhost:8080",
+				"url":      "http://localhost:8080/endpoint",
+				"method":   "POST",
+				"body":     `{"ai_model":"xkcd","cost_cached":false,"cost_input":11,"cost_output":22,"title":"some title USD"}`,
+				"obj": map[string]any{
+					"id":       "xkcd",
+					"title":    "some title",
+					"currency": "USD",
+				},
+				"body_map": map[string]any{
+					"title":       "some title USD",
+					"ai_model":    "xkcd",
+					"cost_input":  11,
+					"cost_output": 22,
+					"cost_cached": false,
+				},
+			},
+		},
 	}
-
+	
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			s := New(BuiltinFunctions)
@@ -353,7 +353,7 @@ func Test_Sintax_Render(t *testing.T) {
 		expected    string
 		expectedErr error
 	}
-
+	
 	testCases := []testCase{
 		{
 			name:  "key func render",
@@ -366,7 +366,7 @@ func Test_Sintax_Render(t *testing.T) {
 			expected: "Hello",
 		},
 	}
-
+	
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			s := New(BuiltinFunctions)
