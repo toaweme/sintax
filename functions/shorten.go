@@ -5,8 +5,8 @@ import (
 	"strconv"
 )
 
-var Shorten = func(s any, args []any) (any, error) {
-	str, ok := s.(string)
+var Shorten = func(value any, args []any) (any, error) {
+	str, ok := value.(string)
 	if !ok {
 		return "", fmt.Errorf("shorten requires a text argument")
 	}

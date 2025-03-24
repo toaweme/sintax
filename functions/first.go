@@ -2,8 +2,8 @@ package functions
 
 import "fmt"
 
-func First(val any, params []any) (any, error) {
-	switch v := val.(type) {
+func First(value any, params []any) (any, error) {
+	switch v := value.(type) {
 	case string:
 		if len(v) > 0 {
 			return string(v[0]), nil
@@ -18,5 +18,5 @@ func First(val any, params []any) (any, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("first function expected a non-empty string or bytes or slice, got %T", val)
+	return nil, fmt.Errorf("first function expected a non-empty string or bytes or slice, got %T", value)
 }

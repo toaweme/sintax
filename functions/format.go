@@ -7,8 +7,8 @@ import (
 	"github.com/toaweme/date"
 )
 
-func Format(val any, params []any) (any, error) {
-	switch timeValue := val.(type) {
+func Format(value any, params []any) (any, error) {
+	switch timeValue := value.(type) {
 	case string:
 		return timeValue, nil
 	case time.Time:
@@ -28,5 +28,5 @@ func Format(val any, params []any) (any, error) {
 		return timeValue.Format(goDateFormat), nil
 	}
 
-	return nil, fmt.Errorf("format function expected string or time.Time, got %T", val)
+	return nil, fmt.Errorf("format function expected string or time.Time, got %T", value)
 }

@@ -1,5 +1,5 @@
 package functions
 
-var Not = func(s any, _ []any) (any, error) {
-	return ConditionIsTrue(s) == false, nil
+var Not = func(value any, _ []any) (any, error) {
+	return ConditionIsTrue(value) == false, nil
 }

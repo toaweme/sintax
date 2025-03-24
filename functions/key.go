@@ -5,11 +5,11 @@ import (
 	"strings"
 )
 
-func Key(val any, params []any) (any, error) {
+func Key(value any, params []any) (any, error) {
 	// We only handle maps in this function
-	m, ok := val.(map[string]any)
+	m, ok := value.(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("key function expected map, got %T", val)
+		return nil, fmt.Errorf("key function expected map, got %T", value)
 	}
 
 	// We need at least one parameter for the key name

@@ -1,21 +1,15 @@
 package functions
 
-import (
-	"fmt"
-	
-	"github.com/toaweme/log"
-)
-
 func isParam(params []any, index int, name string) bool {
 	if len(params) <= index {
 		return false
 	}
-	
+
 	return params[index] == name
 }
 
 func ConditionIsTrue(condition any) bool {
-	log.Error("ConditionIsTrue", "value", condition, "type", fmt.Sprintf("%T", condition))
+	// log.Error("ConditionIsTrue", "value", condition, "type", fmt.Sprintf("%T", condition))
 	if condition == nil {
 		return false
 	}

@@ -4,7 +4,7 @@ import (
 	"github.com/toaweme/sintax/functions"
 )
 
-type GlobalModifier func(val any, params []any) (any, error)
+type GlobalModifier func(value any, params []any) (any, error)
 
 var BuiltinFunctions = map[string]GlobalModifier{
 	"format":  functions.Format,
@@ -22,4 +22,5 @@ var BuiltinFunctions = map[string]GlobalModifier{
 	"key":     functions.Key,
 	"not":     functions.Not,
 	"concat":  functions.Concat,
+	"wrap":    functions.Wrap,
 }

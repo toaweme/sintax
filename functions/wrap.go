@@ -1,14 +1,18 @@
 package functions
 
-import "strings"
+import (
+	"fmt"
+)
 
-var Wrap = func(s any, params []any) (any, error) {
-
-	switch v := s.(type) {
-	case string:
-		return strings.TrimSpace(v), nil
-	case []byte:
-		return []byte(strings.TrimSpace(string(v))), nil
+var Wrap = func(value any, params []any) (any, error) {
+	if len(params) == 0 {
+		return nil, fmt.Errorf("wrap requires at least one parameter")
 	}
-	return s, nil
+
+	key := ""
+	switch v := params[0].(type) {
+	case string:
+		key = v
+	}
+	return map[string]any{key: value}, nil
 }
