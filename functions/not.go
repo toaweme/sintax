@@ -1,5 +1,5 @@
 package functions
 
 var Not = func(s any, _ []any) (any, error) {
-	return !ConditionIsTrue(s), nil
+	return ConditionIsTrue(s) == false, nil
 }

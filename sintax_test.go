@@ -3,7 +3,7 @@ package sintax
 import (
 	"testing"
 	"time"
-	
+
 	"github.com/stretchr/testify/assert"
 	"github.com/toaweme/log"
 )
@@ -15,11 +15,11 @@ func Test_Sintax_ResolveVariables(t *testing.T) {
 		expected    map[string]any
 		expectedErr error
 	}
-	
+
 	now := time.Now()
 	formatted := now.Format("2006-01-02-15:04:05")
 	formattedDate := now.Format("2006-01-02")
-	
+
 	testCases := []testCase{
 		{
 			name: "var not found",
@@ -235,7 +235,7 @@ func Test_Sintax_ResolveVariables(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			s := New(BuiltinFunctions)
@@ -257,10 +257,10 @@ func Test_Sintax_ResolveVariablesFunc(t *testing.T) {
 		expected    map[string]any
 		expectedErr error
 	}
-	
+
 	now := time.Now()
 	formatted := now.Format("2006-01-02-15:04:05")
-	
+
 	testCases := []testCase{
 		{
 			name: "interpolated variables",
@@ -330,7 +330,7 @@ func Test_Sintax_ResolveVariablesFunc(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			s := New(BuiltinFunctions)
@@ -353,7 +353,7 @@ func Test_Sintax_Render(t *testing.T) {
 		expected    string
 		expectedErr error
 	}
-	
+
 	testCases := []testCase{
 		{
 			name:  "key func render",
@@ -366,7 +366,7 @@ func Test_Sintax_Render(t *testing.T) {
 			expected: "Hello",
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			s := New(BuiltinFunctions)
