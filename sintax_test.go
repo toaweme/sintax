@@ -303,8 +303,8 @@ func Test_Sintax_ResolveVariablesFunc(t *testing.T) {
 					"currency": "USD",
 				},
 				"body_map": map[string]any{
-					"title":       "{{ obj | key:title }} {{ obj | key:currency | default:USD }}",
-					"ai_model":    "{{ obj | key:id }}",
+					"title":       `{{ obj | key:'title' }} {{ obj | key:'currency' | default:'USD' }}`,
+					"ai_model":    "{{ obj | key:'id' }}",
 					"cost_input":  11,
 					"cost_output": 22,
 					"cost_cached": false,
@@ -326,6 +326,49 @@ func Test_Sintax_ResolveVariablesFunc(t *testing.T) {
 					"cost_input":  11,
 					"cost_output": 22,
 					"cost_cached": false,
+				},
+			},
+		},
+		{
+			name: "nested dependency tree with filters",
+			vars: map[string]any{
+				"base_url": "http://localhost:8080",
+				"url":      "{{ base_url }}/endpoint",
+				"method":   "POST",
+				"body":     "{{ body_map | json }}",
+				"obj": map[string]any{
+					"id":       "xkcd",
+					"title":    "some title",
+					"currency": "USD",
+				},
+				"body_map": map[string]any{
+					"data": map[string]any{
+						"title":       `{{ obj | key:'title' }} {{ obj | key:'currency' | default:'USD' }}`,
+						"ai_model":    "{{ obj | key:'id' }}",
+						"cost_input":  11,
+						"cost_output": 22,
+						"cost_cached": false,
+					},
+				},
+			},
+			expected: map[string]any{
+				"base_url": "http://localhost:8080",
+				"url":      "http://localhost:8080/endpoint",
+				"method":   "POST",
+				"body":     `{"data":{"ai_model":"xkcd","cost_cached":false,"cost_input":11,"cost_output":22,"title":"some title USD"}}`,
+				"obj": map[string]any{
+					"id":       "xkcd",
+					"title":    "some title",
+					"currency": "USD",
+				},
+				"body_map": map[string]any{
+					"data": map[string]any{
+						"title":       "some title USD",
+						"ai_model":    "xkcd",
+						"cost_input":  11,
+						"cost_output": 22,
+						"cost_cached": false,
+					},
 				},
 			},
 		},
@@ -357,7 +400,7 @@ func Test_Sintax_Render(t *testing.T) {
 	testCases := []testCase{
 		{
 			name:  "key func render",
-			input: `{{ mapping | key:content }}`,
+			input: `{{ mapping | key:'content' }}`,
 			vars: map[string]any{
 				"mapping": map[string]any{
 					"content": "Hello",

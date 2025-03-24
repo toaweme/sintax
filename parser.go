@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"unicode"
 )
 
 type StringParser struct {
@@ -86,14 +85,6 @@ func (p *StringParser) Parse(template string) ([]Token, error) {
 	}
 
 	return tokens, nil
-}
-
-func (p *StringParser) skipWhitespace(s string, i int) int {
-	for i < len(s) && unicode.IsSpace(rune(s[i])) {
-		i++
-	}
-
-	return i
 }
 
 // regex check if it's a valid variable name

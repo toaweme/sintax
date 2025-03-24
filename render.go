@@ -2,12 +2,18 @@ package sintax
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
+type Arg struct {
+	Value any
+	Var   bool
+}
+
 type Func struct {
 	Name string
-	Args []any
+	Args []Arg
 }
 
 // StringRenderer handles rendering templates with a given context.
@@ -144,8 +150,21 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 			return nil, fmt.Errorf("%w: %s", ErrFunctionNotFound, fn.Name)
 		}
 
+		args := make([]any, len(fn.Args))
+		for i, arg := range fn.Args {
+			if arg.Var {
+				argValue, ok := vars[arg.Value.(string)]
+				if !ok {
+					return nil, fmt.Errorf("%w: %s", ErrVariableNotFound, arg.Value)
+				}
+				args[i] = argValue
+			} else {
+				args[i] = arg.Value
+			}
+		}
+
 		// apply the function
-		newVarValueAfterFunctions, err := function(varValue, fn.Args)
+		newVarValueAfterFunctions, err := function(varValue, args)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %s", ErrFunctionApplyFailed, err)
 		}
@@ -179,37 +198,65 @@ func (r *StringRenderer) getVarAndFunctions(token Token) (string, []Func) {
 		}
 
 		// split args respecting quotes
-		args := splitRespectingQuotes(argsStr, ",")
-		for i, arg := range args {
+		rawArgs := splitRespectingQuotes(argsStr, ",")
+		args := make([]Arg, len(rawArgs))
+
+		for i, arg := range rawArgs {
 			// unquote and unescape arguments, but only once and only if they are quoted with the same character
 			// "'arg'" -> 'arg'
 			// '"arg"' -> "arg"
 
 			if isQuotedWith(arg, `"`) {
-				args[i] = unquote(arg, `"`)
+				args[i] = Arg{Value: unquote(arg, `"`)}
 				continue
 			}
 			if isQuotedWith(arg, `'`) {
-				args[i] = unquote(arg, `'`)
+				args[i] = Arg{Value: unquote(arg, `'`)}
 				continue
 			}
+
+			if num, ok := isInt(arg); ok {
+				args[i] = Arg{Value: num}
+				continue
+			}
+
+			if num, ok := isFloat(arg); ok {
+				args[i] = Arg{Value: num}
+				continue
+			}
+
+			if b, ok := isBool(arg); ok {
+				args[i] = Arg{Value: b}
+				continue
+			}
+
+			args[i] = Arg{Value: arg, Var: true}
 		}
 
-		funcs = append(funcs, Func{Name: fn, Args: castToAny(args)})
+		funcs = append(funcs, Func{Name: fn, Args: args})
 	}
 
 	return varName, funcs
 }
 
-func castToAny(args []string) []any {
-	if len(args) == 0 {
-		return make([]any, 0)
+func isInt(s string) (int, bool) {
+	i, err := strconv.Atoi(s)
+	return i, err == nil
+}
+
+func isFloat(s string) (float64, bool) {
+	f, err := strconv.ParseFloat(s, 64)
+	return f, err == nil
+}
+
+func isBool(s string) (bool, bool) {
+	if s == "true" || s == "yes" {
+		return true, true
 	}
-	var result []any
-	for _, arg := range args {
-		result = append(result, arg)
+	if s == "false" || s == "no" {
+		return false, true
 	}
-	return result
+	return false, false
 }
 
 // unquote removes surrounding quotes from a string and unescapes internal quotes
