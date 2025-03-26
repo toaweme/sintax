@@ -1,6 +1,46 @@
 package functions
 
-func isParam(params []any, index int, name string) bool {
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
+
+func ParamString(params []any, index int) (string, error) {
+	if len(params) <= index {
+		return "", fmt.Errorf("missing parameter at index %d", index)
+	}
+
+	v, ok := params[index].(string)
+	if !ok {
+		return "", fmt.Errorf("expected string at index %d, got %T", index, params[index])
+	}
+
+	return v, nil
+}
+
+func ParamAny(params []any, index int) (any, error) {
+	if len(params) <= index {
+		return nil, fmt.Errorf("missing parameter at index %d", index)
+	}
+
+	return params[index], nil
+}
+
+func ParamInt(params []any, index int) (int, error) {
+	if len(params) <= index {
+		return 0, fmt.Errorf("missing parameter at index %d", index)
+	}
+
+	v, ok := params[index].(int)
+	if !ok {
+		return 0, fmt.Errorf("expected int at index %d, got %T", index, params[index])
+	}
+
+	return v, nil
+}
+
+func IsParam(params []any, index int, name string) bool {
 	if len(params) <= index {
 		return false
 	}
@@ -9,7 +49,6 @@ func isParam(params []any, index int, name string) bool {
 }
 
 func ConditionIsTrue(condition any) bool {
-	// log.Error("ConditionIsTrue", "value", condition, "type", fmt.Sprintf("%T", condition))
 	if condition == nil {
 		return false
 	}
@@ -21,6 +60,9 @@ func ConditionIsTrue(condition any) bool {
 		// in cases where variable is boolean, we render true/false
 		if v == "false" {
 			return false
+		}
+		if v == "true" {
+			return true
 		}
 		return len(v) > 0
 	case int:
@@ -49,5 +91,41 @@ func ConditionIsTrue(condition any) bool {
 		return v > 0
 	default:
 		return false
+	}
+}
+
+func ConvertNumbersJSON(v any) any {
+	switch vv := v.(type) {
+	case map[string]any:
+		for k, val := range vv {
+			vv[k] = ConvertNumbersJSON(val)
+		}
+		return vv
+
+	case []any:
+		for i, val := range vv {
+			vv[i] = ConvertNumbersJSON(val)
+		}
+		return vv
+
+	case json.Number:
+		s := vv.String()
+		if strings.ContainsAny(s, ".eE") {
+			f, err := vv.Float64()
+			if err == nil {
+				return f
+			}
+			return vv
+		} else {
+			i, err := vv.Int64()
+			if err == nil {
+				return i
+			}
+			return vv
+		}
+
+	default:
+		// Non-number types remain unchanged
+		return v
 	}
 }

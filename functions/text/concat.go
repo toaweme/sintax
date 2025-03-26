@@ -1,4 +1,4 @@
-package functions
+package text
 
 import (
 	"fmt"
@@ -6,14 +6,15 @@ import (
 )
 
 func Concat(value any, params []any) (any, error) {
-	joined := []string{}
+	joined := make([]string, 0)
+
 	switch v := value.(type) {
 	case string:
 		joined = append(joined, v)
 		for _, p := range params {
-			switch p := p.(type) {
+			switch pv := p.(type) {
 			case string:
-				joined = append(joined, p)
+				joined = append(joined, pv)
 			default:
 				return nil, fmt.Errorf("concat function expected string params, got %T", p)
 			}
