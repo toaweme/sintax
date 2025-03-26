@@ -337,11 +337,9 @@ func Test_StringRenderer_getVarAndFunctions(t *testing.T) {
 		},
 	}
 
-	r := NewStringRenderer(BuiltinFunctions)
-
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			varName, funcs := r.getVarAndFunctions(tt.token)
+			varName, funcs := getVarAndFunctions(tt.token)
 			assert.Equal(t, tt.expectedVarName, varName)
 			assert.Equal(t, tt.expectedFuncs, funcs)
 		})

@@ -4,6 +4,8 @@ import "errors"
 
 type Type string
 
+var ErrAllowsDefaultFunc = errors.New("non-fatal error")
+
 const (
 	TypeAny    Type = "any"
 	TypeString Type = "string"

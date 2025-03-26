@@ -2,8 +2,9 @@ package collections
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
+
+	"github.com/toaweme/sintax/functions"
 )
 
 func Key(value any, params []any) (any, error) {
@@ -15,18 +16,16 @@ func Key(value any, params []any) (any, error) {
 	case map[string]any:
 		return findKeyInMap(params, v)
 	case []any:
-		indexStr, ok := params[0].(string)
+		index, ok := params[0].(int)
 		if !ok {
-			return nil, fmt.Errorf("key function: index for slice must be a string")
-		}
-		index, err := strconv.Atoi(indexStr)
-		if err != nil {
-			return nil, fmt.Errorf("key function: invalid index %q for slice: %v", indexStr, err)
+			return nil, fmt.Errorf("key function: index for slice must be an int")
 		}
 		if index < 0 || index >= len(v) {
-			return nil, fmt.Errorf("key function: index %d out of range", index)
+			return nil, fmt.Errorf("%w: key function: index %d out of range", functions.ErrAllowsDefaultFunc, index)
 		}
 		return v[index], nil
+	case nil:
+		return nil, functions.ErrAllowsDefaultFunc
 	default:
 		return nil, fmt.Errorf("key function expected map or slice, got %T", value)
 	}

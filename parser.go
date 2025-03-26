@@ -136,18 +136,30 @@ func splitAndGetFirst(s string) string {
 func (p *StringParser) createToken(tokenType TokenType, value string) Token {
 	switch tokenType {
 	case VariableToken:
-		return BaseToken{VariableToken, strings.TrimSpace(value), strings.TrimSpace(value)}
+		return BaseToken{VariableToken, strings.TrimSpace(value), strings.TrimSpace(value), nil}
 	case FilteredVariableToken:
-		return BaseToken{FilteredVariableToken, strings.TrimSpace(value), strings.TrimSpace(splitAndGetFirst(value))}
+		token := BaseToken{FilteredVariableToken, strings.TrimSpace(value), strings.TrimSpace(splitAndGetFirst(value)), nil}
+		_, funcs := getVarAndFunctions(token)
+		for _, f := range funcs {
+			for _, p := range f.Args {
+				if p.Var {
+					if token.ParamVars == nil {
+						token.ParamVars = make([]string, 0)
+					}
+					token.ParamVars = append(token.ParamVars, p.Value.(string))
+				}
+			}
+		}
+		return token
 	case IfToken:
-		return BaseToken{IfToken, trimPrefix(value, "if"), ""}
+		return BaseToken{IfToken, trimPrefix(value, "if"), "", nil}
 	case ElseToken:
-		return BaseToken{ElseToken, "", ""}
+		return BaseToken{ElseToken, "", "", nil}
 	case IfEndToken:
-		return BaseToken{IfEndToken, "", ""}
+		return BaseToken{IfEndToken, "", "", nil}
 	case ShorthandIfToken:
-		return BaseToken{ShorthandIfToken, value, ""}
+		return BaseToken{ShorthandIfToken, value, "", nil}
 	default:
-		return BaseToken{TextToken, value, value}
+		return BaseToken{TextToken, value, value, nil}
 	}
 }

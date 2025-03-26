@@ -114,6 +114,16 @@ func (sm *Sintax) parseMapDependencies(
 					} else {
 						missing[varName] = nil
 					}
+					params := token.Params()
+					if len(params) > 0 {
+						for _, param := range params {
+							if _, inVars := vars[param]; inVars {
+								dependencyGraph[parentVarName] = append(dependencyGraph[parentVarName], param)
+							} else {
+								missing[param] = nil
+							}
+						}
+					}
 				}
 			}
 		case map[string]any:

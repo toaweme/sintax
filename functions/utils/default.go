@@ -1,6 +1,8 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func Default(value any, params []any) (any, error) {
 	if len(params) == 0 {
