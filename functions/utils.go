@@ -6,6 +6,61 @@ import (
 	"strings"
 )
 
+func ValueString(v any) (string, error) {
+	switch vv := v.(type) {
+	case string:
+		return vv, nil
+	}
+
+	return "", fmt.Errorf("expected string, got %T", v)
+}
+
+func ValueNumber(v any) (float64, error) {
+	switch vv := v.(type) {
+	case float64:
+		return vv, nil
+	case int:
+		return float64(vv), nil
+	case int8:
+		return float64(vv), nil
+	case int16:
+		return float64(vv), nil
+	case int32:
+		return float64(vv), nil
+	case int64:
+		return float64(vv), nil
+	case uint:
+		return float64(vv), nil
+	case uint8:
+		return float64(vv), nil
+	case uint16:
+		return float64(vv), nil
+	case uint32:
+		return float64(vv), nil
+	case uint64:
+		return float64(vv), nil
+	default:
+		return 0, fmt.Errorf("expected number, got %T", v)
+	}
+}
+
+func ParamStringList(params []any) ([]string, error) {
+	if len(params) == 0 {
+		return []string{}, nil
+	}
+
+	var result []string
+	for _, param := range params {
+		v, ok := param.(string)
+		if !ok {
+			return nil, fmt.Errorf("expected string, got %T", param)
+		}
+		result = append(result, v)
+	}
+
+	return result, nil
+}
+
 func ParamString(params []any, index int) (string, error) {
 	if len(params) <= index {
 		return "", fmt.Errorf("missing parameter at index %d", index)
@@ -89,6 +144,12 @@ func ConditionIsTrue(condition any) bool {
 		return v > 0
 	case float64:
 		return v > 0
+	case []any:
+		return len(v) > 0
+	case error:
+		return v != nil
+	case map[string]any:
+		return len(v) > 0
 	default:
 		return false
 	}

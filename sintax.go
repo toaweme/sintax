@@ -22,6 +22,25 @@ func NewWith(parser Parser, render Renderer) *Sintax {
 	return &Sintax{parser: parser, render: render}
 }
 
+func (sm *Sintax) ExtractDependencies(vars map[string]any) ([]string, error) {
+	missingInterpolatedVars, dependencyGraph, err := sm.buildDependencyGraph(vars)
+	if err != nil {
+		return nil, err
+	}
+
+	// topological sort to determine resolution order
+	sortedVars, err := topologicalSort(dependencyGraph)
+	if err != nil {
+		return nil, err
+	}
+
+	for varName := range missingInterpolatedVars {
+		sortedVars = append(sortedVars, varName)
+	}
+
+	return sortedVars, nil
+}
+
 func (sm *Sintax) ResolveVariables(vars map[string]any) (map[string]any, error) {
 	missingInterpolatedVars, dependencyGraph, err := sm.buildDependencyGraph(vars)
 	if err != nil {
@@ -66,7 +85,7 @@ func (sm *Sintax) buildDependencyGraph(vars map[string]any) (map[string]any, map
 	for varName, value := range vars {
 		switch val := value.(type) {
 		case string:
-			tokens, err := sm.parser.ParseVariable(val)
+			tokens, err := sm.parser.Parse(val)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to parse variable '%s': %w", varName, err)
 			}
@@ -102,7 +121,7 @@ func (sm *Sintax) parseMapDependencies(
 	for _, v := range mapValue {
 		switch subVal := v.(type) {
 		case string:
-			tokens, err := sm.parser.ParseVariable(subVal)
+			tokens, err := sm.parser.Parse(subVal)
 			if err != nil {
 				return fmt.Errorf("failed to parse nested variable in '%s': %w", parentVarName, err)
 			}
@@ -144,7 +163,7 @@ func (sm *Sintax) resolveVarsInOrder(vars map[string]any, sortedVars []string) (
 
 		switch val := value.(type) {
 		case string:
-			tokens, err := sm.parser.ParseVariable(val)
+			tokens, err := sm.parser.Parse(val)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to parse variable '%s': %w", varName, err)
 			}
@@ -188,7 +207,7 @@ func (sm *Sintax) resolveMap(m map[string]any, vars map[string]any) (map[string]
 	for k, v := range m {
 		switch subVal := v.(type) {
 		case string:
-			tokens, err := sm.parser.ParseVariable(subVal)
+			tokens, err := sm.parser.Parse(subVal)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse nested field '%s': %w", k, err)
 			}
@@ -258,12 +277,12 @@ func (sm *Sintax) Render(input string, vars map[string]any) (any, error) {
 
 	tokens, err := sm.parser.Parse(input)
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", ErrParseFailed, err)
+		return "", fmt.Errorf("%w: %w", ErrParseFailed, err)
 	}
 
 	render, err := sm.render.Render(tokens, resolvedVars)
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", ErrRenderFailed, err)
+		return "", fmt.Errorf("%w: %w", ErrRenderFailed, err)
 	}
 
 	return render, nil

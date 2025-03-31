@@ -18,31 +18,6 @@ var FirstDefinition = functions.ModifierDefinition{
 	AcceptedParams: nil,
 }
 
-//
-// func First(value any, params []any) (any, error) {
-// 	// err := FirstDefinition.Validate(value, params)
-// 	// if err != nil {
-// 	// 	return nil, err
-// 	// }
-//
-// 	switch v := value.(type) {
-// 	case string:
-// 		if len(v) > 0 {
-// 			return string(v[0]), nil
-// 		}
-// 	case []byte:
-// 		if len(v) > 0 {
-// 			return v[0], nil
-// 		}
-// 	case []any:
-// 		if len(v) > 0 {
-// 			return v[0], nil
-// 		}
-// 	}
-//
-// 	return nil, fmt.Errorf("first function expected a non-empty string or bytes or slice, got %T", value)
-// }
-
 func First(value any, params []any) (any, error) {
 	// err := FirstDefinition.Validate(value, params)
 	// if err != nil {

@@ -1,7 +1,6 @@
 package sintax
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -19,15 +18,6 @@ func NewStringParser() *StringParser {
 }
 
 var _ Parser = (*StringParser)(nil)
-
-func (p *StringParser) ParseVariable(s string) ([]Token, error) {
-	tokens, err := p.Parse(s)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse variable: %w", err)
-	}
-
-	return tokens, nil
-}
 
 func (p *StringParser) Parse(template string) ([]Token, error) {
 	var tokens []Token
@@ -139,6 +129,7 @@ func (p *StringParser) createToken(tokenType TokenType, value string) Token {
 		return BaseToken{VariableToken, strings.TrimSpace(value), strings.TrimSpace(value), nil}
 	case FilteredVariableToken:
 		token := BaseToken{FilteredVariableToken, strings.TrimSpace(value), strings.TrimSpace(splitAndGetFirst(value)), nil}
+		// extract the modifier variables
 		_, funcs := getVarAndFunctions(token)
 		for _, f := range funcs {
 			for _, p := range f.Args {

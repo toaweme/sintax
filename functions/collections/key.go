@@ -8,16 +8,28 @@ import (
 )
 
 func Key(value any, params []any) (any, error) {
+	val, err := key(value, params)
+	if err != nil {
+		// maybe this shouldn't be an error
+		return nil, nil
+	}
+	return val, err
+}
+
+func key(value any, params []any) (any, error) {
 	if len(params) == 0 {
 		return nil, fmt.Errorf("key function requires a key parameter")
 	}
-
 	switch v := value.(type) {
 	case map[string]any:
-		return findKeyInMap(params, v)
+		inMap, err := findKeyInMap(params, v)
+		if err != nil {
+			return nil, fmt.Errorf("%w: key function: %w", functions.ErrAllowsDefaultFunc, err)
+		}
+		return inMap, nil
 	case []any:
-		index, ok := params[0].(int)
-		if !ok {
+		index, err := functions.ParamInt(params, 0)
+		if err != nil {
 			return nil, fmt.Errorf("key function: index for slice must be an int")
 		}
 		if index < 0 || index >= len(v) {

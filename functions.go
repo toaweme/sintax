@@ -30,6 +30,8 @@ var BuiltinFunctions = map[string]GlobalModifier{
 	"trim":    text.Trim,
 	"shorten": text.Shorten,
 	"concat":  text.Concat,
+	"slug":    text.Slug,
+	"title":   text.Title,
 	// "lower":   utils.Lower,
 	// "upper":   utils.Upper,
 	// "replace": utils.Replace,
@@ -44,6 +46,9 @@ var BuiltinFunctions = map[string]GlobalModifier{
 
 	// boolean:
 	"not": boolean.Not,
+	"gt":  boolean.Gt,
+	"gte": boolean.Gte,
+
 	// money:
 	"currency": money.Currency,
 }

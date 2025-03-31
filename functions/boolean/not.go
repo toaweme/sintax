@@ -7,5 +7,6 @@ import (
 var NotDefinition = functions.ModifierDefinition{}
 
 var Not = func(value any, _ []any) (any, error) {
-	return functions.ConditionIsTrue(value) == false, nil
+	valueIsTrue := functions.ConditionIsTrue(value)
+	return !valueIsTrue, nil
 }
