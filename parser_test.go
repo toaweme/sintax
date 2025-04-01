@@ -112,7 +112,7 @@ func Test_Parser_ParseVariable(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			tokens, err := p.ParseVariable(tt.input)
+			tokens, err := p.Parse(tt.input)
 			if tt.err != nil {
 				assert.Equal(t, tt.err, err)
 				return
