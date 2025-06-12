@@ -28,6 +28,9 @@ func (sm *Sintax) ExtractDependencies(vars map[string]any) ([]string, error) {
 		return nil, err
 	}
 
+	// spew.Dump("missingInterpolatedVars", missingInterpolatedVars)
+	// spew.Dump("dependencyGraph", dependencyGraph)
+
 	// topological sort to determine resolution order
 	sortedVars, err := topologicalSort(dependencyGraph)
 	if err != nil {
@@ -96,6 +99,17 @@ func (sm *Sintax) buildDependencyGraph(vars map[string]any) (map[string]any, map
 						dependencyGraph[varName] = append(dependencyGraph[varName], variable)
 					} else {
 						missingInterpolatedVars[variable] = nil
+					}
+
+					params := token.Params()
+					if len(params) > 0 {
+						for _, param := range params {
+							if _, inVars := vars[param]; inVars {
+								dependencyGraph[variable] = append(dependencyGraph[variable], param)
+							} else {
+								missingInterpolatedVars[param] = nil
+							}
+						}
 					}
 				}
 			}

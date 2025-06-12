@@ -34,7 +34,6 @@ func NewStringRenderer(funcs map[string]GlobalModifier) *StringRenderer {
 }
 
 func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error) {
-	// log.Trace("render", "tokens", tokens, "vars", vars)
 	var str strings.Builder
 	for _, token := range tokens {
 		switch token.Type() {
@@ -77,7 +76,7 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 	if token.Type() == VariableToken {
 		varValue, ok := vars[token.Name()]
 		if !ok {
-			return nil, fmt.Errorf("%w: %s", ErrVariableNotFound, token.Name())
+			return nil, fmt.Errorf("simple %w: %s", ErrVariableNotFound, token.Name())
 		}
 
 		switch val := varValue.(type) {
@@ -106,7 +105,7 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 		// only return an error if there are no functions to apply
 		// if there are functions to apply, we can assume that the variable can be optional e.g. using "default" function
 		if !hasFunctionsToApply {
-			return nil, fmt.Errorf("%w: %s", ErrVariableNotFound, varName)
+			return nil, fmt.Errorf("complex %w: %s", ErrVariableNotFound, varName)
 		}
 	}
 
@@ -126,7 +125,7 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 			if arg.Var {
 				argValue, ok := vars[arg.Value.(string)]
 				if !ok {
-					return nil, fmt.Errorf("%w: %s", ErrVariableNotFound, arg.Value)
+					return nil, fmt.Errorf("function arg %w: %s", ErrVariableNotFound, arg.Value)
 				}
 				args[i] = argValue
 			} else {
