@@ -55,6 +55,19 @@ func Test_Sintax_ResolveVariables(t *testing.T) {
 			},
 		},
 		{
+			name: "variables in modifiers",
+			vars: map[string]any{
+				"text":   "boop-beep",
+				"prefix": "boop",
+				"result": "{{ text | trim-prefix:prefix }}",
+			},
+			expected: map[string]any{
+				"text":   "boop-beep",
+				"prefix": "boop",
+				"result": "-beep",
+			},
+		},
+		{
 			name: "complex dependency tree with filters",
 			vars: map[string]any{
 				"base": "root",
