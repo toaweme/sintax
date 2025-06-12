@@ -49,6 +49,7 @@ var BuiltinFunctions = map[string]GlobalModifier{
 	"not": boolean.Not,
 	"gt":  boolean.Gt,
 	"gte": boolean.Gte,
+	"eq":  boolean.Eq,
 
 	// money:
 	"currency": money.Currency,
