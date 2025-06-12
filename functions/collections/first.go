@@ -23,7 +23,6 @@ func First(value any, params []any) (any, error) {
 	// if err != nil {
 	// 	return nil, err
 	// }
-
 	v := reflect.ValueOf(value)
 
 	switch v.Kind() {
