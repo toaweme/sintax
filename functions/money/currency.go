@@ -11,11 +11,7 @@ import (
 // Currency returns a formatted currency string
 func Currency(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, fmt.Errorf("currency requires at least 2 parameters")
-	}
-	str, ok := value.(string)
-	if !ok {
-		return nil, fmt.Errorf("expected value to be string, got %T", value)
+		return nil, fmt.Errorf("currency requires 2 parameters")
 	}
 
 	fromUnits, err := functions.ParamInt(params, 0)
@@ -27,10 +23,18 @@ func Currency(value any, params []any) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	var val float64
 
-	val, err := cleanCurrency(str)
-	if err != nil {
-		return nil, err
+	switch v := value.(type) {
+	case int:
+		val = float64(v)
+	case float64:
+		val = v
+	case string:
+		val, err = cleanCurrency(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to clean currency string: %w", err)
+		}
 	}
 
 	// convert value from given units to target units
