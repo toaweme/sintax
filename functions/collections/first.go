@@ -38,3 +38,24 @@ func First(value any, params []any) (any, error) {
 
 	return nil, fmt.Errorf("first function expected a non-empty string, slice, or array, got %T", value)
 }
+
+func Last(value any, params []any) (any, error) {
+	// err := LastDefinition.Validate(value, params)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	v := reflect.ValueOf(value)
+
+	switch v.Kind() {
+	case reflect.String:
+		if v.Len() > 0 {
+			return string(v.String()[v.Len()-1]), nil
+		}
+	case reflect.Slice, reflect.Array:
+		if v.Len() > 0 {
+			return v.Index(v.Len() - 1).Interface(), nil
+		}
+	}
+
+	return nil, fmt.Errorf("last function expected a non-empty string, slice, or array, got %T", value)
+}

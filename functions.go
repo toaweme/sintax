@@ -40,6 +40,7 @@ var BuiltinFunctions = map[string]GlobalModifier{
 
 	// objects:
 	"first": collections.First,
+	"last":  collections.Last,
 	"find":  collections.Find,
 	"key":   collections.Key,
 	"map":   collections.Map,
