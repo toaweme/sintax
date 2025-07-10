@@ -29,6 +29,7 @@ var BuiltinFunctions = map[string]GlobalModifier{
 	"split":       text.Split,
 	"trim":        text.Trim,
 	"trim-prefix": text.TrimPrefix,
+	"trim-suffix": text.TrimSuffix,
 	"shorten":     text.Shorten,
 	"concat":      text.Concat,
 	"slug":        text.Slug,

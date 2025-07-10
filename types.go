@@ -21,7 +21,6 @@ type Renderer interface {
 }
 
 type Syntax interface {
-	// ResolveVariables resolves all variables in the given system, config, and action variables.
 	ResolveVariables(vars map[string]any) (map[string]any, error)
 	ExtractDependencies(vars map[string]any) ([]string, error)
 	Render(input string, vars map[string]any) (any, error)
