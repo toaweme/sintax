@@ -22,6 +22,7 @@ type Renderer interface {
 
 type Syntax interface {
 	ResolveVariables(vars map[string]any) (map[string]any, error)
+	ResolveCondition(condition string, vars map[string]any) (bool, error)
 	ExtractDependencies(vars map[string]any) ([]string, error)
 	Render(input string, vars map[string]any) (any, error)
 }

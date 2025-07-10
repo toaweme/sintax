@@ -2,6 +2,8 @@ package sintax
 
 import (
 	"fmt"
+
+	"github.com/toaweme/sintax/functions"
 )
 
 type Sintax struct {
@@ -20,6 +22,25 @@ func New(funcs map[string]GlobalModifier) *Sintax {
 
 func NewWith(parser Parser, render Renderer) *Sintax {
 	return &Sintax{parser: parser, render: render}
+}
+
+func (sm *Sintax) ResolveCondition(condition string, vars map[string]any) (bool, error) {
+	tokens, err := sm.parser.Parse(condition)
+	if err != nil {
+		return false, fmt.Errorf("%w: %w", ErrParseFailed, err)
+	}
+
+	parsedVars, err := sm.parseOnlyDependentVars(tokens, vars)
+	if err != nil {
+		return false, fmt.Errorf("failed to resolve variables: %w", err)
+	}
+
+	result, err := sm.render.Render(tokens, parsedVars)
+	if err != nil {
+		return false, fmt.Errorf("%w: %w", ErrRenderFailed, err)
+	}
+
+	return functions.ConditionIsTrue(result), nil
 }
 
 func (sm *Sintax) ExtractDependencies(vars map[string]any) ([]string, error) {
@@ -76,6 +97,51 @@ func (sm *Sintax) ResolveVariables(vars map[string]any) (map[string]any, error) 
 	}
 
 	return resolvedVars, nil
+}
+
+func (sm *Sintax) parseOnlyDependentVars(tokens []Token, vars map[string]any) (map[string]any, error) {
+	requiredVars := make(map[string]any)
+
+	for _, token := range tokens {
+		if token.Type() == VariableToken || token.Type() == FilteredVariableToken {
+			varName := token.Name()
+			if value, exists := vars[varName]; exists {
+				requiredVars[varName] = value
+			}
+
+			params := token.Params()
+			for _, param := range params {
+				if value, exists := vars[param]; exists {
+					requiredVars[param] = value
+				}
+			}
+		}
+	}
+
+	for {
+		initialSize := len(requiredVars)
+
+		_, dependencyGraph, err := sm.buildDependencyGraph(requiredVars)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, dependencies := range dependencyGraph {
+			for _, dep := range dependencies {
+				if _, exists := requiredVars[dep]; !exists {
+					if value, exists := vars[dep]; exists {
+						requiredVars[dep] = value
+					}
+				}
+			}
+		}
+
+		if len(requiredVars) == initialSize {
+			break
+		}
+	}
+
+	return sm.ResolveVariables(requiredVars)
 }
 
 // only the modifications below, everything else remains unchanged.
