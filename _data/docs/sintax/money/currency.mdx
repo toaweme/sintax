@@ -1,0 +1,64 @@
+---
+title: "currency"
+description: "Currency converts a numeric value between currency units by applying a unit multiplier ratio."
+category: money
+---
+
+Currency converts a numeric value between currency units by applying a unit multiplier ratio. Useful for converting between minor (cents) and major (dollars) units.
+
+## Input
+
+`int` `float` `string` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `int` | yes |
+| 1 | `int` | yes |
+
+## Returns
+
+`int`
+
+## Examples
+
+### Convert dollars to cents
+
+**Input**
+
+```
+price = 9
+```
+
+**Template**
+
+```
+{{ price | currency:1,100 }}
+```
+
+**Output**
+
+```
+900
+```
+
+### Convert cents back to dollars
+
+**Input**
+
+```
+cents = 1299
+```
+
+**Template**
+
+```
+{{ cents | currency:100,1 }}
+```
+
+**Output**
+
+```
+12
+```

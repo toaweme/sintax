@@ -1,0 +1,42 @@
+---
+title: "yaml"
+description: "YAML serializes or parses a value as YAML."
+category: convert
+---
+
+YAML serializes or parses a value as YAML. Must be injected by the consumer; returns an error by default.
+
+## Input
+
+`any` 
+
+## Parameters
+
+None
+
+## Returns
+
+`string, map`
+
+## Examples
+
+### Serialize a config map to YAML
+
+**Input**
+
+```
+config = {"region": "eu-west-1", "debug": false}
+```
+
+**Template**
+
+```
+{{ config | yaml }}
+```
+
+**Output**
+
+```
+region: eu-west-1
+debug: false
+```

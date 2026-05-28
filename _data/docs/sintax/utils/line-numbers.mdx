@@ -1,0 +1,65 @@
+---
+title: "line-numbers"
+description: "LineNumbers prepends each line of the string with its zero-based line number."
+category: utils
+---
+
+LineNumbers prepends each line of the string with its zero-based line number.
+
+## Input
+
+`string` 
+
+## Parameters
+
+None
+
+## Returns
+
+`string`
+
+## Examples
+
+### Number lines of a short note
+
+**Input**
+
+```
+note = "Buy milk\nWalk the dog\nPay rent"
+```
+
+**Template**
+
+```
+{{ note | line-numbers }}
+```
+
+**Output**
+
+```
+0. Buy milk
+1. Walk the dog
+2. Pay rent
+```
+
+### Number a haiku
+
+**Input**
+
+```
+poem = "An old silent pond\nA frog jumps into the pond\nSplash! Silence again."
+```
+
+**Template**
+
+```
+{{ poem | line-numbers }}
+```
+
+**Output**
+
+```
+0. An old silent pond
+1. A frog jumps into the pond
+2. Splash! Silence again.
+```

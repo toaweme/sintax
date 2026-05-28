@@ -1,0 +1,63 @@
+---
+title: "merge"
+description: "Merge converts a slice of maps into a map keyed by the given field's string value."
+category: collections
+---
+
+Merge converts a slice of maps into a map keyed by the given field's string value. Behaves identically to map; use as an alias when "map" conflicts with other syntax.
+
+## Input
+
+`array` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `string` | yes |
+
+## Returns
+
+`map`
+
+## Examples
+
+### Index a list of users by id
+
+**Input**
+
+```
+users = [{"id": "u1", "name": "Alice"}, {"id": "u2", "name": "Bob"}]
+```
+
+**Template**
+
+```
+{{ users | merge:'id' }}
+```
+
+**Output**
+
+```
+{"u1": {"id": "u1", "name": "Alice"}, "u2": {"id": "u2", "name": "Bob"}}
+```
+
+### Index records by name
+
+**Input**
+
+```
+records = [{"name": "draft", "value": 1}, {"name": "final", "value": 2}]
+```
+
+**Template**
+
+```
+{{ records | merge:'name' }}
+```
+
+**Output**
+
+```
+{"draft": {"name": "draft", "value": 1}, "final": {"name": "final", "value": 2}}
+```

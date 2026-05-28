@@ -1,0 +1,63 @@
+---
+title: "ext-prepend"
+description: "FilenamePrependExt inserts an additional extension before the existing file extension."
+category: fs
+---
+
+FilenamePrependExt inserts an additional extension before the existing file extension.
+
+## Input
+
+`string` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `string` | yes |
+
+## Returns
+
+`string`
+
+## Examples
+
+### Mark a stylesheet as minified
+
+**Input**
+
+```
+file_path = "assets/styles.css"
+```
+
+**Template**
+
+```
+{{ file_path | ext-prepend:'min' }}
+```
+
+**Output**
+
+```
+assets/styles.min.css
+```
+
+### Tag a script as minified
+
+**Input**
+
+```
+source = "app.js"
+```
+
+**Template**
+
+```
+{{ source | ext-prepend:'min' }}
+```
+
+**Output**
+
+```
+app.min.js
+```

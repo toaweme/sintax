@@ -1,0 +1,83 @@
+---
+title: "decimal"
+description: "Decimal formats a number with a fixed number of decimal places."
+category: utils
+---
+
+Decimal formats a number with a fixed number of decimal places. The default is 2.
+
+## Input
+
+`float` `int` `string` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `int` | no |
+
+## Returns
+
+`string`
+
+## Examples
+
+### Format a price with two decimals
+
+**Input**
+
+```
+amount = 19.5
+```
+
+**Template**
+
+```
+{{ amount | decimal:2 }}
+```
+
+**Output**
+
+```
+19.50
+```
+
+### Round a weight to one decimal
+
+**Input**
+
+```
+weight = 4.872
+```
+
+**Template**
+
+```
+{{ weight | decimal:1 }}
+```
+
+**Output**
+
+```
+4.9
+```
+
+### Use the default of two decimals
+
+**Input**
+
+```
+total = 7
+```
+
+**Template**
+
+```
+{{ total | decimal }}
+```
+
+**Output**
+
+```
+7.00
+```

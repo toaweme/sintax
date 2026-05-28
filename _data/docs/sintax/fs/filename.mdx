@@ -1,0 +1,61 @@
+---
+title: "filename"
+description: "Filename returns the base file name from a path, including the extension."
+category: fs
+---
+
+Filename returns the base file name from a path, including the extension.
+
+## Input
+
+`string` 
+
+## Parameters
+
+None
+
+## Returns
+
+`string`
+
+## Examples
+
+### Pull the file name out of a full path
+
+**Input**
+
+```
+file_path = "/var/log/app/server.log"
+```
+
+**Template**
+
+```
+{{ file_path | filename }}
+```
+
+**Output**
+
+```
+server.log
+```
+
+### Shorten a download path to its name
+
+**Input**
+
+```
+source = "downloads/2024/Q3-report.pdf"
+```
+
+**Template**
+
+```
+{{ source | filename }}
+```
+
+**Output**
+
+```
+Q3-report.pdf
+```

@@ -1,0 +1,61 @@
+---
+title: "ext-trim"
+description: "FilenameTrimExt returns the file path without its extension."
+category: fs
+---
+
+FilenameTrimExt returns the file path without its extension.
+
+## Input
+
+`string` 
+
+## Parameters
+
+None
+
+## Returns
+
+`string`
+
+## Examples
+
+### Drop the extension from a file path
+
+**Input**
+
+```
+file_path = "/uploads/avatar.png"
+```
+
+**Template**
+
+```
+{{ file_path | ext-trim }}
+```
+
+**Output**
+
+```
+/uploads/avatar
+```
+
+### Get the bare report name
+
+**Input**
+
+```
+source = "Q3-report.pdf"
+```
+
+**Template**
+
+```
+{{ source | ext-trim }}
+```
+
+**Output**
+
+```
+Q3-report
+```

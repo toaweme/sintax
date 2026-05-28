@@ -1,0 +1,63 @@
+---
+title: "trim-prefix"
+description: "TrimPrefix removes a leading prefix string or leading whitespace from the value."
+category: text
+---
+
+TrimPrefix removes a leading prefix string or leading whitespace from the value.
+
+## Input
+
+`string` `bytes` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `string` | no |
+
+## Returns
+
+`string, bytes`
+
+## Examples
+
+### Drop a leading slash from a path
+
+**Input**
+
+```
+path = "/api/v1/users"
+```
+
+**Template**
+
+```
+{{ path | trim-prefix:'/' }}
+```
+
+**Output**
+
+```
+api/v1/users
+```
+
+### Trim leading whitespace from a paragraph
+
+**Input**
+
+```
+text = "   Welcome aboard."
+```
+
+**Template**
+
+```
+{{ text | trim-prefix }}
+```
+
+**Output**
+
+```
+Welcome aboard.
+```

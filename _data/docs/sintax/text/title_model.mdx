@@ -1,0 +1,61 @@
+---
+title: "title_model"
+description: "ModelTitle formats an AI model identifier into a human-readable title."
+category: text
+---
+
+ModelTitle formats an AI model identifier into a human-readable title. Handles provider prefixes, model sizes, quantization suffixes, and date suffixes.
+
+## Input
+
+`string` 
+
+## Parameters
+
+None
+
+## Returns
+
+`string`
+
+## Examples
+
+### Format a hosted model id
+
+**Input**
+
+```
+model_id = "openai/gpt-4o"
+```
+
+**Template**
+
+```
+{{ model_id | title_model }}
+```
+
+**Output**
+
+```
+OpenAI: GPT 4o
+```
+
+### Format an Ollama tag with quantization
+
+**Input**
+
+```
+model_id = "llama3.1:8b-instruct-q4_K_M"
+```
+
+**Template**
+
+```
+{{ model_id | title_model }}
+```
+
+**Output**
+
+```
+Llama3.1 8B Instruct Q4_K_M
+```

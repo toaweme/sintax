@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09">
+	<CstmrCdtTrfInitn>
+		<GrpHdr>
+			<MsgId>-20260409161255</MsgId>
+			<CreDtTm>2026-04-09T16:12:55</CreDtTm>
+			<NbOfTxs>3</NbOfTxs>
+			<CtrlSum>28596.05</CtrlSum>
+			<InitgPty>
+				<Nm>ACME Holdings, MB</Nm>
+			</InitgPty>
+		</GrpHdr>
+		<PmtInf>
+			<PmtInfId>SEPA-2026-04-10-0</PmtInfId>
+			<PmtMtd>TRF</PmtMtd>
+			<NbOfTxs>3</NbOfTxs>
+			<CtrlSum>28596.05</CtrlSum>
+			<PmtTpInf>
+				<LclInstrm>
+					<Prtry>NORM</Prtry>
+				</LclInstrm>
+			</PmtTpInf>
+			<ReqdExctnDt>
+				<Dt>2026-04-10</Dt>
+			</ReqdExctnDt>
+			<Dbtr>
+				<Nm>ACME Holdings, MB</Nm>
+			</Dbtr>
+			<DbtrAcct>
+				<Id>
+					<IBAN>LT857300010000000001</IBAN>
+				</Id>
+			</DbtrAcct>
+			<DbtrAgt>
+				<FinInstnId>
+					<BICFI>HABALT22</BICFI>
+				</FinInstnId>
+			</DbtrAgt>
+			<CdtTrfTxInf>
+				<PmtId>
+					<EndToEndId>20260409-1</EndToEndId>
+				</PmtId>
+				<Amt>
+					<InstdAmt Ccy="EUR">4235.00</InstdAmt>
+				</Amt>
+				<Cdtr>
+					<Nm>ACME Consulting MB</Nm>
+				</Cdtr>
+				<CdtrAcct>
+					<Id>
+						<IBAN>LT777300010000000002</IBAN>
+					</Id>
+				</CdtrAcct>
+				<RmtInf>
+					<Ustrd>INV-001</Ustrd>
+				</RmtInf>
+			</CdtTrfTxInf>
+			<CdtTrfTxInf>
+				<PmtId>
+					<EndToEndId>20260409-2</EndToEndId>
+				</PmtId>
+				<Amt>
+					<InstdAmt Ccy="EUR">14070.00</InstdAmt>
+				</Amt>
+				<Cdtr>
+					<Nm>Wide Foreign Sp. z o.o.</Nm>
+				</Cdtr>
+				<CdtrAcct>
+					<Id>
+						<IBAN>PL861050150000000000000003</IBAN>
+					</Id>
+				</CdtrAcct>
+				<RmtInf>
+					<Ustrd>INV-002</Ustrd>
+				</RmtInf>
+			</CdtTrfTxInf>
+			<CdtTrfTxInf>
+				<PmtId>
+					<EndToEndId>20260409-3</EndToEndId>
+				</PmtId>
+				<Amt>
+					<InstdAmt Ccy="EUR">10291.05</InstdAmt>
+				</Amt>
+				<Cdtr>
+					<Nm>Jane Doe</Nm>
+				</Cdtr>
+				<CdtrAcct>
+					<Id>
+						<IBAN>LT357300010000000004</IBAN>
+					</Id>
+				</CdtrAcct>
+				<RmtInf>
+					<Ustrd>INV-003</Ustrd>
+				</RmtInf>
+			</CdtTrfTxInf>
+		</PmtInf>
+	</CstmrCdtTrfInitn>
+</Document>

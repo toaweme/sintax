@@ -1,0 +1,61 @@
+---
+title: "ext"
+description: "FilenameExt returns the file extension without the leading dot."
+category: fs
+---
+
+FilenameExt returns the file extension without the leading dot.
+
+## Input
+
+`string` 
+
+## Parameters
+
+None
+
+## Returns
+
+`string`
+
+## Examples
+
+### Read the type of an upload
+
+**Input**
+
+```
+file_path = "/uploads/avatar.png"
+```
+
+**Template**
+
+```
+{{ file_path | ext }}
+```
+
+**Output**
+
+```
+png
+```
+
+### Detect a document format
+
+**Input**
+
+```
+source = "Q3-report.pdf"
+```
+
+**Template**
+
+```
+{{ source | ext }}
+```
+
+**Output**
+
+```
+pdf
+```

@@ -1,0 +1,63 @@
+---
+title: "trim"
+description: "Trim removes leading and trailing whitespace, or the given character set."
+category: text
+---
+
+Trim removes leading and trailing whitespace, or the given character set.
+
+## Input
+
+`string` `bytes` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `string` | no |
+
+## Returns
+
+`string, bytes`
+
+## Examples
+
+### Clean whitespace from a name
+
+**Input**
+
+```
+name = "  Alice  "
+```
+
+**Template**
+
+```
+{{ name | trim }}
+```
+
+**Output**
+
+```
+Alice
+```
+
+### Strip a wrapping character
+
+**Input**
+
+```
+list = ",apples,bananas,"
+```
+
+**Template**
+
+```
+{{ list | trim:',' }}
+```
+
+**Output**
+
+```
+apples,bananas
+```

@@ -1,0 +1,61 @@
+---
+title: "slug"
+description: "Slug converts a string to a URL-friendly slug."
+category: text
+---
+
+Slug converts a string to a URL-friendly slug. Lowercases, replaces spaces with hyphens, and removes non-alphanumeric characters.
+
+## Input
+
+`string` 
+
+## Parameters
+
+None
+
+## Returns
+
+`string`
+
+## Examples
+
+### Turn a blog post title into a URL slug
+
+**Input**
+
+```
+title = "Welcome to the Coffee Club!"
+```
+
+**Template**
+
+```
+{{ title | slug }}
+```
+
+**Output**
+
+```
+welcome-to-the-coffee-club
+```
+
+### Slugify a product name
+
+**Input**
+
+```
+name = "Premium Tea & Honey Set"
+```
+
+**Template**
+
+```
+{{ name | slug }}
+```
+
+**Output**
+
+```
+premium-tea-honey-set
+```

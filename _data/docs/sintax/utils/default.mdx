@@ -1,0 +1,83 @@
+---
+title: "default"
+description: "Default returns the fallback value if the input is nil or an empty string."
+category: utils
+---
+
+Default returns the fallback value if the input is nil or an empty string.
+
+## Input
+
+`any` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `any` | yes |
+
+## Returns
+
+`any`
+
+## Examples
+
+### Fall back to a placeholder name
+
+**Input**
+
+```
+name = ""
+```
+
+**Template**
+
+```
+{{ name | default:'anonymous' }}
+```
+
+**Output**
+
+```
+anonymous
+```
+
+### Use a default count when missing
+
+**Input**
+
+```
+count = null
+```
+
+**Template**
+
+```
+{{ count | default:0 }}
+```
+
+**Output**
+
+```
+0
+```
+
+### Avoid an error when a lookup misses
+
+**Input**
+
+```
+items = [{"id": 1, "name": "Mug"}]
+```
+
+**Template**
+
+```
+{{ items | find:'id',99 | default:{} }}
+```
+
+**Output**
+
+```
+{}
+```

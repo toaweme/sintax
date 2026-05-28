@@ -1,0 +1,64 @@
+---
+title: "replace_pattern"
+description: "ReplacePattern replaces all regex matches within the string value."
+category: text
+---
+
+ReplacePattern replaces all regex matches within the string value. Supports capture group references (e.g. $1) in the replacement string.
+
+## Input
+
+`string` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `string` | yes |
+| 1 | `string` | yes |
+
+## Returns
+
+`string`
+
+## Examples
+
+### Collapse runs of whitespace
+
+**Input**
+
+```
+text = "hello    world"
+```
+
+**Template**
+
+```
+{{ text | replace_pattern:'\s+',' ' }}
+```
+
+**Output**
+
+```
+hello world
+```
+
+### Keep only slug-safe characters
+
+**Input**
+
+```
+slug = "hello-world!@#"
+```
+
+**Template**
+
+```
+{{ slug | replace_pattern:'[^a-z0-9\-]',” }}
+```
+
+**Output**
+
+```
+hello-world
+```

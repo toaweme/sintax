@@ -1,0 +1,64 @@
+---
+title: "find"
+description: "Find returns the first element in a slice or map where a field equals the given value."
+category: collections
+---
+
+Find returns the first element in a slice or map where a field equals the given value. Returns a non-fatal error when not found, allowing the default modifier to handle it.
+
+## Input
+
+`array` `map` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `string` | yes |
+| 1 | `any` | yes |
+
+## Returns
+
+`map`
+
+## Examples
+
+### Look up a user by id
+
+**Input**
+
+```
+users = [{"id": 7, "name": "Bob"}, {"id": 42, "name": "Alice"}]
+```
+
+**Template**
+
+```
+{{ users | find:'id',42 }}
+```
+
+**Output**
+
+```
+{"id": 42, "name": "Alice"}
+```
+
+### Fall back when not found
+
+**Input**
+
+```
+items = [{"slug": "hat", "price": 25}]
+```
+
+**Template**
+
+```
+{{ items | find:'slug','scarf' | default:{} }}
+```
+
+**Output**
+
+```
+{}
+```

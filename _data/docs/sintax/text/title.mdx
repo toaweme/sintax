@@ -1,0 +1,83 @@
+---
+title: "title"
+description: "Title converts a hyphen-separated slug into a title-cased string."
+category: text
+---
+
+Title converts a hyphen-separated slug into a title-cased string. Known acronyms (AI, API, GPT, etc.) are uppercased automatically. Additional acronyms can be passed as parameters.
+
+## Input
+
+`string` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| ... | `string` | no |
+
+## Returns
+
+`string`
+
+## Examples
+
+### Title-case a blog slug
+
+**Input**
+
+```
+slug = "welcome-to-the-club"
+```
+
+**Template**
+
+```
+{{ slug | title }}
+```
+
+**Output**
+
+```
+Welcome To The Club
+```
+
+### Keep recognized acronyms uppercase
+
+**Input**
+
+```
+slug = "the-ai-revolution"
+```
+
+**Template**
+
+```
+{{ slug | title }}
+```
+
+**Output**
+
+```
+The AI Revolution
+```
+
+### Pass extra acronyms to keep upper-case
+
+**Input**
+
+```
+post_slug = "seo-and-cta-tips"
+```
+
+**Template**
+
+```
+{{ post_slug | title:'seo','cta' }}
+```
+
+**Output**
+
+```
+SEO And CTA Tips
+```

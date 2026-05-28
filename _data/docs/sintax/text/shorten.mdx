@@ -1,0 +1,63 @@
+---
+title: "shorten"
+description: "Shorten truncates a string to the given maximum character length."
+category: text
+---
+
+Shorten truncates a string to the given maximum character length.
+
+## Input
+
+`string` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `int` | yes |
+
+## Returns
+
+`string`
+
+## Examples
+
+### Clip a description for a card preview
+
+**Input**
+
+```
+description = "Hand-picked single-origin coffee, slow-roasted in small batches."
+```
+
+**Template**
+
+```
+{{ description | shorten:30 }}
+```
+
+**Output**
+
+```
+Hand-picked single-origin cof
+```
+
+### Limit a name to a column width
+
+**Input**
+
+```
+name = "Alexandra Christine Whitehead"
+```
+
+**Template**
+
+```
+{{ name | shorten:12 }}
+```
+
+**Output**
+
+```
+Alexandra Ch
+```

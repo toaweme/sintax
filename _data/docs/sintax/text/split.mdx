@@ -1,0 +1,83 @@
+---
+title: "split"
+description: "Split splits a string into an array using a separator."
+category: text
+---
+
+Split splits a string into an array using a separator.
+
+## Input
+
+`string` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `string` | yes |
+
+## Returns
+
+`array`
+
+## Examples
+
+### Split a CSV line into fields
+
+**Input**
+
+```
+csv_line = "Alice,42,admin"
+```
+
+**Template**
+
+```
+{{ csv_line | split:',' }}
+```
+
+**Output**
+
+```
+["Alice", "42", "admin"]
+```
+
+### Break a path into segments
+
+**Input**
+
+```
+path = "/var/log/app/server.log"
+```
+
+**Template**
+
+```
+{{ path | split:'/' }}
+```
+
+**Output**
+
+```
+["", "var", "log", "app", "server.log"]
+```
+
+### Split a sentence into words
+
+**Input**
+
+```
+tags = "coffee tea espresso"
+```
+
+**Template**
+
+```
+{{ tags | split:' ' }}
+```
+
+**Output**
+
+```
+["coffee", "tea", "espresso"]
+```

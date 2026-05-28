@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09">
+	<CstmrCdtTrfInitn>
+		<GrpHdr>
+			<MsgId>{{ msg_id }}</MsgId>
+			<CreDtTm>{{ cre_dt_tm }}</CreDtTm>
+			<NbOfTxs>{{ groups | pluck:'txs' | flatten | length }}</NbOfTxs>
+			<CtrlSum>{{ groups | pluck:'txs' | flatten | sum:'amount' | decimal:2 }}</CtrlSum>
+			<InitgPty>
+				<Nm>{{ debtor_name }}</Nm>
+			</InitgPty>
+		</GrpHdr>
+		{{- for group in groups }}
+		<PmtInf>
+			<PmtInfId>{{ group | key:'pmt_inf_id' }}</PmtInfId>
+			<PmtMtd>TRF</PmtMtd>
+			<NbOfTxs>{{ group | key:'txs' | length }}</NbOfTxs>
+			<CtrlSum>{{ group | key:'txs' | sum:'amount' | decimal:2 }}</CtrlSum>
+			<PmtTpInf>
+				{{- if group | key:'is_sepa' }}
+				<LclInstrm>
+					<Prtry>NORM</Prtry>
+				</LclInstrm>
+				{{- else }}
+				<SvcLvl>
+					<Cd>NURG</Cd>
+				</SvcLvl>
+				{{- endif }}
+			</PmtTpInf>
+			{{- if group | key:'exec_date' }}
+			<ReqdExctnDt>
+				<Dt>{{ group | key:'exec_date' }}</Dt>
+			</ReqdExctnDt>
+			{{- endif }}
+			<Dbtr>
+				<Nm>{{ debtor_name }}</Nm>
+			</Dbtr>
+			<DbtrAcct>
+				<Id>
+					<IBAN>{{ debtor_iban }}</IBAN>
+				</Id>
+			</DbtrAcct>
+			<DbtrAgt>
+				<FinInstnId>
+					<BICFI>{{ debtor_bic }}</BICFI>
+				</FinInstnId>
+			</DbtrAgt>
+			{{- for tx in group | key:'txs' }}
+			<CdtTrfTxInf>
+				<PmtId>
+					<EndToEndId>{{ tx | key:'e2e_id' }}</EndToEndId>
+				</PmtId>
+				<Amt>
+					<InstdAmt Ccy="{{ tx | key:'currency' }}">{{ tx | key:'amount' | decimal:2 }}</InstdAmt>
+				</Amt>
+				{{- if tx | key:'is_sepa' | not }}
+				<CdtrAgt>
+					<FinInstnId>
+						<BICFI>{{ tx | key:'creditor_bic' }}</BICFI>
+					</FinInstnId>
+				</CdtrAgt>
+				{{- endif }}
+				<Cdtr>
+					<Nm>{{ tx | key:'creditor_name' }}</Nm>
+				</Cdtr>
+				<CdtrAcct>
+					<Id>
+						<IBAN>{{ tx | key:'creditor_iban' }}</IBAN>
+					</Id>
+				</CdtrAcct>
+				<RmtInf>
+					<Ustrd>{{ tx | key:'remittance_info' }}</Ustrd>
+				</RmtInf>
+			</CdtTrfTxInf>
+			{{- endfor }}
+		</PmtInf>
+		{{- endfor }}
+	</CstmrCdtTrfInitn>
+</Document>

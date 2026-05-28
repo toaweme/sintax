@@ -1,0 +1,84 @@
+---
+title: "has"
+description: "Has returns true if the slice or map contains the given value."
+category: collections
+---
+
+Has returns true if the slice or map contains the given value. For a slice of maps, provide a key and value to match on a specific field.
+
+## Input
+
+`array` `map` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `any` | yes |
+| 1 | `any` | no |
+
+## Returns
+
+`bool`
+
+## Examples
+
+### Check a list of tags
+
+**Input**
+
+```
+tags = ["featured", "sale", "new"]
+```
+
+**Template**
+
+```
+{{ tags | has:'featured' }}
+```
+
+**Output**
+
+```
+true
+```
+
+### Find an active item in a list
+
+**Input**
+
+```
+items = [{"name": "Coffee", "status": "sold-out"}, {"name": "Tea", "status": "active"}]
+```
+
+**Template**
+
+```
+{{ items | has:'status','active' }}
+```
+
+**Output**
+
+```
+true
+```
+
+### Check a config map for a key
+
+**Input**
+
+```
+config = {"debug_mode": false, "region": "eu-west-1"}
+```
+
+**Template**
+
+```
+{{ config | has:'debug_mode' }}
+```
+
+**Output**
+
+```
+true
+```

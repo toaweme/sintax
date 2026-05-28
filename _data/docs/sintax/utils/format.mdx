@@ -1,0 +1,63 @@
+---
+title: "format"
+description: "Format formats a time."
+category: utils
+---
+
+Format formats a time.Time value using a date format string. Strings are passed through unchanged.
+
+## Input
+
+`string` `time.Time` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `string` | no |
+
+## Returns
+
+`string`
+
+## Examples
+
+### Render a date in ISO form
+
+**Input**
+
+```
+created_at = 2024-03-14T09:30:00Z
+```
+
+**Template**
+
+```
+{{ created_at | format:'YYYY-MM-DD' }}
+```
+
+**Output**
+
+```
+2024-03-14
+```
+
+### Render a date and time for display
+
+**Input**
+
+```
+published = 2024-03-14T09:30:00Z
+```
+
+**Template**
+
+```
+{{ published | format:'DD/MM/YYYY HH:mm' }}
+```
+
+**Output**
+
+```
+14/03/2024 09:30
+```

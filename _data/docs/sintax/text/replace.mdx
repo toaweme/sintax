@@ -1,0 +1,64 @@
+---
+title: "replace"
+description: "Replace replaces all occurrences of a substring within the string value."
+category: text
+---
+
+Replace replaces all occurrences of a substring within the string value.
+
+## Input
+
+`string` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| 0 | `string` | yes |
+| 1 | `string` | yes |
+
+## Returns
+
+`string`
+
+## Examples
+
+### Swap one word for another
+
+**Input**
+
+```
+greeting = "Hello world"
+```
+
+**Template**
+
+```
+{{ greeting | replace:'world','everyone' }}
+```
+
+**Output**
+
+```
+Hello everyone
+```
+
+### Redact a phrase
+
+**Input**
+
+```
+text = "The password is hunter2"
+```
+
+**Template**
+
+```
+{{ text | replace:'hunter2','******' }}
+```
+
+**Output**
+
+```
+The password is ******
+```

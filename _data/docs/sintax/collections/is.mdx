@@ -1,0 +1,63 @@
+---
+title: "is"
+description: "Is returns true if the value equals any of the given parameters."
+category: collections
+---
+
+Is returns true if the value equals any of the given parameters.
+
+## Input
+
+`any` 
+
+## Parameters
+
+| # | Type | Required |
+|---|------|----------|
+| ... | `any` | yes |
+
+## Returns
+
+`bool`
+
+## Examples
+
+### Match a single status
+
+**Input**
+
+```
+status = "active"
+```
+
+**Template**
+
+```
+{{ status | is:'active' }}
+```
+
+**Output**
+
+```
+true
+```
+
+### Match any of several roles
+
+**Input**
+
+```
+role = "admin"
+```
+
+**Template**
+
+```
+{{ role | is:'admin','superuser' }}
+```
+
+**Output**
+
+```
+true
+```
