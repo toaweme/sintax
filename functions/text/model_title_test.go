@@ -1,8 +1,6 @@
 package text
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
@@ -1472,11 +1470,11 @@ Z.AI: GLM 4.6
 Z.AI: GLM 4.6 (exacto)
 Z.AI: GLM 4.6V`
 
-	// _ = slugs
+	_ = slugs
 	_ = titles
 
-	fields := strings.Split(slugs, "\n")
-	for _, field := range fields {
-		fmt.Printf(`{input: "%s", expected: "%s"},`+"\n", field, FormatModelTitle(field))
-	}
+	// fields := strings.Split(slugs, "\n")
+	// for _, field := range fields {
+	// 	fmt.Printf(`{input: "%s", expected: "%s"},`+"\n", field, FormatModelTitle(field))
+	// }
 }

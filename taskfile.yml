@@ -1,9 +1,0 @@
-version: '3'
-
-tasks:
-  default:
-    desc: List available tasks
-    cmds:
-      - task run:docs
-includes:
-  run: taskfile.run.yml

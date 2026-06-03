@@ -1,8 +1,6 @@
 package text
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
@@ -14286,9 +14284,10 @@ olmo-3.1:32b-think-fp16
 deepseek-v3.2:cloud
 mistral-large-3:675b-cloud
 `
-	models := strings.Fields(modelsStr)
-
-	for _, field := range models {
-		fmt.Printf(`{input: "%s", expected: "%s"},`+"\n", field, FormatModelTitle(field))
-	}
+	_ = modelsStr
+	// models := strings.Fields(modelsStr)
+	//
+	// for _, field := range models {
+	// 	fmt.Printf(`{input: "%s", expected: "%s"},`+"\n", field, FormatModelTitle(field))
+	// }
 }

@@ -10,14 +10,14 @@ Templating engine built for workflows, document generation, and data transformat
 
 ## Features
 
-- **Pipe syntax** — chain 51 built-in modifiers to transform any value in a single expression
-- **Dependency resolution** — variables can reference each other; sintax resolves them in the correct order automatically
-- **Cycle detection** — circular variable references are caught at resolution time, not at runtime
-- **Nested data** — maps, slices, structs, and pointers are all resolved and rendered recursively
-- **Conditionals** — `{{ if x }} … {{ else }} … {{ endif }}` blocks
-- **Loops** — `{{ for v in items }} … {{ endfor }}` over slices and maps, with auto-bound index/key helpers
-- **Typed errors** — parse failures, missing variables, and circular dependencies are surfaced as distinct, branchable error categories
-- **Extensible** — register your own modifiers alongside the built-ins
+- **Pipe syntax**: chain 51 built-in modifiers to transform any value in a single expression
+- **Dependency resolution**: variables can reference each other; sintax resolves them in the correct order automatically
+- **Cycle detection**: circular variable references are caught at resolution time, not at runtime
+- **Nested data**: maps, slices, structs, and pointers are all resolved and rendered recursively
+- **Conditionals**: `{{ if x }} … {{ else }} … {{ endif }}` blocks
+- **Loops**: `{{ for v in items }} … {{ endfor }}` over slices and maps, with auto-bound index/key helpers
+- **Typed errors**: parse failures, missing variables, and circular dependencies are surfaced as distinct, branchable error categories
+- **Extensible**: register your own modifiers alongside the built-ins
 
 ---
 
@@ -52,7 +52,7 @@ A leading or trailing `-` inside a tag eats whitespace on that side, the same wa
 | `{{ expr -}}` | strip leading whitespace (including newlines) from the text **after** this tag |
 | `{{- expr -}}` | both at once |
 
-Block control tags (`if`/`else`/`endif`/`for`/`endfor`) that sit alone on their own line are auto-trimmed —
+Block control tags (`if`/`else`/`endif`/`for`/`endfor`) that sit alone on their own line are auto-trimmed:
 the surrounding indentation and the line's newline are removed automatically, so you don't have to write `-` on
 every block tag just to keep your output clean. Use the explicit `{{-` / `-}}` form when a tag shares a line
 with text or you want extra whitespace eaten.
@@ -68,12 +68,12 @@ with text or you want extra whitespace eaten.
 {{ for i, v in xs }} … {{ endfor }}     # bind index/key + value
 ```
 
-Inside the loop body the following helpers are available — `<v>` is whatever name you bound the value to:
+Inside the loop body the following helpers are available, where `<v>` is whatever name you bound the value to:
 
 | Binding | Set on |
 |---|---|
 | `<v>_index` | both slice and map iterations (0-based) |
-| `<v>_first`, `<v>_last` | both — booleans for the first/last iteration |
+| `<v>_first`, `<v>_last` | both: booleans for the first/last iteration |
 | `<v>_key` | map iterations only, when no explicit key name was bound |
 
 Map iteration order is sorted by key. Loops nest freely and parent variables remain visible inside the body.
@@ -92,23 +92,21 @@ These names resolve to runtime-generated values without being declared.
 |---|---|
 | `{{ uuid }}` | UUID v4 string (alias for `uuidv4`) |
 | `{{ uuidv1 }}` | UUID v1 string (time + MAC) |
-| `{{ now }}` | timestamp — pipe into `format` |
-| `{{ [] }}` | empty array — useful with `default` |
-| `{{ {} }}` | empty object — useful with `default` |
+| `{{ now }}` | timestamp, pipe into `format` |
+| `{{ [] }}` | empty array, useful with `default` |
+| `{{ {} }}` | empty object, useful with `default` |
 
 ---
 
-## Modifiers
+## Items
 
-Each modifier ships with structured docs (input, parameters, return type, and worked
-examples) under [`_data/docs/sintax`](./_data/docs/sintax). The tables below are a quick
-reference — click through for sample inputs and outputs.
+Each item ships with structured docs under [`./_data/docs/sintax`](./_data/docs/sintax). The tables below are a quick reference.
 
 ### Text
 
 Trim, case-shift, slugify, split, and reshape strings.
 
-| Modifier | Description | Example |
+| Item | Description | Example |
 |----------|-------------|---------|
 | [`concat`](./_data/docs/sintax/text/concat.mdx) | Concat appends one or more strings to the value. | `{{ greeting \| concat:'!' }}` |
 | [`join`](./_data/docs/sintax/text/join.mdx) | Join combines an array of strings into a single string with a separator. | `{{ tags \| join:',' }}` |
@@ -132,7 +130,7 @@ Trim, case-shift, slugify, split, and reshape strings.
 
 Sort, filter, find, and reshape arrays and maps.
 
-| Modifier | Description | Example |
+| Item | Description | Example |
 |----------|-------------|---------|
 | [`filter`](./_data/docs/sintax/collections/filter.mdx) | Filter returns a subset of a slice where a nested field matches a value. | `{{ items \| filter:'status','active' }}` |
 | [`find`](./_data/docs/sintax/collections/find.mdx) | Find returns the first element in a slice or map where a field equals the given value. | `{{ users \| find:'id',42 }}` |
@@ -153,7 +151,7 @@ Sort, filter, find, and reshape arrays and maps.
 
 Compare values for use inside if/else blocks and conditional expressions.
 
-| Modifier | Description | Example |
+| Item | Description | Example |
 |----------|-------------|---------|
 | [`eq`](./_data/docs/sintax/boolean/eq.mdx) | Eq returns true if the value equals the given parameter. | `{{ status \| eq:'active' }}` |
 | [`gt`](./_data/docs/sintax/boolean/gt.mdx) | Gt returns true if the numeric value is greater than the threshold. | `{{ items_in_cart \| gt:0 }}` |
@@ -164,7 +162,7 @@ Compare values for use inside if/else blocks and conditional expressions.
 
 Move between Go values, JSON, YAML, and other serialized formats.
 
-| Modifier | Description | Example |
+| Item | Description | Example |
 |----------|-------------|---------|
 | [`from`](./_data/docs/sintax/convert/from.mdx) | From parses the string value as the given format and returns the parsed result. | `{{ body \| from:'json' }}` |
 | [`json`](./_data/docs/sintax/convert/json.mdx) | JSON serializes the value to a JSON string. | `{{ user \| json }}` |
@@ -175,19 +173,19 @@ Move between Go values, JSON, YAML, and other serialized formats.
 
 Defaults, lengths, line numbers, and date formatting.
 
-| Modifier | Description | Example |
+| Item | Description | Example |
 |----------|-------------|---------|
 | [`decimal`](./_data/docs/sintax/utils/decimal.mdx) | Decimal formats a number with a fixed number of decimal places. | `{{ amount \| decimal:2 }}` |
 | [`default`](./_data/docs/sintax/utils/default.mdx) | Default returns the fallback value if the input is nil or an empty string. | `{{ name \| default:'anonymous' }}` |
-| [`format`](./_data/docs/sintax/utils/format.mdx) | Format formats a time. | `{{ created_at \| format:'YYYY-MM-DD' }}` |
+| [`format`](./_data/docs/sintax/utils/format.mdx) | Format formats a time.Time value using a date format string. | `{{ created_at \| format:'YYYY-MM-DD' }}` |
 | [`length`](./_data/docs/sintax/utils/length.mdx) | Length returns the number of characters in a string, bytes in a byte slice, or elements in a slice/array/map. | `{{ name \| length }}` |
 | [`line-numbers`](./_data/docs/sintax/utils/line-numbers.mdx) | LineNumbers prepends each line of the string with its zero-based line number. | `{{ note \| line-numbers }}` |
 
 ### File System
 
-Pull pieces out of file paths — directory, name, and extension.
+Pull pieces out of file paths - directory, name, and extension.
 
-| Modifier | Description | Example |
+| Item | Description | Example |
 |----------|-------------|---------|
 | [`dirname`](./_data/docs/sintax/fs/dirname.mdx) | Dirname returns the directory portion of a file path. | `{{ file_path \| dirname }}` |
 | [`ext`](./_data/docs/sintax/fs/ext.mdx) | FilenameExt returns the file extension without the leading dot. | `{{ file_path \| ext }}` |
@@ -200,13 +198,13 @@ Pull pieces out of file paths — directory, name, and extension.
 
 Convert numbers between currency units like dollars and cents.
 
-| Modifier | Description | Example |
+| Item | Description | Example |
 |----------|-------------|---------|
 | [`currency`](./_data/docs/sintax/money/currency.mdx) | Currency converts a numeric value between currency units by applying a unit multiplier ratio. | `{{ price \| currency:1,100 }}` |
 
 ---
 
-_The sections below are for embedding sintax inside a Go program — instantiating the engine, registering
+_The sections below are for embedding sintax inside a Go program: instantiating the engine, registering
 custom modifiers, surfacing typed errors, and integrating with workflow orchestrators. The template syntax
 itself is documented above._
 
@@ -231,7 +229,7 @@ import (
 func main() {
     s := sintax.New(nil)
 
-    // Variables can reference each other — sintax resolves them in order
+    // Variables can reference each other, sintax resolves them in order
     vars := map[string]any{
         "env":     "production",
         "prefix":  "{{ env | upper }}",
@@ -247,7 +245,7 @@ func main() {
 }
 ```
 
-`sintax.New(overrides)` takes an optional `map[string]sintax.GlobalModifier` — pass `nil` for the built-ins.
+`sintax.New(overrides)` takes an optional `map[string]sintax.GlobalModifier`; pass `nil` for the built-ins.
 `Render` resolves variables first, then renders. Use `RenderSafe` if values inside the variable map should
 **not** be re-parsed for `{{ ... }}` tokens (handy when those values may originate from untrusted input).
 
@@ -299,7 +297,7 @@ type Token interface {
 
 ## Error handling
 
-Every failure mode has a sentinel error you can match with `errors.Is`. Wrap or compare — never string-match.
+Every failure mode has a sentinel error you can match with `errors.Is`. Wrap or compare, never string-match.
 
 ```go
 resolved, err := s.ResolveVariables(vars)
@@ -307,7 +305,7 @@ switch {
 case errors.Is(err, sintax.ErrCircularDependency):
     // variable A references B which references A
 case errors.Is(err, sintax.ErrVariableNotFound):
-    // referenced variable missing — use | default:'...' to avoid this
+    // referenced variable missing, use | default:'...' to avoid this
 case errors.Is(err, sintax.ErrParseFailed):
     // template grammar error
 case errors.Is(err, sintax.ErrRenderFailed):
@@ -324,7 +322,7 @@ Other errors worth knowing about: `sintax.ErrInvalidTokenType`, `sintax.ErrFunct
 
 ## Custom modifiers
 
-Pass a map of overrides to `sintax.New`. Overrides also replace built-ins of the same name — useful for
+Pass a map of overrides to `sintax.New`. Overrides also replace built-ins of the same name, useful for
 sandboxing or instrumenting a modifier.
 
 ```go
@@ -357,7 +355,7 @@ sintax.SetSpecialVariable("today", func() any {
 
 A handful of modifiers ship as stubs so the core stays dependency-light. Wire them up in your project:
 
-**YAML serialization** — requires `gopkg.in/yaml.v3`
+**YAML serialization**: requires `gopkg.in/yaml.v3`
 
 ```go
 overrides := map[string]sintax.GlobalModifier{
@@ -368,7 +366,7 @@ overrides := map[string]sintax.GlobalModifier{
 }
 ```
 
-**HTML → Markdown** — requires `github.com/JohannesKaufmann/html-to-markdown/v2`
+**HTML → Markdown**: requires `github.com/JohannesKaufmann/html-to-markdown/v2`
 
 ```go
 overrides := map[string]sintax.GlobalModifier{
