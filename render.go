@@ -25,7 +25,10 @@ type Func struct {
 
 // StringRenderer handles rendering templates with a given context.
 type StringRenderer struct {
-	funcs map[string]GlobalModifier
+	funcs    map[string]GlobalModifier
+	ctxFuncs map[string]ContextualModifier
+	maxDepth int
+	depth    int
 }
 
 var _ Renderer = (*StringRenderer)(nil)
@@ -33,8 +36,30 @@ var _ Renderer = (*StringRenderer)(nil)
 // NewStringRenderer creates a new instance of StringRenderer with the provided context.
 func NewStringRenderer(funcs map[string]GlobalModifier) *StringRenderer {
 	return &StringRenderer{
-		funcs: funcs,
+		funcs:    funcs,
+		ctxFuncs: builtinContextualModifiers(),
+		maxDepth: defaultMaxTemplateDepth,
 	}
+}
+
+// defaultMaxTemplateDepth bounds how deeply the `template` modifier may re-enter
+// the engine before ErrMaxDepthExceeded is returned, guarding against
+// self-referential templates that would otherwise recurse forever.
+const defaultMaxTemplateDepth = 10
+
+// renderNested renders a string template against vars through the same engine,
+// enforcing the recursion guard. Its signature matches the render callback
+// handed to contextual modifiers (e.g. `template`).
+func (r *StringRenderer) renderNested(template string, vars map[string]any) (any, error) {
+	if r.depth+1 > r.maxDepth {
+		return nil, fmt.Errorf("failed to render nested template: %w", ErrMaxDepthExceeded)
+	}
+	tokens, err := NewStringParser().Parse(template)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse nested template: %w", err)
+	}
+	child := &StringRenderer{funcs: r.funcs, ctxFuncs: r.ctxFuncs, maxDepth: r.maxDepth, depth: r.depth + 1}
+	return child.Render(tokens, vars)
 }
 
 // Render processes the provided tokens and variables, returning a rendered string or any value
@@ -380,8 +405,9 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 
 	usesDefaultFunction := hasDefaultFunction(funcs)
 	for _, fn := range funcs {
+		ctxFn, isCtx := r.ctxFuncs[fn.Name]
 		function, ok := r.funcs[fn.Name]
-		if !ok {
+		if !isCtx && !ok {
 			return nil, fmt.Errorf("%w: %s", ErrFunctionNotFound, fn.Name)
 		}
 
@@ -396,6 +422,17 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 			} else {
 				args[i] = arg.Value
 			}
+		}
+
+		if isCtx {
+			out, err := ctxFn(r.renderNested, vars, varValue, args)
+			if err != nil {
+				if !usesDefaultFunction || !errors.Is(err, functions.ErrAllowsDefaultFunc) {
+					return nil, fmt.Errorf("%w: %w", ErrFunctionApplyFailed, err)
+				}
+			}
+			varValue = out
+			continue
 		}
 
 		newVarValueAfterFunctions, err := function(varValue, args)

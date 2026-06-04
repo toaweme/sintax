@@ -7,6 +7,7 @@ var (
 	ErrVariableNotFound    = errors.New("variable not found")
 	ErrFunctionNotFound    = errors.New("function not found")
 	ErrFunctionApplyFailed = errors.New("function failed to apply")
+	ErrMaxDepthExceeded    = errors.New("max template nesting depth exceeded")
 )
 
 type Sintax interface {

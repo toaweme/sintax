@@ -12,6 +12,23 @@ import (
 
 type GlobalModifier func(value any, params []any) (any, error)
 
+// ContextualModifier is a modifier that needs live render state - the current
+// variables and a re-entrant renderer - rather than only its piped value. The
+// render callback runs a string template through the same engine (same
+// modifiers, same recursion guard). The callback type is written inline so
+// modifiers in functions/ subpackages stay structurally compatible without
+// importing this package.
+type ContextualModifier func(render func(template string, vars map[string]any) (any, error), vars map[string]any, value any, params []any) (any, error)
+
+// builtinContextualModifiers returns the contextual modifiers wired into every
+// renderer. Unlike GlobalModifiers these need live render state, so they are
+// registered here rather than exposed through BuiltinFunctions.
+func builtinContextualModifiers() map[string]ContextualModifier {
+	return map[string]ContextualModifier{
+		string(text.ModifierNameTemplate): text.Template,
+	}
+}
+
 var BuiltinFunctions = func(overrides map[string]GlobalModifier, safeDirs []string) map[string]GlobalModifier {
 	funcs := map[string]GlobalModifier{
 		// convert
