@@ -18,6 +18,12 @@ type GlobalModifier func(value any, params []any) (any, error)
 // modifiers, same recursion guard). The callback type is written inline so
 // modifiers in functions/ subpackages stay structurally compatible without
 // importing this package.
+//
+// The vars map must be treated as read-only and borrowed: read it during the
+// call, but do not mutate it or retain a reference past return. Inside a `for`
+// body the engine reuses a single scope map across iterations, so a retained
+// reference would observe later iterations' values rather than a stable
+// snapshot. Copy out anything that must outlive the call.
 type ContextualModifier func(render func(template string, vars map[string]any) (any, error), vars map[string]any, value any, params []any) (any, error)
 
 // builtinContextualModifiers returns the contextual modifiers wired into every

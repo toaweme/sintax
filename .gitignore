@@ -3,6 +3,7 @@
 .env
 go.work
 go.work.sum
+*.test
 
 # compiled binaries - all under ./bin
 /bin/

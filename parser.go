@@ -247,13 +247,13 @@ func autoTrimBlockLines(tokens []Token) []Token {
 	return out
 }
 
-// variableNameRe matches a bare variable name (letters, digits, underscore and
-// dots). Compiled once at package load: detectTokenType runs it against every
+// variableNameRe matches a bare variable name (letters, digits, underscore and dots).
+// Compiled once at package load: detectTokenType runs it against every
 // token, so compiling per call dominated parse allocations.
 var variableNameRe = regexp.MustCompile(`^([a-zA-Z_.][a-zA-Z0-9_.]*)$`)
 
-// isVariable reports whether s is a bare variable name (as opposed to a quoted
-// string, number, boolean, or filtered expression).
+// isVariable reports whether s is a bare variable name
+// (as opposed to a quoted string, number, boolean, or filtered expression).
 func (p *StringParser) isVariable(s string) bool {
 	return variableNameRe.MatchString(s)
 }
