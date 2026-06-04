@@ -105,7 +105,7 @@ func Test_StringRenderer_RenderVariable(t *testing.T) {
 		},
 	}
 
-	r := NewStringRenderer(BuiltinFunctions(nil))
+	r := NewStringRenderer(BuiltinFunctions(nil, nil))
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {

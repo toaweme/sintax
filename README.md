@@ -192,7 +192,13 @@ Pull pieces out of file paths - directory, name, and extension.
 | [`ext-dot`](./_data/docs/sintax/fs/ext-dot.mdx) | FilenameExtDot returns the file extension including the leading dot. | `{{ file_path \| ext-dot }}` |
 | [`ext-prepend`](./_data/docs/sintax/fs/ext-prepend.mdx) | FilenamePrependExt inserts an additional extension before the existing file extension. | `{{ file_path \| ext-prepend:'min' }}` |
 | [`ext-trim`](./_data/docs/sintax/fs/ext-trim.mdx) | FilenameTrimExt returns the file path without its extension. | `{{ file_path \| ext-trim }}` |
+| [`file`](./_data/docs/sintax/fs/file.mdx) | File reads a file's contents from an allowlisted directory. | `{{ "greeting.tpl" \| file }}` |
 | [`filename`](./_data/docs/sintax/fs/filename.mdx) | Filename returns the base file name from a path, including the extension. | `{{ file_path \| filename }}` |
+
+`file` reads from disk, so it only works against an allowlist of directories you
+pass in: `BuiltinFunctions(overrides, safeDirs)`. Paths are resolved against
+those dirs and any `..` escape is rejected. With no `safeDirs` (`nil`), `file`
+always errors.
 
 ### Money
 

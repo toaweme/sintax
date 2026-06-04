@@ -355,8 +355,17 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 	varName, funcs := getVarAndFunctions(token)
 	hasFunctionsToApply := len(funcs) > 0
 
-	// get the variable value on which the function will be applied
-	varValue, varExists := vars[varName]
+	// get the value on which the function will be applied. a quoted head is a
+	// literal string (e.g. {{ "path.tpl" | file }}) rather than a variable name.
+	var varValue any
+	var varExists bool
+	if isQuotedWith(varName, `"`) {
+		varValue, varExists = unquote(varName, `"`), true
+	} else if isQuotedWith(varName, `'`) {
+		varValue, varExists = unquote(varName, `'`), true
+	} else {
+		varValue, varExists = vars[varName]
+	}
 	if !varExists {
 		// only return an error if there are no functions to apply
 		// if there are functions to apply, we can assume that the variable can be optional e.g. using "default" function

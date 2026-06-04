@@ -12,7 +12,7 @@ import (
 
 type GlobalModifier func(value any, params []any) (any, error)
 
-var BuiltinFunctions = func(overrides map[string]GlobalModifier) map[string]GlobalModifier {
+var BuiltinFunctions = func(overrides map[string]GlobalModifier, safeDirs []string) map[string]GlobalModifier {
 	funcs := map[string]GlobalModifier{
 		// convert
 		string(convert.ModifierNameJSON): convert.JSON,
@@ -36,6 +36,7 @@ var BuiltinFunctions = func(overrides map[string]GlobalModifier) map[string]Glob
 		string(fs.ModifierNameFilenameExtDot):     fs.FilenameExtDot,
 		string(fs.ModifierNameFilenamePrependExt): fs.FilenamePrependExt,
 		string(fs.ModifierNameFilenameTrimExt):    fs.FilenameTrimExt,
+		string(fs.ModifierNameFile):               fs.File(safeDirs),
 
 		// text
 		// string(text.ModifierNameSexy): text.Sexy,
