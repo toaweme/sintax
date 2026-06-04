@@ -310,8 +310,11 @@ func (p *StringParser) createToken(tokenType TokenType, value string) Token {
 		}
 
 		hasDefault := false
-		// extract the modifier variables
-		_, funcs := getVarAndFunctions(token)
+		// extract the modifier variables; cache the parse so renderVariable can
+		// skip re-splitting RawValue on every render.
+		varName, funcs := getVarAndFunctions(token)
+		token.parsedVar = varName
+		token.parsedFuncs = funcs
 		for _, f := range funcs {
 			if f.Name == "default" {
 				hasDefault = true

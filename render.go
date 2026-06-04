@@ -97,7 +97,7 @@ func (r *StringRenderer) renderRange(tokens []Token, start, end int, vars map[st
 				continue
 			}
 			if val, ok := variable.(bool); ok {
-				str.WriteString(fmt.Sprintf("%t", val))
+				str.WriteString(strconv.FormatBool(val))
 				i++
 				continue
 			}
@@ -287,9 +287,18 @@ func (r *StringRenderer) renderFor(tokens []Token, start, end int, vars map[stri
 		}
 	case reflect.Map:
 		keys := rv.MapKeys()
-		sort.Slice(keys, func(a, b int) bool {
-			return fmt.Sprint(keys[a].Interface()) < fmt.Sprint(keys[b].Interface())
-		})
+		if rv.Type().Key().Kind() == reflect.String {
+			// string-keyed maps (the common case): compare the key strings
+			// directly, avoiding the fmt.Sprint + interface boxing the generic
+			// path allocates on every comparison.
+			sort.Slice(keys, func(a, b int) bool {
+				return keys[a].String() < keys[b].String()
+			})
+		} else {
+			sort.Slice(keys, func(a, b int) bool {
+				return fmt.Sprint(keys[a].Interface()) < fmt.Sprint(keys[b].Interface())
+			})
+		}
 		keyKey := loopVar + "_key"
 		n := len(keys)
 		for i, k := range keys {
@@ -382,14 +391,14 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 				return "false", nil
 			}
 		case int:
-			return fmt.Sprintf("%d", val), nil
+			return strconv.Itoa(val), nil
 		}
 
 		return varValue, nil
 	}
 
 	// handle filtered variable token
-	varName, funcs := getVarAndFunctions(token)
+	varName, funcs := varAndFuncs(token)
 	hasFunctionsToApply := len(funcs) > 0
 
 	// get the value on which the function will be applied. a quoted head is a
@@ -470,6 +479,16 @@ func hasDefaultFunction(funcs []Func) bool {
 		}
 	}
 	return false
+}
+
+// varAndFuncs returns the parsed variable name and modifier pipeline for a
+// filtered token, preferring the parse cached on BaseToken at parse time and
+// falling back to getVarAndFunctions for tokens that lack it.
+func varAndFuncs(token Token) (string, []Func) {
+	if bt, ok := token.(BaseToken); ok && bt.parsedFuncs != nil {
+		return bt.parsedVar, bt.parsedFuncs
+	}
+	return getVarAndFunctions(token)
 }
 
 func getVarAndFunctions(token Token) (string, []Func) {

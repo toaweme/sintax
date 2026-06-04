@@ -17,6 +17,8 @@ func benchRender(b *testing.B, tmpl string, vars map[string]any) {
 	if _, err := s.Render(tmpl, vars); err != nil {
 		b.Fatalf("setup render failed: %v", err)
 	}
+	// report throughput as bytes of template text rendered per second
+	b.SetBytes(int64(len(tmpl)))
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -51,6 +53,12 @@ func Benchmark_Render_Loop(b *testing.B) {
 
 func Benchmark_Render_ConditionalLoop(b *testing.B) {
 	benchRender(b, "{{ for x in flags }}{{ if x }}1{{ else }}0{{ endif }}{{ endfor }}", map[string]any{"flags": benchBools(100)})
+}
+
+// Benchmark_Render_LoopMap iterates a string-keyed map, exercising the key-sort
+// path in renderFor.
+func Benchmark_Render_LoopMap(b *testing.B) {
+	benchRender(b, "{{ for k, v in items }}{{ k }}={{ v }}\n{{ endfor }}", map[string]any{"items": benchStringMap(100)})
 }
 
 // Benchmark_Render_TemplateModifier measures the nested-render primitive: the
@@ -106,6 +114,7 @@ func Benchmark_Render_Complex(b *testing.B) {
 // Benchmark_Parse_Complex isolates tokenization cost (no rendering).
 func Benchmark_Parse_Complex(b *testing.B) {
 	p := NewStringParser()
+	b.SetBytes(int64(len(benchComplexTemplate)))
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -128,6 +137,7 @@ func Benchmark_RenderTokens_Complex(b *testing.B) {
 	if _, err := r.Render(tokens, vars); err != nil {
 		b.Fatalf("setup render failed: %v", err)
 	}
+	b.SetBytes(int64(len(benchComplexTemplate)))
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -151,4 +161,12 @@ func benchBools(n int) []any {
 		xs[i] = i%2 == 0
 	}
 	return xs
+}
+
+func benchStringMap(n int) map[string]any {
+	m := make(map[string]any, n)
+	for i := 0; i < n; i++ {
+		m[fmt.Sprintf("key-%03d", i)] = fmt.Sprintf("value-%d", i)
+	}
+	return m
 }

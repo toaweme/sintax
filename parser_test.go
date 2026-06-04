@@ -47,7 +47,7 @@ func Test_Parser_Parse(t *testing.T) {
 			input: "{{ if condition }}{{ content | xss | summary:255,300 }}{{ endif }}",
 			expected: []Token{
 				BaseToken{TokenType: IfToken, RawValue: "condition"},
-				BaseToken{TokenType: FilteredVariableToken, RawValue: "content | xss | summary:255,300", Var: "content"},
+				BaseToken{TokenType: FilteredVariableToken, RawValue: "content | xss | summary:255,300", Var: "content", parsedVar: "content", parsedFuncs: []Func{{Name: "xss", Args: []Arg{}}, {Name: "summary", Args: []Arg{{Value: 255}, {Value: 300}}}}},
 				BaseToken{TokenType: IfEndToken, RawValue: ""},
 			},
 		},
@@ -58,7 +58,7 @@ func Test_Parser_Parse(t *testing.T) {
 				BaseToken{TokenType: TextToken, RawValue: "something cool "},
 				BaseToken{TokenType: IfToken, RawValue: "condition"},
 				BaseToken{TokenType: TextToken, RawValue: " beep "},
-				BaseToken{TokenType: FilteredVariableToken, RawValue: "content | xss | summary:255,300", Var: "content"},
+				BaseToken{TokenType: FilteredVariableToken, RawValue: "content | xss | summary:255,300", Var: "content", parsedVar: "content", parsedFuncs: []Func{{Name: "xss", Args: []Arg{}}, {Name: "summary", Args: []Arg{{Value: 255}, {Value: 300}}}}},
 				BaseToken{TokenType: IfEndToken, RawValue: ""},
 				BaseToken{TokenType: TextToken, RawValue: " cool ending "},
 			},
@@ -96,7 +96,7 @@ func Test_Parser_ParseVariable(t *testing.T) {
 			name:  "variable with filters",
 			input: "{{ vars.content | xss | summary:255,300 }}",
 			expected: []Token{
-				BaseToken{TokenType: FilteredVariableToken, RawValue: "vars.content | xss | summary:255,300", Var: "vars.content"},
+				BaseToken{TokenType: FilteredVariableToken, RawValue: "vars.content | xss | summary:255,300", Var: "vars.content", parsedVar: "vars.content", parsedFuncs: []Func{{Name: "xss", Args: []Arg{}}, {Name: "summary", Args: []Arg{{Value: 255}, {Value: 300}}}}},
 			},
 		},
 		{
@@ -124,8 +124,10 @@ func Test_Parser_ParseVariable(t *testing.T) {
 }
 
 func Benchmark_Parser_Parse(b *testing.B) {
+	const tmpl = "something cool {{ if condition }} beep {{ content | xss | summary:255,300 }}{{ endif }} cool ending "
+	b.SetBytes(int64(len(tmpl)))
 	for i := 0; i < b.N; i++ {
 		p := NewStringParser()
-		p.Parse("something cool {{ if condition }} beep {{ content | xss | summary:255,300 }}{{ endif }} cool ending ")
+		p.Parse(tmpl)
 	}
 }

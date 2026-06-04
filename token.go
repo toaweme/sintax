@@ -34,6 +34,13 @@ type BaseToken struct {
 	// "items | filter:'a','b'"). For ForToken, Var holds the loop variable name
 	// (e.g. "tx") and LoopExprValue holds the right-hand-side expression.
 	LoopExprValue string
+	// parsedVar and parsedFuncs cache the result of getVarAndFunctions for
+	// FilteredVariableToken, computed once at parse time. renderVariable would
+	// otherwise re-split and re-classify RawValue on every render, which
+	// dominated allocations on modifier-heavy templates. nil parsedFuncs means
+	// "not cached" and the renderer falls back to parsing on demand.
+	parsedVar   string
+	parsedFuncs []Func
 }
 
 func (bt BaseToken) Type() TokenType   { return bt.TokenType }
