@@ -107,7 +107,7 @@ Each item ships with structured docs under [`./_data/docs/sintax`](./_data/docs/
 Trim, case-shift, slugify, split, and reshape strings.
 
 | Item | Description | Example |
-|----------|-------------|---------|
+| --- | --- | --- |
 | [`concat`](./_data/docs/sintax/text/concat.mdx) | Concat appends one or more strings to the value. | `{{ greeting \| concat:'!' }}` |
 | [`join`](./_data/docs/sintax/text/join.mdx) | Join combines an array of strings into a single string with a separator. | `{{ tags \| join:',' }}` |
 | [`lines`](./_data/docs/sintax/text/lines.mdx) | Lines splits a string or byte slice into an array of lines. | `{{ note \| lines }}` |
@@ -119,6 +119,7 @@ Trim, case-shift, slugify, split, and reshape strings.
 | [`shorten`](./_data/docs/sintax/text/shorten.mdx) | Shorten truncates a string to the given maximum character length. | `{{ description \| shorten:30 }}` |
 | [`slug`](./_data/docs/sintax/text/slug.mdx) | Slug converts a string to a URL-friendly slug. | `{{ title \| slug }}` |
 | [`split`](./_data/docs/sintax/text/split.mdx) | Split splits a string into an array using a separator. | `{{ csv_line \| split:',' }}` |
+| [`template`](./_data/docs/sintax/text/template.mdx) | Template renders its incoming string value as a nested sintax template, so a value loaded from a file (or any string variable) can itself contain \{\{ ... | `` |
 | [`title`](./_data/docs/sintax/text/title.mdx) | Title converts a hyphen-separated slug into a title-cased string. | `{{ slug \| title }}` |
 | [`title_model`](./_data/docs/sintax/text/title_model.mdx) | ModelTitle formats an AI model identifier into a human-readable title. | `{{ model_id \| title_model }}` |
 | [`trim`](./_data/docs/sintax/text/trim.mdx) | Trim removes leading and trailing whitespace, or the given character set. | `{{ name \| trim }}` |
@@ -131,7 +132,7 @@ Trim, case-shift, slugify, split, and reshape strings.
 Sort, filter, find, and reshape arrays and maps.
 
 | Item | Description | Example |
-|----------|-------------|---------|
+| --- | --- | --- |
 | [`filter`](./_data/docs/sintax/collections/filter.mdx) | Filter returns a subset of a slice where a nested field matches a value. | `{{ items \| filter:'status','active' }}` |
 | [`find`](./_data/docs/sintax/collections/find.mdx) | Find returns the first element in a slice or map where a field equals the given value. | `{{ users \| find:'id',42 }}` |
 | [`first`](./_data/docs/sintax/collections/first.mdx) | First returns the first character of a string or the first element of a slice. | `{{ items \| first }}` |
@@ -152,7 +153,7 @@ Sort, filter, find, and reshape arrays and maps.
 Compare values for use inside if/else blocks and conditional expressions.
 
 | Item | Description | Example |
-|----------|-------------|---------|
+| --- | --- | --- |
 | [`eq`](./_data/docs/sintax/boolean/eq.mdx) | Eq returns true if the value equals the given parameter. | `{{ status \| eq:'active' }}` |
 | [`gt`](./_data/docs/sintax/boolean/gt.mdx) | Gt returns true if the numeric value is greater than the threshold. | `{{ items_in_cart \| gt:0 }}` |
 | [`gte`](./_data/docs/sintax/boolean/gte.mdx) | Gte returns true if the numeric value is greater than or equal to the threshold. | `{{ qty \| gte:1 }}` |
@@ -163,7 +164,7 @@ Compare values for use inside if/else blocks and conditional expressions.
 Move between Go values, JSON, YAML, and other serialized formats.
 
 | Item | Description | Example |
-|----------|-------------|---------|
+| --- | --- | --- |
 | [`from`](./_data/docs/sintax/convert/from.mdx) | From parses the string value as the given format and returns the parsed result. | `{{ body \| from:'json' }}` |
 | [`json`](./_data/docs/sintax/convert/json.mdx) | JSON serializes the value to a JSON string. | `{{ user \| json }}` |
 | [`markdown`](./_data/docs/sintax/convert/markdown.mdx) | Markdown converts an HTML string to Markdown. | `{{ html_content \| markdown }}` |
@@ -174,7 +175,7 @@ Move between Go values, JSON, YAML, and other serialized formats.
 Defaults, lengths, line numbers, and date formatting.
 
 | Item | Description | Example |
-|----------|-------------|---------|
+| --- | --- | --- |
 | [`decimal`](./_data/docs/sintax/utils/decimal.mdx) | Decimal formats a number with a fixed number of decimal places. | `{{ amount \| decimal:2 }}` |
 | [`default`](./_data/docs/sintax/utils/default.mdx) | Default returns the fallback value if the input is nil or an empty string. | `{{ name \| default:'anonymous' }}` |
 | [`format`](./_data/docs/sintax/utils/format.mdx) | Format formats a time.Time value using a date format string. | `{{ created_at \| format:'YYYY-MM-DD' }}` |
@@ -186,7 +187,7 @@ Defaults, lengths, line numbers, and date formatting.
 Pull pieces out of file paths - directory, name, and extension.
 
 | Item | Description | Example |
-|----------|-------------|---------|
+| --- | --- | --- |
 | [`dirname`](./_data/docs/sintax/fs/dirname.mdx) | Dirname returns the directory portion of a file path. | `{{ file_path \| dirname }}` |
 | [`ext`](./_data/docs/sintax/fs/ext.mdx) | FilenameExt returns the file extension without the leading dot. | `{{ file_path \| ext }}` |
 | [`ext-dot`](./_data/docs/sintax/fs/ext-dot.mdx) | FilenameExtDot returns the file extension including the leading dot. | `{{ file_path \| ext-dot }}` |
@@ -200,15 +201,8 @@ Pull pieces out of file paths - directory, name, and extension.
 Convert numbers between currency units like dollars and cents.
 
 | Item | Description | Example |
-|----------|-------------|---------|
+| --- | --- | --- |
 | [`currency`](./_data/docs/sintax/money/currency.mdx) | Currency converts a numeric value between currency units by applying a unit multiplier ratio. | `{{ price \| currency:1,100 }}` |
-
-### Template
-
-| Item | Description | Example |
-|----------|-------------|---------|
-| [`template`](./_data/docs/sintax/template/template.mdx) | Template renders its incoming string value as a nested sintax template, so a value loaded from a file (or any string variable) can itself contain \{\{ ... | `` |
-
 ---
 
 _The sections below are for embedding sintax inside a Go program: instantiating the engine, registering
