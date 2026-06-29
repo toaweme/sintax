@@ -1,4 +1,18 @@
-# Quick Guide
+# sintax
+
+[![Quality](https://github.com/toaweme/sintax/actions/workflows/quality.yml/badge.svg)](https://github.com/toaweme/sintax/actions/workflows/quality.yml)
+<a href="https://code.toawe.me/toaweme/sintax/health">
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://code.toawe.me/toaweme/sintax/badge-dark.svg">
+        <source media="(prefers-color-scheme: light)" srcset="https://code.toawe.me/toaweme/sintax/badge.svg">
+        <img alt="sintax health" src="https://code.toawe.me/toaweme/sintax/badge.svg">
+    </picture>
+</a>
+[![Go Reference](https://img.shields.io/badge/Docs-pkg.go.dev-blue)](https://pkg.go.dev/github.com/toaweme/sintax)
+[![GitHub Tag](https://img.shields.io/github/v/tag/toaweme/sintax?label=Tag&color=green)](https://github.com/toaweme/sintax/releases)
+[![License](https://img.shields.io/badge/License-MIT-blue)](/LICENSE)
+
+## Templating engine
 
 Templating engine built for workflows, document generation, and data transformations.
 
@@ -405,6 +419,15 @@ Use `ExtractDependenciesWithOptions` / `ResolveVariablesWithOptions` and a popul
 
 ---
 
-## License
+## Hosted code and health reports
 
-MIT
+Reports for this repo are hosted by our <a href="https://code.toawe.me">code viewer</a>, which also serves the badges and cards above.
+
+<p align="center">
+  <a href="https://code.toawe.me/toaweme/sintax/health"><picture><source media="(prefers-color-scheme: dark)" srcset="https://code.toawe.me/toaweme/sintax/card.svg"><source media="(prefers-color-scheme: light)" srcset="https://code.toawe.me/toaweme/sintax/card-light.svg"><img alt="sintax health" src="https://code.toawe.me/toaweme/sintax/card-light.svg" width="48%"></picture></a>
+  <a href="https://code.toawe.me/toaweme/sintax/code"><picture><source media="(prefers-color-scheme: dark)" srcset="https://code.toawe.me/toaweme/sintax/code-card.svg"><source media="(prefers-color-scheme: light)" srcset="https://code.toawe.me/toaweme/sintax/code-card-light.svg"><img alt="sintax code" src="https://code.toawe.me/toaweme/sintax/code-card-light.svg" width="48%"></picture></a>
+</p>
+
+---
+
+Made with ❤️ in Lithuania 🇱🇹.

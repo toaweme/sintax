@@ -766,9 +766,9 @@ func Test_ModelTitle_RealTitleData(t *testing.T) {
 }
 
 // slugs
-// curl https://openrouter.ai/api/v1/models  -H "Authorization: Bearer sk-or-v1-xxx" | jq -r '.data[].id' | sort
+// curl https://openrouter.ai/api/v1/models  -H "Authorization: Bearer $OPENROUTER_API_KEY" | jq -r '.data[].id' | sort
 // titles
-// curl https://openrouter.ai/api/v1/models  -H "Authorization: Bearer sk-or-v1-xxx" | jq -r '.data[].name' | sort
+// curl https://openrouter.ai/api/v1/models  -H "Authorization: Bearer $OPENROUTER_API_KEY" | jq -r '.data[].name' | sort
 func TestPrintRealSlugsAndNamesAsTestCases(t *testing.T) {
 	slugs := `ai21/jamba-large-1.7
 ai21/jamba-mini-1.7
