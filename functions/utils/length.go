@@ -43,6 +43,7 @@ var Length = func(value any, _ []any) (any, error) {
 	switch rv.Kind() {
 	case reflect.Slice, reflect.Array, reflect.Map:
 		return rv.Len(), nil
+	default:
 	}
 
 	return nil, fmt.Errorf("length function expected string, bytes, slice, array, or map, got %T", value)

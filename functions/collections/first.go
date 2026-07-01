@@ -39,6 +39,7 @@ func First(value any, params []any) (any, error) {
 		if v.Len() > 0 {
 			return v.Index(0).Interface(), nil
 		}
+	default:
 	}
 
 	return nil, fmt.Errorf("first function expected a non-empty string, slice, or array, got %T", value)
@@ -70,6 +71,7 @@ func Last(value any, params []any) (any, error) {
 		if v.Len() > 0 {
 			return v.Index(v.Len() - 1).Interface(), nil
 		}
+	default:
 	}
 
 	return nil, fmt.Errorf("last function expected a non-empty string, slice, or array, got %T", value)

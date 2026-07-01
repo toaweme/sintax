@@ -30,10 +30,10 @@ const ModifierNameLineNumbers functions.ModifierName = "line-numbers"
 // out: 2. Splash! Silence again.
 func LineNumbers(value any, params []any) (any, error) {
 	if value == nil {
-		return nil, nil
+		return nil, nil //nolint:nilnil // deliberate: nil input passes through as nil, not an error
 	}
 	if value == "" {
-		return nil, nil
+		return nil, nil //nolint:nilnil // deliberate: empty input passes through as nil, not an error
 	}
 
 	input, ok := value.(string)

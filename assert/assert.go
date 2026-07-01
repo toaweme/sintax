@@ -45,9 +45,14 @@ func Error(t *testing.T, err error) {
 func True(t *testing.T, val bool, msgAndArgs ...any) {
 	t.Helper()
 	if !val {
+		format, ok := "", false
 		if len(msgAndArgs) > 0 {
-			t.Fatalf(msgAndArgs[0].(string), msgAndArgs[1:]...)
+			format, ok = msgAndArgs[0].(string)
 		}
+		if ok {
+			t.Fatalf(format, msgAndArgs[1:]...)
+		}
+
 		t.Fatal("expected true, got false")
 	}
 }

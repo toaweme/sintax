@@ -145,6 +145,7 @@ func controlName(t TokenType) string {
 		return "for"
 	case ForEndToken:
 		return "endfor"
+	default:
 	}
 	return "?"
 }
@@ -168,6 +169,7 @@ func findIfEnd(tokens []Token, start, end int) (elseIdx, endIdx int, err error) 
 			if depth == 0 && elseIdx == -1 {
 				elseIdx = j
 			}
+		default:
 		}
 	}
 	return -1, -1, errors.New("unterminated if block (missing endif)")
@@ -185,6 +187,7 @@ func findForEnd(tokens []Token, start, end int) (int, error) {
 				return j, nil
 			}
 			depth--
+		default:
 		}
 	}
 	return -1, errors.New("unterminated for block (missing endfor)")
@@ -358,7 +361,7 @@ func (r *StringRenderer) evalCondition(expr string, vars map[string]any) (bool, 
 func (r *StringRenderer) evalExpr(expr string, vars map[string]any) (any, error) {
 	expr = strings.TrimSpace(expr)
 	if expr == "" {
-		return nil, nil
+		return nil, nil //nolint:nilnil // deliberate: an empty expression evaluates to nil, not an error
 	}
 	tt := r.parser.detectTokenType(expr)
 	if tt != VariableToken && tt != FilteredVariableToken {
@@ -436,7 +439,11 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 		args := make([]any, len(fn.Args))
 		for i, arg := range fn.Args {
 			if arg.Var {
-				argValue, ok := vars[arg.Value.(string)]
+				varName, ok := arg.Value.(string)
+				if !ok {
+					return nil, fmt.Errorf("function arg: %w: %s", ErrVariableNotFound, arg.Value)
+				}
+				argValue, ok := vars[varName]
 				if !ok {
 					return nil, fmt.Errorf("function arg: %w: %s", ErrVariableNotFound, arg.Value)
 				}

@@ -36,10 +36,11 @@ func Format(value any, params []any) (any, error) {
 		d := date.NewFormatter(timeValue, date.DefaultMapping)
 		format := date.DefaultFormat
 		if len(params) > 0 {
-			if _, ok := params[0].(string); !ok {
+			s, ok := params[0].(string)
+			if !ok {
 				return nil, fmt.Errorf("format function expected string, got %T", params[0])
 			}
-			format = params[0].(string)
+			format = s
 		}
 
 		goDateFormat, err := d.Render(format)

@@ -54,21 +54,26 @@ func Find(value any, params []any) (any, error) {
 			}
 
 			if elem.Kind() == reflect.Map {
-				mapValue := elem.Interface().(map[string]any)
-				if val, ok := mapValue[key]; ok && reflect.DeepEqual(val, keyValue) {
-					return mapValue, nil
+				if mapValue, ok := elem.Interface().(map[string]any); ok {
+					if val, ok := mapValue[key]; ok && reflect.DeepEqual(val, keyValue) {
+						return mapValue, nil
+					}
 				}
 			}
 		}
 		return nil, fmt.Errorf("%w: key %q with value %q not found in slice", functions.ErrAllowsDefaultFunc, key, keyValue)
 
 	case reflect.Map:
-		mapValue := value.(map[string]any)
+		mapValue, ok := value.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("expected map[string]any, got %T", value)
+		}
 		if val, ok := mapValue[key]; ok && reflect.DeepEqual(val, keyValue) {
 			return mapValue, nil
 		}
 		return nil, fmt.Errorf("%w: key %q with value %q not found in map", functions.ErrAllowsDefaultFunc, key, keyValue)
-	}
 
-	return nil, fmt.Errorf("expected slice of maps or map, got %T", value)
+	default:
+		return nil, fmt.Errorf("expected slice of maps or map, got %T", value)
+	}
 }

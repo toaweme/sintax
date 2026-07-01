@@ -281,9 +281,9 @@ func Test_StringRenderer_getVarAndFunctions(t *testing.T) {
 		},
 		{
 			name:            "escaped commas in args",
-			token:           BaseToken{TokenType: FilteredVariableToken, RawValue: `content | withComma:'arg,ument', "ano,ther"`},
+			token:           BaseToken{TokenType: FilteredVariableToken, RawValue: `content | withComma:'arg,ument', "ano,ther"`}, //nolint:misspell // all good
 			expectedVarName: "content",
-			expectedFuncs:   []Func{{Name: "withComma", Args: []Arg{{Value: "arg,ument"}, {Value: "ano,ther"}}}},
+			expectedFuncs:   []Func{{Name: "withComma", Args: []Arg{{Value: "arg,ument"}, {Value: "ano,ther"}}}}, //nolint:misspell // all good
 		},
 		{
 			name:            "multiple funcs with mixed escaped quotes",

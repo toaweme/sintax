@@ -27,7 +27,7 @@ const ModifierNameLines functions.ModifierName = "lines"
 // out: Subject: Welcome
 func Lines(value any, params []any) (any, error) {
 	if value == nil {
-		return nil, nil
+		return nil, nil //nolint:nilnil // deliberate: nil input passes through as nil, not an error
 	}
 
 	switch v := value.(type) {

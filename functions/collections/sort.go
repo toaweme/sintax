@@ -34,7 +34,7 @@ const ModifierNameSort functions.ModifierName = "sort"
 // out: [4.50, 9.99, 14.00]
 func Sort(value any, params []any) (any, error) {
 	if value == nil {
-		return nil, nil
+		return nil, nil //nolint:nilnil // deliberate: nil input passes through as nil, not an error
 	}
 
 	slice, err := functions.ValueSlice(value)

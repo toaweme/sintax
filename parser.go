@@ -160,6 +160,7 @@ func autoTrimBlockLines(tokens []Token) []Token {
 		switch t.Type() {
 		case IfToken, ElseToken, IfEndToken, ForToken, ForEndToken:
 			return true
+		default:
 		}
 		return false
 	}
@@ -325,10 +326,12 @@ func (p *StringParser) createToken(tokenType TokenType, value string) Token {
 			}
 			for _, p := range f.Args {
 				if p.Var {
-					if token.ParamVars == nil {
-						token.ParamVars = make([]string, 0)
+					if varName, ok := p.Value.(string); ok {
+						if token.ParamVars == nil {
+							token.ParamVars = make([]string, 0)
+						}
+						token.ParamVars = append(token.ParamVars, varName)
 					}
-					token.ParamVars = append(token.ParamVars, p.Value.(string))
 				}
 			}
 		}
