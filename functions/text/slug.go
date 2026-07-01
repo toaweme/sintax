@@ -39,7 +39,7 @@ func titleToSlug(title string) string {
 	slug := strings.ToLower(title)
 
 	// Replace chars that aren't alphanumeric, spaces, hyphens, or dots with spaces
-	reg := regexp.MustCompile(`[^a-z0-9\s\-\.]`)
+	reg := regexp.MustCompile(`[^a-z0-9\s\-.]`)
 	slug = reg.ReplaceAllString(slug, " ")
 
 	// Replace multiple spaces with a single space

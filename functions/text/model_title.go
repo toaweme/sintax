@@ -231,21 +231,23 @@ func splitPart(s string) string {
 	parenDepth := 0
 
 	for i := 0; i < len(runes); i++ {
-		if runes[i] == '(' {
+		switch runes[i] {
+		case '(':
 			parenDepth++
-		} else if runes[i] == ')' {
+		case ')':
 			parenDepth--
 		}
 
 		if unicode.IsLetter(rune(s[i])) {
 			foundChar = true
 		}
-		if runes[i] == '-' {
+		switch runes[i] {
+		case '-':
 			if foundChar && parenDepth == 0 {
 				runes[i] = ' '
 			}
 			foundChar = false
-		} else if runes[i] == ' ' {
+		case ' ':
 			foundChar = false
 		}
 	}
@@ -257,9 +259,10 @@ func splitPart(s string) string {
 	parenDepth = 0
 
 	for i := len(runes) - 1; i >= 0; i-- {
-		if runes[i] == ')' {
+		switch runes[i] {
+		case ')':
 			parenDepth++
-		} else if runes[i] == '(' {
+		case '(':
 			parenDepth--
 		}
 
@@ -502,7 +505,7 @@ func isSpecificModel(s string) (bool, string) {
 	}
 
 	for _, v := range modelsExactCase {
-		if lower == strings.ToLower(v) {
+		if strings.EqualFold(lower, v) {
 			return true, v
 		}
 	}

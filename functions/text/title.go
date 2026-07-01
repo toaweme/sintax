@@ -71,9 +71,7 @@ func Title(value any, params []any) (any, error) {
 	}
 
 	var all []string
-	for _, acronym := range acronyms {
-		all = append(all, acronym)
-	}
+	all = append(all, acronyms...)
 
 	if len(providedAcronyms) > 0 {
 		all = append(all, providedAcronyms...)

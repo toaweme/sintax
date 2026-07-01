@@ -107,7 +107,7 @@ func (r *StringRenderer) renderRange(tokens []Token, start, end int, vars map[st
 			if allowDirect && start == i && i+1 == end && str.Len() == 0 {
 				return variable, i + 1, nil
 			}
-			str.WriteString(fmt.Sprint(variable))
+			fmt.Fprint(&str, variable)
 			i++
 		case IfToken:
 			out, next, err := r.renderIf(tokens, i, end, vars)
