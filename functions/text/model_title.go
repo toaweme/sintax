@@ -380,15 +380,12 @@ func isMixtureOfExperts(s string) (bool, string) {
 	}
 
 	// Extract expert size digits
-	expertSize := ""
 	startIdx := numberOfExperts + 1
-	for i := startIdx; i < count; i++ {
-		if unicode.IsDigit(runes[i]) {
-			expertSize += string(runes[i])
-		} else {
-			break
-		}
+	endIdx := startIdx
+	for endIdx < count && unicode.IsDigit(runes[endIdx]) {
+		endIdx++
 	}
+	expertSize := string(runes[startIdx:endIdx])
 
 	// Must have digits after 'x'
 	if len(expertSize) == 0 {
