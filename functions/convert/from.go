@@ -1,3 +1,4 @@
+// Package convert provides template modifiers for converting between data formats.
 package convert
 
 import (

@@ -11,6 +11,7 @@ import (
 	"github.com/toaweme/sintax/functions"
 )
 
+// Arg is a single argument passed to a modifier call.
 type Arg struct {
 	// Value is the value of the argument, which can be a literal value or a variable name
 	Value any
@@ -18,6 +19,7 @@ type Arg struct {
 	Var bool
 }
 
+// Func is a parsed modifier call, e.g. `trim:' '` in `{{ name | trim:' ' }}`.
 type Func struct {
 	Name string
 	Args []Arg

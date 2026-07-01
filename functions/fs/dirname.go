@@ -1,3 +1,4 @@
+// Package fs provides template modifiers for filesystem path manipulation.
 package fs
 
 import (

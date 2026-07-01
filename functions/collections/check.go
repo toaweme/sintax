@@ -1,3 +1,4 @@
+// Package collections provides template modifiers for slices and maps.
 package collections
 
 import (

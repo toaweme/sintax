@@ -1,3 +1,4 @@
+// Package text provides template modifiers for string transformation.
 package text
 
 import (

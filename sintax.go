@@ -9,6 +9,7 @@ type sintax struct {
 
 var _ Sintax = (*sintax)(nil)
 
+// New creates a Sintax using funcs as the set of available global modifiers.
 func New(funcs map[string]GlobalModifier) *sintax {
 	return &sintax{
 		parser: NewStringParser(),
@@ -30,6 +31,8 @@ func (s *sintax) Render(template string, vars map[string]any) (any, error) {
 	return result, nil
 }
 
+// Render parses and renders template against vars in one call, using funcs as
+// the set of available modifiers.
 func Render(template string, vars map[string]any, funcs map[string]GlobalModifier) (any, error) {
 	return New(funcs).Render(template, vars)
 }

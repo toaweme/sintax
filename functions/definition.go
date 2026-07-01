@@ -1,3 +1,5 @@
+// Package functions defines the modifier registry and shared types used by
+// the built-in template modifiers under functions/*.
 package functions
 
 import "errors"
@@ -8,6 +10,7 @@ type ModifierName string
 // Type represents the kind of value a modifier accepts or returns.
 type Type string
 
+// The supported modifier value types.
 const (
 	TypeAny    Type = "any"
 	TypeString Type = "string"

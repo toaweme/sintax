@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// ValueString asserts v is a string, returning ErrInvalidValueType otherwise.
 func ValueString(v any) (string, error) {
 	switch vv := v.(type) {
 	case string:
@@ -15,6 +16,7 @@ func ValueString(v any) (string, error) {
 	return "", fmt.Errorf("%w: expected string, got %T", ErrInvalidValueType, v)
 }
 
+// ValueSlice asserts v is a slice or array, returning ErrInvalidValueType otherwise.
 func ValueSlice(v any) ([]any, error) {
 	rv := reflect.ValueOf(v)
 	if rv.Kind() == reflect.Slice || rv.Kind() == reflect.Array {
@@ -27,6 +29,8 @@ func ValueSlice(v any) ([]any, error) {
 	return nil, fmt.Errorf("%w: expected slice or array, got %T", ErrInvalidValueType, v)
 }
 
+// ValueNumber coerces v to a float64 across the numeric kinds, returning
+// ErrInvalidValueType if v is not numeric (nil is treated as zero).
 func ValueNumber(v any) (float64, error) {
 	switch vv := v.(type) {
 	case float64:
@@ -58,6 +62,8 @@ func ValueNumber(v any) (float64, error) {
 	}
 }
 
+// ParamStringList asserts every element of params is a string, returning
+// ErrInvalidParamType at the first mismatch.
 func ParamStringList(params []any) ([]string, error) {
 	if len(params) == 0 {
 		return []string{}, nil
@@ -75,6 +81,8 @@ func ParamStringList(params []any) ([]string, error) {
 	return result, nil
 }
 
+// ParamString returns params[index] as a string, returning ErrMissingParam if
+// index is out of range or ErrInvalidParamType if the value isn't a string.
 func ParamString(params []any, index int) (string, error) {
 	if len(params) <= index {
 		return "", fmt.Errorf("%w: missing parameter at index %d", ErrMissingParam, index)
@@ -88,6 +96,7 @@ func ParamString(params []any, index int) (string, error) {
 	return v, nil
 }
 
+// ParamAny returns params[index], or ErrMissingParam if index is out of range.
 func ParamAny(params []any, index int) (any, error) {
 	if len(params) <= index {
 		return nil, fmt.Errorf("%w: missing parameter at index %d", ErrMissingParam, index)
@@ -96,6 +105,8 @@ func ParamAny(params []any, index int) (any, error) {
 	return params[index], nil
 }
 
+// ParamInt returns params[index] as an int, returning ErrMissingParam if
+// index is out of range or ErrInvalidParamType if the value isn't an int.
 func ParamInt(params []any, index int) (int, error) {
 	if len(params) <= index {
 		return 0, fmt.Errorf("%w: missing parameter at index %d", ErrMissingParam, index)
@@ -109,6 +120,7 @@ func ParamInt(params []any, index int) (int, error) {
 	return v, nil
 }
 
+// IsParam reports whether params[index] equals name.
 func IsParam(params []any, index int, name string) bool {
 	if len(params) <= index {
 		return false
@@ -117,13 +129,16 @@ func IsParam(params []any, index int, name string) bool {
 	return params[index] == name
 }
 
+// ConditionIsTrue reports whether condition should be treated as truthy in a
+// template `if`: booleans and numbers by their value, strings by "true"/
+// "false" or non-empty content, and collections by non-zero length.
 func ConditionIsTrue(condition any) bool {
 	if condition == nil {
 		return false
 	}
 	switch v := condition.(type) {
 	case bool:
-		return v == true
+		return v
 	case string:
 		if v == "false" {
 			return false
@@ -167,6 +182,9 @@ func ConditionIsTrue(condition any) bool {
 	}
 }
 
+// ConvertNumbersJSON recursively replaces json.Number values in v (as produced
+// by a decoder configured with UseNumber) with float64 or int64, so template
+// modifiers see native numeric types instead of json.Number.
 func ConvertNumbersJSON(v any) any {
 	switch vv := v.(type) {
 	case map[string]any:
@@ -189,13 +207,12 @@ func ConvertNumbersJSON(v any) any {
 				return f
 			}
 			return vv
-		} else {
-			i, err := vv.Int64()
-			if err == nil {
-				return i
-			}
-			return vv
 		}
+		i, err := vv.Int64()
+		if err == nil {
+			return i
+		}
+		return vv
 
 	default:
 		return v

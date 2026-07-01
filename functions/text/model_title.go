@@ -46,6 +46,9 @@ var weirdProviders = map[string]string{
 	"aion-labs":  "AionLabs",
 }
 
+// FormatModelTitle turns a raw model identifier (e.g. "openai/gpt-4o-mini")
+// into a human-readable title, applying provider-specific display names and
+// title-casing the remaining segments.
 func FormatModelTitle(model string) string {
 	for p := range weirdProviders {
 		if strings.HasPrefix(model, p) {

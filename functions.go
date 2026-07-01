@@ -10,6 +10,8 @@ import (
 	"github.com/toaweme/sintax/functions/utils"
 )
 
+// GlobalModifier is a stateless modifier that transforms a piped value given
+// its call params, independent of any render context.
 type GlobalModifier func(value any, params []any) (any, error)
 
 // ContextualModifier is a modifier that needs live render state - the current
@@ -35,6 +37,8 @@ func builtinContextualModifiers() map[string]ContextualModifier {
 	}
 }
 
+// BuiltinFunctions builds the map of global modifiers, applying overrides and
+// wiring safeDirs into any modifiers that need to constrain filesystem access.
 var BuiltinFunctions = func(overrides map[string]GlobalModifier, safeDirs []string) map[string]GlobalModifier {
 	funcs := map[string]GlobalModifier{
 		// convert

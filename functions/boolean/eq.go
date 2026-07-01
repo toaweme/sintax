@@ -1,3 +1,4 @@
+// Package boolean provides template modifiers for boolean comparisons.
 package boolean
 
 import (

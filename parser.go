@@ -5,11 +5,14 @@ import (
 	"strings"
 )
 
+// StringParser is the default Parser implementation, tokenizing templates
+// delimited by "{{" and "}}".
 type StringParser struct {
 	opener string
 	closer string
 }
 
+// NewStringParser creates a StringParser using the standard "{{"/"}}" delimiters.
 func NewStringParser() *StringParser {
 	return &StringParser{
 		opener: "{{",
@@ -19,6 +22,7 @@ func NewStringParser() *StringParser {
 
 var _ Parser = (*StringParser)(nil)
 
+// Parse tokenizes template into a slice of Tokens.
 func (p *StringParser) Parse(template string) ([]Token, error) {
 	var tokens []Token
 
