@@ -35,20 +35,22 @@ func Map(value any, params []any) (any, error) {
 		return nil, err
 	}
 
-	switch slice := value.(type) {
-	case []map[string]any:
-		n := make(map[string]map[string]any)
-		for _, m := range slice {
-			if v, ok := m[key]; ok {
-				if s, ok := v.(string); ok {
-					n[s] = m
-				} else {
-					return nil, fmt.Errorf("expected string value in map at key %q, got %T", key, v)
-				}
-			}
-		}
-		return n, nil
+	slice, ok := value.([]map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("expected slice of maps, got %T", value)
 	}
 
-	return nil, fmt.Errorf("expected slice of maps, got %T", value)
+	n := make(map[string]map[string]any)
+	for _, m := range slice {
+		v, ok := m[key]
+		if !ok {
+			continue
+		}
+		s, ok := v.(string)
+		if !ok {
+			return nil, fmt.Errorf("expected string value in map at key %q, got %T", key, v)
+		}
+		n[s] = m
+	}
+	return n, nil
 }

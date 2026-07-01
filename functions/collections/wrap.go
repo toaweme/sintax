@@ -29,10 +29,6 @@ var Wrap = func(value any, params []any) (any, error) {
 		return nil, errors.New("wrap requires at least one parameter")
 	}
 
-	key := ""
-	switch v := params[0].(type) {
-	case string:
-		key = v
-	}
+	key, _ := params[0].(string)
 	return map[string]any{key: value}, nil
 }

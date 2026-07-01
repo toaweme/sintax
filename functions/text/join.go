@@ -46,11 +46,11 @@ func Join(value any, params []any) (any, error) {
 		// Convert []any to []string
 		strs := make([]string, len(v))
 		for i, item := range v {
-			if str, ok := item.(string); ok {
-				strs[i] = str
-			} else {
+			str, ok := item.(string)
+			if !ok {
 				return nil, fmt.Errorf("join function expected array of strings, got %T at index %d", item, i)
 			}
+			strs[i] = str
 		}
 		return strings.Join(strs, separator), nil
 	}

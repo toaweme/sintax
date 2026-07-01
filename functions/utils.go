@@ -9,8 +9,7 @@ import (
 
 // ValueString asserts v is a string, returning ErrInvalidValueType otherwise.
 func ValueString(v any) (string, error) {
-	switch vv := v.(type) {
-	case string:
+	if vv, ok := v.(string); ok {
 		return vv, nil
 	}
 	return "", fmt.Errorf("%w: expected string, got %T", ErrInvalidValueType, v)
