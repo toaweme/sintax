@@ -38,7 +38,7 @@ func Flatten(value any, params []any) (any, error) {
 	}
 
 	out := make([]any, 0, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
+	for i := range rv.Len() {
 		elem := rv.Index(i).Interface()
 		ev := reflect.ValueOf(elem)
 		for ev.Kind() == reflect.Ptr || ev.Kind() == reflect.Interface {
@@ -53,7 +53,7 @@ func Flatten(value any, params []any) (any, error) {
 			continue
 		}
 		if ev.Kind() == reflect.Slice || ev.Kind() == reflect.Array {
-			for j := 0; j < ev.Len(); j++ {
+			for j := range ev.Len() {
 				out = append(out, ev.Index(j).Interface())
 			}
 			continue

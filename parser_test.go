@@ -126,7 +126,7 @@ func Test_Parser_ParseVariable(t *testing.T) {
 func Benchmark_Parser_Parse(b *testing.B) {
 	const tmpl = "something cool {{ if condition }} beep {{ content | xss | summary:255,300 }}{{ endif }} cool ending "
 	b.SetBytes(int64(len(tmpl)))
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		p := NewStringParser()
 		p.Parse(tmpl)
 	}

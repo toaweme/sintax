@@ -48,7 +48,7 @@ func Pluck(value any, params []any) (any, error) {
 	}
 
 	out := make([]any, 0, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
+	for i := range rv.Len() {
 		elem := rv.Index(i).Interface()
 		ev := reflect.ValueOf(elem)
 		for ev.Kind() == reflect.Ptr || ev.Kind() == reflect.Interface {

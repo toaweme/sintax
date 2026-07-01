@@ -50,7 +50,7 @@ func Sum(value any, params []any) (any, error) {
 	}
 
 	var total float64
-	for i := 0; i < rv.Len(); i++ {
+	for i := range rv.Len() {
 		elem := rv.Index(i).Interface()
 		var n float64
 		var err error

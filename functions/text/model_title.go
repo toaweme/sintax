@@ -362,7 +362,7 @@ func isMixtureOfExperts(s string) (bool, string) {
 	count := len(runes)
 
 	// Count leading digits
-	for i := 0; i < count; i++ {
+	for i := range count {
 		if unicode.IsDigit(runes[i]) {
 			numberOfExperts++
 		} else {

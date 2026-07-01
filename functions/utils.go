@@ -21,7 +21,7 @@ func ValueSlice(v any) ([]any, error) {
 	rv := reflect.ValueOf(v)
 	if rv.Kind() == reflect.Slice || rv.Kind() == reflect.Array {
 		result := make([]any, rv.Len())
-		for i := 0; i < rv.Len(); i++ {
+		for i := range rv.Len() {
 			result[i] = rv.Index(i).Interface()
 		}
 		return result, nil

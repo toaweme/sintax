@@ -271,7 +271,7 @@ func (r *StringRenderer) renderFor(tokens []Token, start, end int, vars map[stri
 	switch rv.Kind() {
 	case reflect.Slice, reflect.Array:
 		n := rv.Len()
-		for i := 0; i < n; i++ {
+		for i := range n {
 			child[loopVar] = rv.Index(i).Interface()
 			if keyName != "" {
 				// "for i, v in xs" — bind index under the user-chosen name

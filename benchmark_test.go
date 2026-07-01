@@ -21,7 +21,7 @@ func benchRender(b *testing.B, tmpl string, vars map[string]any) {
 	b.SetBytes(int64(len(tmpl)))
 	b.ReportAllocs()
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		if _, err := s.Render(tmpl, vars); err != nil {
 			b.Fatal(err)
 		}
@@ -92,7 +92,7 @@ paid total: {{ orders | filter:'status','paid' | pluck:'total' | sum | decimal:2
 
 func benchComplexVars() map[string]any {
 	orders := make([]any, 0, 50)
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		status := "paid"
 		if i%3 == 0 {
 			status = "pending"
@@ -117,7 +117,7 @@ func Benchmark_Parse_Complex(b *testing.B) {
 	b.SetBytes(int64(len(benchComplexTemplate)))
 	b.ReportAllocs()
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		if _, err := p.Parse(benchComplexTemplate); err != nil {
 			b.Fatal(err)
 		}
@@ -140,7 +140,7 @@ func Benchmark_RenderTokens_Complex(b *testing.B) {
 	b.SetBytes(int64(len(benchComplexTemplate)))
 	b.ReportAllocs()
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		if _, err := r.Render(tokens, vars); err != nil {
 			b.Fatal(err)
 		}
@@ -165,7 +165,7 @@ func benchBools(n int) []any {
 
 func benchStringMap(n int) map[string]any {
 	m := make(map[string]any, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		m[fmt.Sprintf("key-%03d", i)] = fmt.Sprintf("value-%d", i)
 	}
 	return m

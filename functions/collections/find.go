@@ -47,7 +47,7 @@ func Find(value any, params []any) (any, error) {
 
 	switch v.Kind() {
 	case reflect.Slice, reflect.Array:
-		for i := 0; i < v.Len(); i++ {
+		for i := range v.Len() {
 			elem := v.Index(i)
 			if elem.Kind() == reflect.Interface {
 				elem = elem.Elem()

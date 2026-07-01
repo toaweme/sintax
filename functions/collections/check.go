@@ -108,7 +108,7 @@ func hasInSlice(v reflect.Value, params []any) (bool, error) {
 					return false, fmt.Errorf("invalid parameter at index %d: %w", i, err)
 				}
 
-				for j := 0; j < v.Len(); j++ {
+				for j := range v.Len() {
 					elem := v.Index(j)
 					if elem.Kind() == reflect.Interface {
 						elem = elem.Elem()
@@ -131,7 +131,7 @@ func hasInSlice(v reflect.Value, params []any) (bool, error) {
 	}
 
 	for _, param := range params {
-		for i := 0; i < v.Len(); i++ {
+		for i := range v.Len() {
 			elem := v.Index(i)
 			if elem.Kind() == reflect.Interface {
 				elem = elem.Elem()
