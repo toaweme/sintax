@@ -15,7 +15,7 @@
 
 ## Templating engine
 
-Templating engine built for workflows, document generation, and data transformations.
+Zero dependency templating engine built for workflows, document generation, and data transformations.
 
 ```
 {{ response | from:'json' | key:'orders' | filter:'status','paid' | pluck:'total' | sum | decimal:2 }}
