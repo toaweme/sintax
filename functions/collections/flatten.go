@@ -27,7 +27,7 @@ const ModifierNameFlatten functions.ModifierName = "flatten"
 // out: ["Mon", "Tue", "Wed", "Thu"]
 func Flatten(value any, params []any) (any, error) {
 	rv := reflect.ValueOf(value)
-	for rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
+	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {
 		if rv.IsNil() {
 			return []any{}, nil
 		}
@@ -41,7 +41,7 @@ func Flatten(value any, params []any) (any, error) {
 	for i := range rv.Len() {
 		elem := rv.Index(i).Interface()
 		ev := reflect.ValueOf(elem)
-		for ev.Kind() == reflect.Ptr || ev.Kind() == reflect.Interface {
+		for ev.Kind() == reflect.Pointer || ev.Kind() == reflect.Interface {
 			if ev.IsNil() {
 				out = append(out, nil)
 				ev = reflect.Value{}

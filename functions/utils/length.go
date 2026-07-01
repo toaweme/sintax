@@ -34,7 +34,7 @@ var Length = func(value any, _ []any) (any, error) {
 	}
 
 	rv := reflect.ValueOf(value)
-	for rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
+	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {
 		if rv.IsNil() {
 			return 0, nil
 		}

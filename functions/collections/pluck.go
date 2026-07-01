@@ -37,7 +37,7 @@ func Pluck(value any, params []any) (any, error) {
 	}
 
 	rv := reflect.ValueOf(value)
-	for rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
+	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {
 		if rv.IsNil() {
 			return []any{}, nil
 		}
@@ -51,7 +51,7 @@ func Pluck(value any, params []any) (any, error) {
 	for i := range rv.Len() {
 		elem := rv.Index(i).Interface()
 		ev := reflect.ValueOf(elem)
-		for ev.Kind() == reflect.Ptr || ev.Kind() == reflect.Interface {
+		for ev.Kind() == reflect.Pointer || ev.Kind() == reflect.Interface {
 			if ev.IsNil() {
 				return nil, fmt.Errorf("pluck: element %d is nil", i)
 			}

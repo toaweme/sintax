@@ -61,7 +61,7 @@ func key(value any, params []any) (any, error) {
 		return handleMap(rv, params)
 	case reflect.Slice, reflect.Array:
 		return handleSlice(rv, params)
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if rv.IsNil() {
 			return nil, errors.New("key function: pointer is nil")
 		}
@@ -80,7 +80,7 @@ func handleMap(rv reflect.Value, params []any) (any, error) {
 	current := rv
 	for i, part := range parts {
 		// Dereference pointers and unwrap interfaces
-		for current.Kind() == reflect.Ptr || current.Kind() == reflect.Interface {
+		for current.Kind() == reflect.Pointer || current.Kind() == reflect.Interface {
 			if current.IsNil() {
 				return nil, fmt.Errorf("key function: nil pointer/interface encountered at path segment %q", part)
 			}

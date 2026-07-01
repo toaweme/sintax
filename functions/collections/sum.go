@@ -30,7 +30,7 @@ const ModifierNameSum functions.ModifierName = "sum"
 // out: 20
 func Sum(value any, params []any) (any, error) {
 	rv := reflect.ValueOf(value)
-	for rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
+	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {
 		if rv.IsNil() {
 			return float64(0), nil
 		}
@@ -69,7 +69,7 @@ func Sum(value any, params []any) (any, error) {
 
 func numberFromField(elem any, field string) (float64, error) {
 	rv := reflect.ValueOf(elem)
-	for rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
+	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {
 		if rv.IsNil() {
 			return 0, nil
 		}

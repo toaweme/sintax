@@ -248,7 +248,7 @@ func (r *StringRenderer) renderFor(tokens []Token, start, end int, vars map[stri
 
 	var sb strings.Builder
 	rv := reflect.ValueOf(iterable)
-	for rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
+	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {
 		if rv.IsNil() {
 			return "", endIdx + 1, nil
 		}
