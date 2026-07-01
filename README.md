@@ -11,6 +11,7 @@
 [![Go Reference](https://img.shields.io/badge/Docs-pkg.go.dev-blue)](https://pkg.go.dev/github.com/toaweme/sintax)
 [![GitHub Tag](https://img.shields.io/github/v/tag/toaweme/sintax?label=Tag&color=green)](https://github.com/toaweme/sintax/releases)
 [![License](https://img.shields.io/badge/License-MIT-blue)](/LICENSE)
+[![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](go.mod)
 
 ## Templating engine
 
@@ -32,6 +33,7 @@ Templating engine built for workflows, document generation, and data transformat
   file's contents) as its own template, guarded against runaway recursion
 - **Typed errors**: missing variables, unknown functions, and malformed tokens are surfaced as distinct errors
 - **Extensible**: register your own modifiers alongside the built-ins, or override a built-in by name
+- **Zero dependencies**: the core engine only imports the Go standard library
 
 ---
 

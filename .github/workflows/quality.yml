@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: ['1.25', '1.26']
+        go: ['1.22', '1.23', '1.24', '1.25', '1.26']
     steps:
       # v7.0.0 (https://github.com/actions/checkout/releases/tag/v7.0.0)
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
