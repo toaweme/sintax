@@ -5,6 +5,17 @@ All notable changes to this project are documented here, newest first.
 Entries are generated from [Conventional Commits](https://www.conventionalcommits.org)
 and grouped by change type. This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Documentation
+
+- Move install/quickstart right after features by [@iberflow](https://github.com/iberflow) in [b546a9e](https://github.com/toaweme/sintax/commit/b546a9e1d6d11021f228d406921ee6944fb59db8).
+
+### CI & Build
+
+- Bump care to v0.8.1 by [@iberflow](https://github.com/iberflow) in [45c24d8](https://github.com/toaweme/sintax/commit/45c24d870d71ba1a5b5ed900129a547569922ecd).
+- Use stable go for release gate to avoid old-go.mod tool-install failures by [@iberflow](https://github.com/iberflow) in [6550247](https://github.com/toaweme/sintax/commit/65502474db2010c177550ec52ed37957fab35f6c).
+
 ## [0.1.0] - 2026-07-01
 
 ### Features
@@ -49,4 +60,5 @@ and grouped by change type. This project adheres to [Semantic Versioning](https:
 - Fix linter issues by [@iberflow](https://github.com/iberflow) in [79c2a53](https://github.com/toaweme/sintax/commit/79c2a53df09c87782bc16832572312826bd2985e).
 - Rollback go.mod to 1.22 by [@iberflow](https://github.com/iberflow) in [4be0329](https://github.com/toaweme/sintax/commit/4be0329a7a690ebcc5a80b9c4aa0689ea0f0c5d5).
 
+[Unreleased]: https://github.com/toaweme/sintax/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/toaweme/sintax/releases/tag/v0.1.0
