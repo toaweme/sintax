@@ -76,7 +76,7 @@ func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error
 //
 // if allowDirect is true and the only meaningful token in the range is a single
 // non-string variable, the value is returned directly (legacy passthrough
-// behaviour). otherwise everything is stringified.
+// behavior). otherwise everything is stringified.
 func (r *StringRenderer) renderRange(tokens []Token, start, end int, vars map[string]any, allowDirect bool) (any, int, error) {
 	var str strings.Builder
 	i := start

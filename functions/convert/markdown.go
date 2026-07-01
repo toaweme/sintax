@@ -43,7 +43,7 @@ const ModifierNameMarkdown functions.ModifierName = "markdown"
 // in:  html_content = "<h1>Welcome</h1><p>Thanks for joining.</p>"
 // tpl: {{ html_content | markdown }}
 // out: # Welcome
-// out:
+// out: (blank line)
 // out: Thanks for joining.
 func Markdown(value any, params []any) (any, error) {
 	return nil, fmt.Errorf("markdown function needs to be injected")

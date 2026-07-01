@@ -350,8 +350,8 @@ func (p *StringParser) createToken(tokenType TokenType, value string) Token {
 
 // parseForExpr extracts the loop variable specification and iteration expression
 // from a "for X in Y" or "for K, V in Y" string. the leading "for" has already
-// been recognised; we split on " in ". the returned spec is either "v" (single
-// var) or "k,v" (paired) — the renderer splits this on comma.
+// been recognized; we split on " in ". the returned spec is either "v" (single
+// var) or "k,v" (paired), the renderer splits this on comma.
 func parseForExpr(s string) (string, string) {
 	s = strings.TrimSpace(s)
 	s = strings.TrimPrefix(s, "for")
