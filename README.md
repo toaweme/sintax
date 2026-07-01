@@ -10,8 +10,8 @@
 </a>
 [![Go Reference](https://img.shields.io/badge/Docs-pkg.go.dev-blue)](https://pkg.go.dev/github.com/toaweme/sintax)
 [![GitHub Tag](https://img.shields.io/github/v/tag/toaweme/sintax?label=Tag&color=green)](https://github.com/toaweme/sintax/releases)
+[![Dependencies](https://img.shields.io/badge/Dependencies-0-brightgreen)](go.mod)
 [![License](https://img.shields.io/badge/License-MIT-blue)](/LICENSE)
-[![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](go.mod)
 
 ## Templating engine
 
@@ -34,6 +34,39 @@ Zero dependency templating engine built for workflows, document generation, and 
 - **Typed errors**: missing variables, unknown functions, and malformed tokens are surfaced as distinct errors
 - **Extensible**: register your own modifiers alongside the built-ins, or override a built-in by name
 - **Zero dependencies**: the core engine only imports the Go standard library
+
+---
+
+## Install
+
+```sh
+go get github.com/toaweme/sintax
+```
+
+---
+
+## Quick start
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/toaweme/sintax"
+)
+
+func main() {
+    s := sintax.New(sintax.BuiltinFunctions(nil, nil))
+
+    out, _ := s.Render("Hello, {{ name | title }}!", map[string]any{"name": "alice-cooper"})
+    fmt.Println(out) // Hello, Alice Cooper!
+}
+```
+
+`sintax.New(funcs)` takes the exact set of modifiers the engine can call - it does not merge in any
+built-ins on its own. `sintax.BuiltinFunctions(overrides, safeDirs)` builds that set: pass `nil` for both
+to get every built-in with no overrides, or a `map[string]sintax.GlobalModifier` to add or replace
+modifiers by name, and a list of directories the `file` modifier is allowed to read from.
 
 ---
 
@@ -207,39 +240,6 @@ Convert numbers between currency units like dollars and cents.
 
 _The sections below are for embedding sintax inside a Go program: instantiating the engine, registering
 custom modifiers, and surfacing typed errors. The template syntax itself is documented above._
-
-## Install
-
-```sh
-go get github.com/toaweme/sintax
-```
-
----
-
-## Quick start
-
-```go
-package main
-
-import (
-    "fmt"
-    "github.com/toaweme/sintax"
-)
-
-func main() {
-    s := sintax.New(sintax.BuiltinFunctions(nil, nil))
-
-    out, _ := s.Render("Hello, {{ name | title }}!", map[string]any{"name": "alice-cooper"})
-    fmt.Println(out) // Hello, Alice Cooper!
-}
-```
-
-`sintax.New(funcs)` takes the exact set of modifiers the engine can call - it does not merge in any
-built-ins on its own. `sintax.BuiltinFunctions(overrides, safeDirs)` builds that set: pass `nil` for both
-to get every built-in with no overrides, or a `map[string]sintax.GlobalModifier` to add or replace
-modifiers by name, and a list of directories the `file` modifier is allowed to read from.
-
----
 
 ## Public API
 
