@@ -389,9 +389,8 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 		case bool:
 			if val {
 				return "true", nil
-			} else {
-				return "false", nil
 			}
+			return "false", nil
 		case int:
 			return strconv.Itoa(val), nil
 		}
