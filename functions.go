@@ -46,8 +46,8 @@ var BuiltinFunctions = func(overrides map[string]GlobalModifier, safeDirs []stri
 		string(convert.ModifierNameFrom): convert.From,
 		// the following built-in functions deliberately aren't implemented and return an error because
 		// they depend on 3rd party libraries, and we don't want to bloat this package
-		string(convert.ModifierNameYAML): convert.YAML,
-		// string(convert.ModifierNameMarkdown): convert.Markdown,
+		string(convert.ModifierNameYAML):     convert.YAML,
+		string(convert.ModifierNameMarkdown): convert.Markdown,
 
 		// utils
 		string(utils.ModifierNameDefault):     utils.Default,
