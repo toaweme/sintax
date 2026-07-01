@@ -2,6 +2,7 @@
 package collections
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -38,7 +39,7 @@ const ModifierNameIs functions.ModifierName = "is"
 // out: true
 func Has(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return false, fmt.Errorf("`has` requires at least one parameter")
+		return false, errors.New("`has` requires at least one parameter")
 	}
 
 	v := reflect.ValueOf(value)
@@ -70,7 +71,7 @@ func Has(value any, params []any) (any, error) {
 // out: true
 func Is(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return false, fmt.Errorf("`is` requires at least one parameter")
+		return false, errors.New("`is` requires at least one parameter")
 	}
 
 	for _, param := range params {
@@ -93,7 +94,7 @@ func hasInSlice(v reflect.Value, params []any) (bool, error) {
 
 		if firstElem.Kind() == reflect.Map {
 			if len(params) < 2 {
-				return false, fmt.Errorf("has requires key and value parameters for slice of maps")
+				return false, errors.New("has requires key and value parameters for slice of maps")
 			}
 
 			key, err := functions.ParamString(params, 0)
@@ -154,7 +155,7 @@ func hasInMap(v reflect.Value, params []any) (bool, error) {
 	}
 
 	if len(params) < 2 {
-		return false, fmt.Errorf("has requires at least one parameter for maps")
+		return false, errors.New("has requires at least one parameter for maps")
 	}
 
 	key := reflect.ValueOf(params[0])

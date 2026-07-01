@@ -1,6 +1,7 @@
 package text
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -32,7 +33,7 @@ const ModifierNameSplit functions.ModifierName = "split"
 // out: ["coffee", "tea", "espresso"]
 func Split(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, fmt.Errorf("split function requires at least one parameter")
+		return nil, errors.New("split function requires at least one parameter")
 	}
 
 	str, err := functions.ValueString(value)

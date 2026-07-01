@@ -1,6 +1,7 @@
 package text
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -28,16 +29,16 @@ const ModifierNameShorten functions.ModifierName = "shorten"
 var Shorten = func(value any, args []any) (any, error) {
 	str, ok := value.(string)
 	if !ok {
-		return "", fmt.Errorf("shorten requires a text argument")
+		return "", errors.New("shorten requires a text argument")
 	}
 
 	if len(args) != 1 {
-		return "", fmt.Errorf("shorten requires 1 numeric argument")
+		return "", errors.New("shorten requires 1 numeric argument")
 	}
 
 	length, err := strconv.Atoi(fmt.Sprint(args[0]))
 	if err != nil {
-		return "", fmt.Errorf("shorten requires a numeric argument")
+		return "", errors.New("shorten requires a numeric argument")
 	}
 
 	if len(str) > length {

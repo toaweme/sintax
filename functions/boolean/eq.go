@@ -2,7 +2,7 @@
 package boolean
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/toaweme/sintax/functions"
 )
@@ -34,7 +34,7 @@ const ModifierNameEq functions.ModifierName = "eq"
 // out: true
 var Eq = func(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, fmt.Errorf("eq function requires at least one parameter")
+		return nil, errors.New("eq function requires at least one parameter")
 	}
 
 	other := params[0]

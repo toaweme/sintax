@@ -1,7 +1,7 @@
 package convert
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/toaweme/sintax/functions"
 )
@@ -21,5 +21,5 @@ const ModifierNameYAML functions.ModifierName = "yaml"
 // out: region: eu-west-1
 // out: debug: false
 func YAML(value any, params []any) (any, error) {
-	return nil, fmt.Errorf("yaml function needs to be injected")
+	return nil, errors.New("yaml function needs to be injected")
 }

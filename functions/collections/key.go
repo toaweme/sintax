@@ -1,6 +1,7 @@
 package collections
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -45,11 +46,11 @@ func Key(value any, params []any) (any, error) {
 
 func key(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, fmt.Errorf("key function requires a key parameter")
+		return nil, errors.New("key function requires a key parameter")
 	}
 
 	if value == nil {
-		return nil, fmt.Errorf("key function: value is nil")
+		return nil, errors.New("key function: value is nil")
 	}
 
 	rv := reflect.ValueOf(value)
@@ -62,7 +63,7 @@ func key(value any, params []any) (any, error) {
 		return handleSlice(rv, params)
 	case reflect.Ptr:
 		if rv.IsNil() {
-			return nil, fmt.Errorf("key function: pointer is nil")
+			return nil, errors.New("key function: pointer is nil")
 		}
 		return key(rv.Elem().Interface(), params)
 	default:
@@ -112,7 +113,7 @@ func handleMap(rv reflect.Value, params []any) (any, error) {
 
 func handleSlice(rv reflect.Value, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, fmt.Errorf("key function: slice access requires an index parameter")
+		return nil, errors.New("key function: slice access requires an index parameter")
 	}
 
 	index, err := convertToInt(params[0])
@@ -191,7 +192,7 @@ func convertToInt(value any) (int, error) {
 func keyParts(params []any) ([]string, error) {
 	keyPath, ok := params[0].(string)
 	if !ok {
-		return nil, fmt.Errorf("key function requires a string key parameter")
+		return nil, errors.New("key function requires a string key parameter")
 	}
 
 	parts := strings.Split(keyPath, ".")

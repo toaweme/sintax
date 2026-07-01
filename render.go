@@ -170,7 +170,7 @@ func findIfEnd(tokens []Token, start, end int) (elseIdx, endIdx int, err error) 
 			}
 		}
 	}
-	return -1, -1, fmt.Errorf("unterminated if block (missing endif)")
+	return -1, -1, errors.New("unterminated if block (missing endif)")
 }
 
 // findForEnd locates the matching `endfor` for the ForToken at index `start`.
@@ -187,7 +187,7 @@ func findForEnd(tokens []Token, start, end int) (int, error) {
 			depth--
 		}
 	}
-	return -1, fmt.Errorf("unterminated for block (missing endfor)")
+	return -1, errors.New("unterminated for block (missing endfor)")
 }
 
 func (r *StringRenderer) renderIf(tokens []Token, start, end int, vars map[string]any) (string, int, error) {

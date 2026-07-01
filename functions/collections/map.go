@@ -1,6 +1,7 @@
 package collections
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/toaweme/sintax/functions"
@@ -26,7 +27,7 @@ const ModifierNameMap functions.ModifierName = "map"
 // out: {"coffee": {"slug": "coffee", "label": "Coffee"}, "tea": {"slug": "tea", "label": "Tea"}}
 func Map(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, fmt.Errorf("in requires at least one parameter")
+		return nil, errors.New("in requires at least one parameter")
 	}
 
 	key, err := functions.ParamString(params, 0)

@@ -1,6 +1,7 @@
 package collections
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -39,7 +40,7 @@ func Filter(value any, params []any) (any, error) {
 	}
 
 	if len(params) < 2 {
-		return nil, fmt.Errorf("filter function requires at least 2 parameters: key and search value")
+		return nil, errors.New("filter function requires at least 2 parameters: key and search value")
 	}
 
 	key, err := functions.ParamString(params, 0) // 'some_key' or 'some_parent.child_key'

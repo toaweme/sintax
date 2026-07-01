@@ -1,7 +1,7 @@
 package convert
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/toaweme/sintax/functions"
 	// "github.com/JohannesKaufmann/html-to-markdown/v2/converter"
@@ -46,5 +46,5 @@ const ModifierNameMarkdown functions.ModifierName = "markdown"
 // out: (blank line)
 // out: Thanks for joining.
 func Markdown(value any, params []any) (any, error) {
-	return nil, fmt.Errorf("markdown function needs to be injected")
+	return nil, errors.New("markdown function needs to be injected")
 }

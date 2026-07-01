@@ -2,6 +2,7 @@
 package text
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -88,7 +89,7 @@ func ToUpper(value any, _ []any) (any, error) {
 // out: The password is ******
 func Replace(value any, params []any) (any, error) {
 	if len(params) < 2 {
-		return nil, fmt.Errorf("replace function requires at least two parameters")
+		return nil, errors.New("replace function requires at least two parameters")
 	}
 
 	str, err := functions.ValueString(value)
@@ -129,7 +130,7 @@ func Replace(value any, params []any) (any, error) {
 // out: hello-world
 func ReplacePattern(value any, params []any) (any, error) {
 	if len(params) < 2 {
-		return nil, fmt.Errorf("replacePattern function requires at least two parameters")
+		return nil, errors.New("replacePattern function requires at least two parameters")
 	}
 
 	str, err := functions.ValueString(value)

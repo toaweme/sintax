@@ -1,6 +1,7 @@
 package collections
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -29,7 +30,7 @@ const ModifierNameFind functions.ModifierName = "find"
 // out: {}
 func Find(value any, params []any) (any, error) {
 	if len(params) < 2 {
-		return nil, fmt.Errorf("find requires at least two parameters: key and value")
+		return nil, errors.New("find requires at least two parameters: key and value")
 	}
 
 	key, err := functions.ParamString(params, 0)

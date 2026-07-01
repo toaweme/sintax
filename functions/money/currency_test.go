@@ -1,7 +1,7 @@
 package money
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
@@ -38,7 +38,7 @@ func Test_Currency(t *testing.T) {
 			name:        "missing params",
 			value:       100,
 			params:      []any{},
-			expectedErr: fmt.Errorf("currency requires 2 parameters"),
+			expectedErr: errors.New("currency requires 2 parameters"),
 		},
 	}
 

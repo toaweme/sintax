@@ -1,7 +1,7 @@
 package collections
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/toaweme/sintax/functions"
 )
@@ -26,7 +26,7 @@ const ModifierNameWrap functions.ModifierName = "wrap"
 // out: {"data": ["mug", "pen", "pad"]}
 var Wrap = func(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, fmt.Errorf("wrap requires at least one parameter")
+		return nil, errors.New("wrap requires at least one parameter")
 	}
 
 	key := ""

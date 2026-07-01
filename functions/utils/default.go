@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/toaweme/sintax/functions"
 )
@@ -31,7 +31,7 @@ const ModifierNameDefault functions.ModifierName = "default"
 // out: {}
 func Default(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, fmt.Errorf("default requires at least one parameter")
+		return nil, errors.New("default requires at least one parameter")
 	}
 	if value == nil {
 		return params[0], nil

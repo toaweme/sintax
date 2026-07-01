@@ -1,6 +1,7 @@
 package collections
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -28,7 +29,7 @@ const ModifierNamePluck functions.ModifierName = "pluck"
 // out: ["Mug", "Pen"]
 func Pluck(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, fmt.Errorf("pluck: missing field name")
+		return nil, errors.New("pluck: missing field name")
 	}
 	field, ok := params[0].(string)
 	if !ok {

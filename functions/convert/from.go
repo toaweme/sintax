@@ -4,6 +4,7 @@ package convert
 import (
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -30,7 +31,7 @@ const ModifierNameFrom functions.ModifierName = "from"
 // out: [{"name": "Alice", "age": "30"}, {"name": "Bob", "age": "25"}]
 func From(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, fmt.Errorf("from function requires a format parameter")
+		return nil, errors.New("from function requires a format parameter")
 	}
 
 	switch {
@@ -40,7 +41,7 @@ func From(value any, params []any) (any, error) {
 		return fromCSV(value)
 	}
 
-	return nil, fmt.Errorf("unsupported format in from function")
+	return nil, errors.New("unsupported format in from function")
 }
 
 func fromJSON(value any) (any, error) {

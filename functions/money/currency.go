@@ -2,6 +2,7 @@
 package money
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -31,7 +32,7 @@ const ModifierNameCurrency functions.ModifierName = "currency"
 // out: 12
 func Currency(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, fmt.Errorf("currency requires 2 parameters")
+		return nil, errors.New("currency requires 2 parameters")
 	}
 
 	fromUnits, err := functions.ParamInt(params, 0)

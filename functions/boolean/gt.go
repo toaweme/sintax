@@ -1,6 +1,7 @@
 package boolean
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/toaweme/sintax/functions"
@@ -26,7 +27,7 @@ const ModifierNameGt functions.ModifierName = "gt"
 // out: false
 var Gt = func(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, fmt.Errorf("gt function requires at least one parameter")
+		return nil, errors.New("gt function requires at least one parameter")
 	}
 
 	val, err := functions.ValueNumber(value)
