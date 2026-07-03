@@ -75,12 +75,11 @@ modifiers by name, and a list of directories the `file` modifier is allowed to r
 | Pattern | Example |
 |---|---|
 | Variable | `{{ name }}` |
+| Nested field access | `{{ user \| key:'name' }}` |
 | Modifier chain | `{{ text \| trim \| upper }}` |
 | Modifier with args | `{{ items \| join:',' }}` |
 | Variable as argument | `{{ text \| trim-prefix:prefix_var }}` |
 | Fallback to literal | `{{ value \| default:'n/a' }}` |
-| Fallback to empty array | `{{ items \| default:[] }}` |
-| Fallback to empty object | `{{ user \| default:{} }}` |
 | If / else | `{{ if active }}yes{{ else }}no{{ endif }}` |
 | Loop over a slice | `{{ for x in items }}- {{ x }}\n{{ endfor }}` |
 | Loop with index | `{{ for i, x in items }}{{ i }}:{{ x }} {{ endfor }}` |
@@ -88,6 +87,11 @@ modifiers by name, and a list of directories the `file` modifier is allowed to r
 
 **Modifier syntax:** the name and the first argument are separated by `:`, additional arguments by `,`.
 String literals use single or double quotes; unquoted tokens resolve as variables, numbers, or booleans.
+
+**Variable names are literal keys, not paths.** A variable is looked up by its exact name in the vars map -
+there is no `obj.field` dot-notation. `{{ user.name }}` looks for a variable literally named `user.name`; it does
+**not** descend into a `user` map. To read a nested field, pipe the value through the `key` modifier:
+`{{ user | key:'name' }}`. `key` also accepts a dotted path to reach deeper, e.g. `{{ order | key:'meta.total' }}`.
 
 **Block tags use `endif` and `endfor`** to close.
 
@@ -122,13 +126,13 @@ Inside the loop body the following helpers are available, where `<v>` is whateve
 | Binding | Set on |
 |---|---|
 | `<v>_index` | both slice and map iterations (0-based) |
-| `<v>_first`, `<v>_last` | both: booleans for the first/last iteration |
+| `<v>_first`, `<v>_last` | both booleans for the first/last iteration |
 | `<v>_key` | map iterations only, when no explicit key name was bound |
 
 Map iteration order is sorted by key. Loops nest freely and parent variables remain visible inside the body.
 
 ```
-{{ for item in cart }}{{ item.name }} × {{ item.qty }}{{ if item_last }}.{{ else }}, {{ endif }}{{ endfor }}
+{{ for item in cart }}{{ item | key:'name' }} × {{ item | key:'qty' }}{{ if item_last }}.{{ else }}, {{ endif }}{{ endfor }}
 ```
 
 ---
@@ -332,9 +336,9 @@ template flows in as `value`; everything after the modifier name (separated by `
 ## Optional extensions
 
 `yaml` and `markdown` ship as stubs that return an error until you inject a real implementation, so the
-core stays dependency-light:
+core stays dependency-light. Wire in whatever library you prefer; the examples below just show one option each.
 
-**YAML serialization**: requires `gopkg.in/yaml.v3`
+**YAML serialization**: the example uses `gopkg.in/yaml.v3`, but any YAML library works
 
 ```go
 overrides := map[string]sintax.GlobalModifier{
@@ -346,7 +350,7 @@ overrides := map[string]sintax.GlobalModifier{
 s := sintax.New(sintax.BuiltinFunctions(overrides, nil))
 ```
 
-**HTML → Markdown**: requires `github.com/JohannesKaufmann/html-to-markdown/v2`
+**HTML to Markdown**: the example uses `github.com/JohannesKaufmann/html-to-markdown/v2`, but any converter works
 
 ```go
 overrides := map[string]sintax.GlobalModifier{

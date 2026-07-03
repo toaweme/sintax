@@ -27,8 +27,8 @@ const ModifierNameDefault functions.ModifierName = "default"
 //
 // example: avoid an error when a lookup misses
 // in:  items = [{"id": 1, "name": "Mug"}]
-// tpl: {{ items | find:'id',99 | default:{} }}
-// out: {}
+// tpl: {{ items | find:'id',99 | default:'none' }}
+// out: none
 func Default(value any, params []any) (any, error) {
 	if len(params) == 0 {
 		return nil, errors.New("default requires at least one parameter")
