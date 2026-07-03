@@ -80,13 +80,16 @@ modifiers by name, and a list of directories the `file` modifier is allowed to r
 | Modifier with args | `{{ items \| join:',' }}` |
 | Variable as argument | `{{ text \| trim-prefix:prefix_var }}` |
 | Fallback to literal | `{{ value \| default:'n/a' }}` |
+| Fallback to empty array | `{{ items \| default:[] }}` |
+| Fallback to empty object | `{{ user \| default:{} }}` |
 | If / else | `{{ if active }}yes{{ else }}no{{ endif }}` |
 | Loop over a slice | `{{ for x in items }}- {{ x }}\n{{ endfor }}` |
 | Loop with index | `{{ for i, x in items }}{{ i }}:{{ x }} {{ endfor }}` |
 | Loop over a map | `{{ for k, v in headers }}{{ k }}={{ v }} {{ endfor }}` |
 
 **Modifier syntax:** the name and the first argument are separated by `:`, additional arguments by `,`.
-String literals use single or double quotes; unquoted tokens resolve as variables, numbers, or booleans.
+String literals use single or double quotes; `[]` and `{}` are empty-collection literals; other unquoted
+tokens resolve as variables, numbers, or booleans.
 
 **Variable names are literal keys, not paths.** A variable is looked up by its exact name in the vars map -
 there is no `obj.field` dot-notation. `{{ user.name }}` looks for a variable literally named `user.name`; it does

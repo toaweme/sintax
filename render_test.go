@@ -91,6 +91,24 @@ func Test_StringRenderer_RenderVariable(t *testing.T) {
 			},
 			expected: "Hello",
 		},
+		{
+			name:     "default empty array literal fills a missing variable",
+			token:    BaseToken{TokenType: FilteredVariableToken, RawValue: "items | default:[]", Var: "items"},
+			vars:     map[string]any{},
+			expected: []any{},
+		},
+		{
+			name:     "default empty object literal fills a missing variable",
+			token:    BaseToken{TokenType: FilteredVariableToken, RawValue: "user | default:{}", Var: "user"},
+			vars:     map[string]any{},
+			expected: map[string]any{},
+		},
+		{
+			name:     "default empty array literal does not override a present value",
+			token:    BaseToken{TokenType: FilteredVariableToken, RawValue: "items | default:[]", Var: "items"},
+			vars:     map[string]any{"items": []any{"a"}},
+			expected: []any{"a"},
+		},
 		// "{{ provider.body | from:'json' | key:'meta.pagination.total' | gt:0 }}",
 		{
 			name: "from json with key and gt",

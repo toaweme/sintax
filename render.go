@@ -11,6 +11,14 @@ import (
 	"github.com/toaweme/sintax/functions"
 )
 
+// Empty collection literals recognized in modifier arguments. They let a chain
+// produce an empty slice or map inline, most often as a graceful fallback via
+// `default` (e.g. {{ items | default:[] }}).
+const (
+	emptyArrayLiteral  = "[]"
+	emptyObjectLiteral = "{}"
+)
+
 // Arg is a single argument passed to a modifier call.
 type Arg struct {
 	// Value is the value of the argument, which can be a literal value or a variable name
@@ -536,6 +544,18 @@ func getVarAndFunctions(token Token) (string, []Func) {
 			}
 			if isQuotedWith(arg, `'`) {
 				args[i] = Arg{Value: unquote(arg, `'`)}
+				continue
+			}
+
+			// empty collection literals, so a chain can fall back to an empty
+			// slice or map (e.g. {{ items | default:[] }}) without routing vars
+			// through a resolver that injects them as special variables.
+			if arg == emptyArrayLiteral {
+				args[i] = Arg{Value: []any{}}
+				continue
+			}
+			if arg == emptyObjectLiteral {
+				args[i] = Arg{Value: map[string]any{}}
 				continue
 			}
 

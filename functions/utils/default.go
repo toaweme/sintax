@@ -25,10 +25,10 @@ const ModifierNameDefault functions.ModifierName = "default"
 // tpl: {{ count | default:0 }}
 // out: 0
 //
-// example: avoid an error when a lookup misses
+// example: fall back to an empty object when a lookup misses
 // in:  items = [{"id": 1, "name": "Mug"}]
-// tpl: {{ items | find:'id',99 | default:'none' }}
-// out: none
+// tpl: {{ items | find:'id',99 | default:{} }}
+// out: {}
 func Default(value any, params []any) (any, error) {
 	if len(params) == 0 {
 		return nil, errors.New("default requires at least one parameter")
