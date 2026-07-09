@@ -51,7 +51,9 @@ var BuiltinFunctions = func(overrides map[string]GlobalModifier, safeDirs []stri
 		string(convert.ModifierNameMarkdown): convert.Markdown,
 
 		// escape
-		string(escape.ModifierNameEscape): escape.Escape,
+		string(escape.ModifierNameHTML): escape.HTML,
+		string(escape.ModifierNameURL):  escape.URL,
+		string(escape.ModifierNameJS):   escape.JS,
 
 		// control
 		string(control.ModifierNameDefault): control.Default,

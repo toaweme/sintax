@@ -10,16 +10,16 @@ import (
 const ModifierNameFilename functions.ModifierName = "filename"
 
 // ModifierNameFilenameTrimExt is the template name for the FilenameTrimExt modifier.
-const ModifierNameFilenameTrimExt functions.ModifierName = "ext-trim"
+const ModifierNameFilenameTrimExt functions.ModifierName = "ext_trim"
 
 // ModifierNameFilenameExt is the template name for the FilenameExt modifier.
 const ModifierNameFilenameExt functions.ModifierName = "ext"
 
 // ModifierNameFilenameExtDot is the template name for the FilenameExtDot modifier.
-const ModifierNameFilenameExtDot functions.ModifierName = "ext-dot"
+const ModifierNameFilenameExtDot functions.ModifierName = "ext_dot"
 
 // ModifierNameFilenamePrependExt is the template name for the FilenamePrependExt modifier.
-const ModifierNameFilenamePrependExt functions.ModifierName = "ext-prepend"
+const ModifierNameFilenamePrependExt functions.ModifierName = "ext_prepend"
 
 // Filename returns the base file name from a path, including the extension.
 //
@@ -51,12 +51,12 @@ func Filename(value any, params []any) (any, error) {
 //
 // example: drop the extension from a file path
 // in:  file_path = "/uploads/avatar.png"
-// tpl: {{ file_path | ext-trim }}
+// tpl: {{ file_path | ext_trim }}
 // out: /uploads/avatar
 //
 // example: get the bare report name
 // in:  source = "Q3-report.pdf"
-// tpl: {{ source | ext-trim }}
+// tpl: {{ source | ext_trim }}
 // out: Q3-report
 func FilenameTrimExt(value any, params []any) (any, error) {
 	path, err := functions.ValueString(value)
@@ -104,12 +104,12 @@ func FilenameExt(value any, params []any) (any, error) {
 //
 // example: read an extension with the dot included
 // in:  file_path = "/uploads/avatar.png"
-// tpl: {{ file_path | ext-dot }}
+// tpl: {{ file_path | ext_dot }}
 // out: .png
 //
 // example: build a filename suffix
 // in:  source = "Q3-report.pdf"
-// tpl: {{ source | ext-dot }}
+// tpl: {{ source | ext_dot }}
 // out: .pdf
 func FilenameExtDot(value any, params []any) (any, error) {
 	path, err := functions.ValueString(value)
@@ -131,12 +131,12 @@ func FilenameExtDot(value any, params []any) (any, error) {
 //
 // example: mark a stylesheet as minified
 // in:  file_path = "assets/styles.css"
-// tpl: {{ file_path | ext-prepend:'min' }}
+// tpl: {{ file_path | ext_prepend:'min' }}
 // out: assets/styles.min.css
 //
 // example: tag a script as minified
 // in:  source = "app.js"
-// tpl: {{ source | ext-prepend:'min' }}
+// tpl: {{ source | ext_prepend:'min' }}
 // out: app.min.js
 func FilenamePrependExt(value any, params []any) (any, error) {
 	path, err := functions.ValueString(value)

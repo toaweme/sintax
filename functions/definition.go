@@ -4,7 +4,7 @@ package functions
 
 import "errors"
 
-// ModifierName is the template-syntax name used to invoke a modifier (e.g. "lower", "trim-prefix").
+// ModifierName is the template-syntax name used to invoke a modifier (e.g. "lower", "trim_prefix").
 type ModifierName string
 
 // Type represents the kind of value a modifier accepts or returns.

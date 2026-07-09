@@ -78,7 +78,7 @@ modifiers by name, and a list of directories the `file` modifier is allowed to r
 | Nested field access | `{{ user \| key:'name' }}` |
 | Modifier chain | `{{ text \| trim \| upper }}` |
 | Modifier with args | `{{ items \| join:',' }}` |
-| Variable as argument | `{{ text \| trim-prefix:prefix_var }}` |
+| Variable as argument | `{{ text \| trim_prefix:prefix_var }}` |
 | Fallback to literal | `{{ value \| default:'n/a' }}` |
 | Fallback to empty array | `{{ items \| default:[] }}` |
 | Fallback to empty object | `{{ user \| default:{} }}` |
@@ -162,8 +162,8 @@ Trim, case-shift, slugify, split, and reshape strings.
 | `title` | Title converts a hyphen-separated slug into a title-cased string. | `{{ slug \| title }}` |
 | `title_model` | ModelTitle formats an AI model identifier into a human-readable title. | `{{ model_id \| title_model }}` |
 | `trim` | Trim removes leading and trailing whitespace, or the given character set. | `{{ name \| trim }}` |
-| `trim-prefix` | TrimPrefix removes a leading prefix string or leading whitespace from the value. | `{{ path \| trim-prefix:'/' }}` |
-| `trim-suffix` | TrimSuffix removes a trailing suffix string or trailing whitespace from the value. | `{{ url \| trim-suffix:'/' }}` |
+| `trim_prefix` | TrimPrefix removes a leading prefix string or leading whitespace from the value. | `{{ path \| trim_prefix:'/' }}` |
+| `trim_suffix` | TrimSuffix removes a trailing suffix string or trailing whitespace from the value. | `{{ url \| trim_suffix:'/' }}` |
 | `upper` | ToUpper converts a string to uppercase. | `{{ name \| upper }}` |
 
 ### Collections
@@ -219,7 +219,7 @@ Defaults, lengths, line numbers, and date formatting.
 | `default` | Default returns the fallback value if the input is nil or an empty string. | `{{ name \| default:'anonymous' }}` |
 | `format` | Format formats a time.Time value using a date format string. | `{{ created_at \| format:'YYYY-MM-DD' }}` |
 | `length` | Length returns the number of characters in a string, bytes in a byte slice, or elements in a slice/array/map. | `{{ name \| length }}` |
-| `line-numbers` | LineNumbers prepends each line of the string with its zero-based line number. | `{{ note \| line-numbers }}` |
+| `line_numbers` | LineNumbers prepends each line of the string with its zero-based line number. | `{{ note \| line_numbers }}` |
 
 ### File System
 
@@ -229,9 +229,9 @@ Pull pieces out of file paths - directory, name, and extension - and read files 
 | --- | --- | --- |
 | `dirname` | Dirname returns the directory portion of a file path. | `{{ file_path \| dirname }}` |
 | `ext` | FilenameExt returns the file extension without the leading dot. | `{{ file_path \| ext }}` |
-| `ext-dot` | FilenameExtDot returns the file extension including the leading dot. | `{{ file_path \| ext-dot }}` |
-| `ext-prepend` | FilenamePrependExt inserts an additional extension before the existing file extension. | `{{ file_path \| ext-prepend:'min' }}` |
-| `ext-trim` | FilenameTrimExt returns the file path without its extension. | `{{ file_path \| ext-trim }}` |
+| `ext_dot` | FilenameExtDot returns the file extension including the leading dot. | `{{ file_path \| ext_dot }}` |
+| `ext_prepend` | FilenamePrependExt inserts an additional extension before the existing file extension. | `{{ file_path \| ext_prepend:'min' }}` |
+| `ext_trim` | FilenameTrimExt returns the file path without its extension. | `{{ file_path \| ext_trim }}` |
 | `file` | File reads a file's contents as a string. The path is resolved against the `safeDirs` passed to `BuiltinFunctions`, and `..` traversal outside them is rejected. | `{{ "greeting.tpl" \| file }}` |
 | `filename` | Filename returns the base file name from a path, including the extension. | `{{ file_path \| filename }}` |
 

@@ -11,10 +11,10 @@ import (
 const ModifierNameTrim functions.ModifierName = "trim"
 
 // ModifierNameTrimPrefix is the template name for the TrimPrefix modifier.
-const ModifierNameTrimPrefix functions.ModifierName = "trim-prefix"
+const ModifierNameTrimPrefix functions.ModifierName = "trim_prefix"
 
 // ModifierNameTrimSuffix is the template name for the TrimSuffix modifier.
-const ModifierNameTrimSuffix functions.ModifierName = "trim-suffix"
+const ModifierNameTrimSuffix functions.ModifierName = "trim_suffix"
 
 // Trim removes leading and trailing whitespace, or the given character set.
 //
@@ -64,12 +64,12 @@ var Trim = func(value any, params []any) (any, error) {
 //
 // example: drop a leading slash from a path
 // in:  path = "/api/v1/users"
-// tpl: {{ path | trim-prefix:'/' }}
+// tpl: {{ path | trim_prefix:'/' }}
 // out: api/v1/users
 //
 // example: trim leading whitespace from a paragraph
 // in:  text = "   Welcome aboard."
-// tpl: {{ text | trim-prefix }}
+// tpl: {{ text | trim_prefix }}
 // out: Welcome aboard.
 var TrimPrefix = func(value any, params []any) (any, error) {
 	cutset := "\n \t"
@@ -107,12 +107,12 @@ var TrimPrefix = func(value any, params []any) (any, error) {
 //
 // example: drop a trailing slash from a URL
 // in:  url = "https://example.com/users/"
-// tpl: {{ url | trim-suffix:'/' }}
+// tpl: {{ url | trim_suffix:'/' }}
 // out: https://example.com/users
 //
 // example: trim trailing whitespace from a paragraph
 // in:  text = "Welcome aboard.   "
-// tpl: {{ text | trim-suffix }}
+// tpl: {{ text | trim_suffix }}
 // out: Welcome aboard.
 var TrimSuffix = func(value any, params []any) (any, error) {
 	cutset := "\n \t"
