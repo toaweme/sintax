@@ -1,4 +1,6 @@
-package utils
+// Package format provides template modifiers that render a value as a
+// human-readable string: dates, decimals, currency, line numbering, and size.
+package format
 
 import (
 	"fmt"

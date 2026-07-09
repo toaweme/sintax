@@ -1,5 +1,4 @@
-// Package money provides template modifiers for currency formatting.
-package money
+package format
 
 import (
 	"errors"

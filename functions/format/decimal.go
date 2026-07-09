@@ -1,5 +1,4 @@
-// Package utils provides template modifiers for numbers, defaults, and value inspection.
-package utils
+package format
 
 import (
 	"fmt"

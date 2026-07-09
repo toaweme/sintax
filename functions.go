@@ -3,11 +3,12 @@ package sintax
 import (
 	"github.com/toaweme/sintax/functions/boolean"
 	"github.com/toaweme/sintax/functions/collections"
+	"github.com/toaweme/sintax/functions/control"
 	"github.com/toaweme/sintax/functions/convert"
+	"github.com/toaweme/sintax/functions/escape"
+	"github.com/toaweme/sintax/functions/format"
 	"github.com/toaweme/sintax/functions/fs"
-	"github.com/toaweme/sintax/functions/money"
 	"github.com/toaweme/sintax/functions/text"
-	"github.com/toaweme/sintax/functions/utils"
 )
 
 // GlobalModifier is a stateless modifier that transforms a piped value given
@@ -49,12 +50,18 @@ var BuiltinFunctions = func(overrides map[string]GlobalModifier, safeDirs []stri
 		string(convert.ModifierNameYAML):     convert.YAML,
 		string(convert.ModifierNameMarkdown): convert.Markdown,
 
-		// utils
-		string(utils.ModifierNameDefault):     utils.Default,
-		string(utils.ModifierNameFormat):      utils.Format,
-		string(utils.ModifierNameLength):      utils.Length,
-		string(utils.ModifierNameLineNumbers): utils.LineNumbers,
-		string(utils.ModifierNameDecimal):     utils.Decimal,
+		// escape
+		string(escape.ModifierNameEscape): escape.Escape,
+
+		// control
+		string(control.ModifierNameDefault): control.Default,
+
+		// format
+		string(format.ModifierNameFormat):      format.Format,
+		string(format.ModifierNameLength):      format.Length,
+		string(format.ModifierNameLineNumbers): format.LineNumbers,
+		string(format.ModifierNameDecimal):     format.Decimal,
+		string(format.ModifierNameCurrency):    format.Currency,
 
 		// fs
 		string(fs.ModifierNameDirname):            fs.Dirname,
@@ -105,9 +112,6 @@ var BuiltinFunctions = func(overrides map[string]GlobalModifier, safeDirs []stri
 		string(boolean.ModifierNameGt):  boolean.Gt,
 		string(boolean.ModifierNameGte): boolean.Gte,
 		string(boolean.ModifierNameEq):  boolean.Eq,
-
-		// money
-		string(money.ModifierNameCurrency): money.Currency,
 	}
 
 	for name, fn := range overrides {

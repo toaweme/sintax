@@ -1,4 +1,6 @@
-package utils
+// Package control provides template modifiers that steer value resolution
+// rather than transform data, such as falling back when a value is missing.
+package control
 
 import (
 	"errors"
