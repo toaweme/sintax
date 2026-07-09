@@ -13,7 +13,7 @@ import (
 // measures an error path.
 func benchRender(b *testing.B, tmpl string, vars map[string]any) {
 	b.Helper()
-	s := New(BuiltinFunctions(nil, nil))
+	s := New(builtins())
 	if _, err := s.Render(tmpl, vars); err != nil {
 		b.Fatalf("setup render failed: %v", err)
 	}
@@ -132,7 +132,7 @@ func Benchmark_RenderTokens_Complex(b *testing.B) {
 	if err != nil {
 		b.Fatalf("parse failed: %v", err)
 	}
-	r := NewStringRenderer(BuiltinFunctions(nil, nil))
+	r := NewStringRenderer(builtins())
 	vars := benchComplexVars()
 	if _, err := r.Render(tokens, vars); err != nil {
 		b.Fatalf("setup render failed: %v", err)

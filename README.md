@@ -53,20 +53,38 @@ package main
 import (
     "fmt"
     "github.com/toaweme/sintax"
+    "github.com/toaweme/sintax/defaults"
 )
 
 func main() {
-    s := sintax.New(sintax.BuiltinFunctions(nil, nil))
+    s := sintax.New(defaults.New())
 
     out, _ := s.Render("Hello, {{ name | title }}!", map[string]any{"name": "alice-cooper"})
     fmt.Println(out) // Hello, Alice Cooper!
 }
 ```
 
-`sintax.New(funcs)` takes the exact set of modifiers the engine can call - it does not merge in any
-built-ins on its own. `sintax.BuiltinFunctions(overrides, safeDirs)` builds that set: pass `nil` for both
-to get every built-in with no overrides, or a `map[string]sintax.GlobalModifier` to add or replace
-modifiers by name, and a list of directories the `file` modifier is allowed to read from.
+`sintax.New(funcs)` takes the exact set of modifiers the engine may call and merges in nothing on its own.
+`defaults.New(safeDirs...)` builds the full `map[string]functions.GlobalModifier` of built-ins - pass one
+or more directories to enable the `file` modifier against that allowlist; with none, file reads stay
+disabled. `defaults.NewWith(overrides, safeDirs...)` layers your overrides on top. Because the engine does
+not import the modifiers, a size-conscious program can skip `defaults` entirely and compose only the
+groups it uses - each group under `functions/*` exposes a `Modifiers()` constructor:
+
+```go
+import (
+    "maps"
+    "github.com/toaweme/sintax"
+    "github.com/toaweme/sintax/functions"
+    casing "github.com/toaweme/sintax/functions/text/case"
+    "github.com/toaweme/sintax/functions/boolean"
+)
+
+funcs := map[string]functions.GlobalModifier{}
+maps.Copy(funcs, casing.Modifiers())
+maps.Copy(funcs, boolean.Modifiers())
+s := sintax.New(funcs) // links only these groups, not the whole battery
+```
 
 ---
 
@@ -232,7 +250,7 @@ Pull pieces out of file paths - directory, name, and extension - and read files 
 | `ext_dot` | FilenameExtDot returns the file extension including the leading dot. | `{{ file_path \| ext_dot }}` |
 | `ext_prepend` | FilenamePrependExt inserts an additional extension before the existing file extension. | `{{ file_path \| ext_prepend:'min' }}` |
 | `ext_trim` | FilenameTrimExt returns the file path without its extension. | `{{ file_path \| ext_trim }}` |
-| `file` | File reads a file's contents as a string. The path is resolved against the `safeDirs` passed to `BuiltinFunctions`, and `..` traversal outside them is rejected. | `{{ "greeting.tpl" \| file }}` |
+| `file` | File reads a file's contents as a string. The path is resolved against the `safeDirs` passed to `defaults.New` (or `fs.Modifiers`), and `..` traversal outside them is rejected. | `{{ "greeting.tpl" \| file }}` |
 | `filename` | Filename returns the base file name from a path, including the extension. | `{{ file_path \| filename }}` |
 
 ### Money
@@ -318,20 +336,20 @@ case err != nil:
 
 ## Custom modifiers
 
-Pass a map of overrides to `sintax.BuiltinFunctions`. Overrides also replace built-ins of the same name,
+Pass a map of overrides to `defaults.NewWith`. Overrides also replace built-ins of the same name,
 useful for sandboxing or instrumenting a modifier.
 
 ```go
-overrides := map[string]sintax.GlobalModifier{
+overrides := map[string]functions.GlobalModifier{
     "redact": func(value any, params []any) (any, error) {
         return "***", nil
     },
 }
-s := sintax.New(sintax.BuiltinFunctions(overrides, nil))
+s := sintax.New(defaults.NewWith(overrides))
 // {{ secret | redact }} → ***
 ```
 
-`GlobalModifier` is `func(value any, params []any) (any, error)`. The first positional argument from the
+`functions.GlobalModifier` (aliased as `sintax.GlobalModifier`) is `func(value any, params []any) (any, error)`. The first positional argument from the
 template flows in as `value`; everything after the modifier name (separated by `,`) shows up in `params`.
 
 ---
@@ -344,26 +362,26 @@ core stays dependency-light. Wire in whatever library you prefer; the examples b
 **YAML serialization**: the example uses `gopkg.in/yaml.v3`, but any YAML library works
 
 ```go
-overrides := map[string]sintax.GlobalModifier{
+overrides := map[string]functions.GlobalModifier{
     "yaml": func(value any, params []any) (any, error) {
         b, err := yaml.Marshal(value)
         return string(b), err
     },
 }
-s := sintax.New(sintax.BuiltinFunctions(overrides, nil))
+s := sintax.New(defaults.NewWith(overrides))
 ```
 
 **HTML to Markdown**: the example uses `github.com/JohannesKaufmann/html-to-markdown/v2`, but any converter works
 
 ```go
-overrides := map[string]sintax.GlobalModifier{
+overrides := map[string]functions.GlobalModifier{
     "markdown": func(value any, params []any) (any, error) {
         html, _ := functions.ValueString(value)
         conv := converter.NewConverter(converter.WithPlugins(base.NewBasePlugin()))
         return conv.ConvertString(html)
     },
 }
-s := sintax.New(sintax.BuiltinFunctions(overrides, nil))
+s := sintax.New(defaults.NewWith(overrides))
 ```
 
 ---
@@ -388,4 +406,3 @@ Reports for this repo are hosted by our <a href="https://code.toawe.me">code vie
 ---
 
 Made with ❤️ in Lithuania 🇱🇹.
-</content>

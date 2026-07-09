@@ -54,7 +54,7 @@ func Test_Banking_Template(t *testing.T) {
 		}
 	}
 
-	funcs := BuiltinFunctions(nil, nil)
+	funcs := builtins()
 
 	cases := []struct {
 		name     string
@@ -145,7 +145,7 @@ func mkTxs(a1, a2, a3 any) []any {
 }
 
 func Test_Sum_Pluck_Flatten_Decimal(t *testing.T) {
-	funcs := BuiltinFunctions(nil, nil)
+	funcs := builtins()
 
 	t.Run("sum slice of numbers", func(t *testing.T) {
 		out, err := Render("{{ xs | sum }}", map[string]any{"xs": []any{1.5, 2.5, 3.0}}, funcs)
@@ -211,7 +211,7 @@ func Test_Sum_Pluck_Flatten_Decimal(t *testing.T) {
 }
 
 func Test_For_Loop(t *testing.T) {
-	funcs := BuiltinFunctions(nil, nil)
+	funcs := builtins()
 
 	t.Run("slice single var", func(t *testing.T) {
 		out, err := Render("{{ for x in xs }}- {{ x }}\n{{ endfor }}", map[string]any{
@@ -250,7 +250,7 @@ func Test_For_Loop(t *testing.T) {
 }
 
 func Test_If_Else(t *testing.T) {
-	funcs := BuiltinFunctions(nil, nil)
+	funcs := builtins()
 
 	t.Run("if true", func(t *testing.T) {
 		out, err := Render("{{ if x }}yes{{ endif }}", map[string]any{"x": true}, funcs)
@@ -298,7 +298,7 @@ func Test_If_Else(t *testing.T) {
 }
 
 func Test_Whitespace_Trim(t *testing.T) {
-	funcs := BuiltinFunctions(nil, nil)
+	funcs := builtins()
 
 	t.Run("control tag alone on line auto-trims", func(t *testing.T) {
 		input := "PRE\n{{ if x }}\nyes\n{{ endif }}\nPOST"

@@ -14,7 +14,7 @@ func Test_E2E_FileModifier(t *testing.T) {
 		t.Fatalf("failed to write fixture: %v", err)
 	}
 
-	s := New(BuiltinFunctions(nil, []string{dir}))
+	s := New(builtins(dir))
 
 	out, err := s.Render(`{{ "greeting.txt" | file }}`, nil)
 	assert.NoError(t, err)
@@ -27,7 +27,7 @@ func Test_E2E_FileModifier_VariablePath(t *testing.T) {
 		t.Fatalf("failed to write fixture: %v", err)
 	}
 
-	s := New(BuiltinFunctions(nil, []string{dir}))
+	s := New(builtins(dir))
 
 	out, err := s.Render(`{{ path | file }}`, map[string]any{"path": "doc.md"})
 	assert.NoError(t, err)
@@ -35,7 +35,7 @@ func Test_E2E_FileModifier_VariablePath(t *testing.T) {
 }
 
 func Test_E2E_LiteralHead(t *testing.T) {
-	s := New(BuiltinFunctions(nil, nil))
+	s := New(builtins())
 
 	out, err := s.Render(`{{ "hello" | upper }}`, nil)
 	assert.NoError(t, err)

@@ -9,7 +9,7 @@ import (
 )
 
 func Test_E2E_TemplateModifier_InheritScope(t *testing.T) {
-	s := New(BuiltinFunctions(nil, nil))
+	s := New(builtins())
 
 	out, err := s.Render(`{{ tpl | template }}`, map[string]any{
 		"tpl":  "Hi {{ name }}",
@@ -25,7 +25,7 @@ func Test_E2E_TemplateModifier_FileComposed(t *testing.T) {
 		t.Fatalf("failed to write fixture: %v", err)
 	}
 
-	s := New(BuiltinFunctions(nil, []string{dir}))
+	s := New(builtins(dir))
 
 	out, err := s.Render(`{{ "p.tpl" | file | template }}`, map[string]any{"who": "World"})
 	assert.NoError(t, err)
@@ -33,7 +33,7 @@ func Test_E2E_TemplateModifier_FileComposed(t *testing.T) {
 }
 
 func Test_E2E_TemplateModifier_IsolatedScope(t *testing.T) {
-	s := New(BuiltinFunctions(nil, nil))
+	s := New(builtins())
 
 	out, err := s.Render(`{{ tpl | template:extra }}`, map[string]any{
 		"tpl":   "{{ name | default:'?' }}/{{ city }}",
@@ -46,7 +46,7 @@ func Test_E2E_TemplateModifier_IsolatedScope(t *testing.T) {
 }
 
 func Test_E2E_TemplateModifier_RecursionGuard(t *testing.T) {
-	s := New(BuiltinFunctions(nil, nil))
+	s := New(builtins())
 
 	_, err := s.Render(`{{ self | template }}`, map[string]any{
 		"self": "{{ self | template }}",
@@ -56,7 +56,7 @@ func Test_E2E_TemplateModifier_RecursionGuard(t *testing.T) {
 }
 
 func Test_E2E_TemplateModifier_NonMapExtra(t *testing.T) {
-	s := New(BuiltinFunctions(nil, nil))
+	s := New(builtins())
 
 	_, err := s.Render(`{{ tpl | template:extra }}`, map[string]any{
 		"tpl":   "x",
@@ -66,7 +66,7 @@ func Test_E2E_TemplateModifier_NonMapExtra(t *testing.T) {
 }
 
 func Test_E2E_TemplateModifier_MultiLevelNesting(t *testing.T) {
-	s := New(BuiltinFunctions(nil, nil))
+	s := New(builtins())
 
 	out, err := s.Render(`{{ outer | template }}`, map[string]any{
 		"outer": "[{{ inner | template }}]",
@@ -78,7 +78,7 @@ func Test_E2E_TemplateModifier_MultiLevelNesting(t *testing.T) {
 }
 
 func Test_E2E_TemplateModifier_NestedRenderError(t *testing.T) {
-	s := New(BuiltinFunctions(nil, nil))
+	s := New(builtins())
 
 	// the nested template references an undefined variable; the failure must
 	// propagate out of the modifier rather than be swallowed.
