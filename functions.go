@@ -2,13 +2,22 @@ package sintax
 
 import (
 	"github.com/toaweme/sintax/functions/boolean"
-	"github.com/toaweme/sintax/functions/collections"
+	"github.com/toaweme/sintax/functions/collections/access"
+	collquery "github.com/toaweme/sintax/functions/collections/query"
+	"github.com/toaweme/sintax/functions/collections/transform"
 	"github.com/toaweme/sintax/functions/control"
-	"github.com/toaweme/sintax/functions/convert"
+	"github.com/toaweme/sintax/functions/convert/parse"
+	"github.com/toaweme/sintax/functions/convert/serialize"
 	"github.com/toaweme/sintax/functions/escape"
 	"github.com/toaweme/sintax/functions/format"
 	"github.com/toaweme/sintax/functions/fs"
-	"github.com/toaweme/sintax/functions/text"
+	pathedit "github.com/toaweme/sintax/functions/path/edit"
+	pathquery "github.com/toaweme/sintax/functions/path/query"
+	"github.com/toaweme/sintax/functions/render"
+	casing "github.com/toaweme/sintax/functions/text/case"
+	textedit "github.com/toaweme/sintax/functions/text/edit"
+	"github.com/toaweme/sintax/functions/text/splitjoin"
+	"github.com/toaweme/sintax/functions/text/trim"
 )
 
 // GlobalModifier is a stateless modifier that transforms a piped value given
@@ -34,7 +43,7 @@ type ContextualModifier func(render func(template string, vars map[string]any) (
 // registered here rather than exposed through BuiltinFunctions.
 func builtinContextualModifiers() map[string]ContextualModifier {
 	return map[string]ContextualModifier{
-		string(text.ModifierNameTemplate): text.Template,
+		string(render.ModifierNameTemplate): render.Template,
 	}
 }
 
@@ -42,13 +51,15 @@ func builtinContextualModifiers() map[string]ContextualModifier {
 // wiring safeDirs into any modifiers that need to constrain filesystem access.
 var BuiltinFunctions = func(overrides map[string]GlobalModifier, safeDirs []string) map[string]GlobalModifier {
 	funcs := map[string]GlobalModifier{
-		// convert
-		string(convert.ModifierNameJSON): convert.JSON,
-		string(convert.ModifierNameFrom): convert.From,
+		// convert/serialize
+		string(serialize.ModifierNameJSON): serialize.JSON,
 		// the following built-in functions deliberately aren't implemented and return an error because
 		// they depend on 3rd party libraries, and we don't want to bloat this package
-		string(convert.ModifierNameYAML):     convert.YAML,
-		string(convert.ModifierNameMarkdown): convert.Markdown,
+		string(serialize.ModifierNameYAML):     serialize.YAML,
+		string(serialize.ModifierNameMarkdown): serialize.Markdown,
+
+		// convert/parse
+		string(parse.ModifierNameFrom): parse.From,
 
 		// escape
 		string(escape.ModifierNameHTML): escape.HTML,
@@ -65,49 +76,62 @@ var BuiltinFunctions = func(overrides map[string]GlobalModifier, safeDirs []stri
 		string(format.ModifierNameDecimal):     format.Decimal,
 		string(format.ModifierNameCurrency):    format.Currency,
 
+		// path/query
+		string(pathquery.ModifierNameDirname):        pathquery.Dirname,
+		string(pathquery.ModifierNameFilename):       pathquery.Filename,
+		string(pathquery.ModifierNameFilenameExt):    pathquery.FilenameExt,
+		string(pathquery.ModifierNameFilenameExtDot): pathquery.FilenameExtDot,
+
+		// path/edit
+		string(pathedit.ModifierNameFilenamePrependExt): pathedit.FilenamePrependExt,
+		string(pathedit.ModifierNameFilenameTrimExt):    pathedit.FilenameTrimExt,
+
 		// fs
-		string(fs.ModifierNameDirname):            fs.Dirname,
-		string(fs.ModifierNameFilename):           fs.Filename,
-		string(fs.ModifierNameFilenameExt):        fs.FilenameExt,
-		string(fs.ModifierNameFilenameExtDot):     fs.FilenameExtDot,
-		string(fs.ModifierNameFilenamePrependExt): fs.FilenamePrependExt,
-		string(fs.ModifierNameFilenameTrimExt):    fs.FilenameTrimExt,
-		string(fs.ModifierNameFile):               fs.File(safeDirs),
+		string(fs.ModifierNameFile): fs.File(safeDirs),
 
-		// text
-		// string(text.ModifierNameSexy): text.Sexy,
-		string(text.ModifierNameLines):          text.Lines,
-		string(text.ModifierNameJoin):           text.Join,
-		string(text.ModifierNameSplit):          text.Split,
-		string(text.ModifierNameTrim):           text.Trim,
-		string(text.ModifierNameTrimPrefix):     text.TrimPrefix,
-		string(text.ModifierNameTrimSuffix):     text.TrimSuffix,
-		string(text.ModifierNameShorten):        text.Shorten,
-		string(text.ModifierNameConcat):         text.Concat,
-		string(text.ModifierNameSlug):           text.Slug,
-		string(text.ModifierNameTitle):          text.Title,
-		string(text.ModifierNameModelTitle):     text.ModelTitle,
-		string(text.ModifierNameToLower):        text.ToLower,
-		string(text.ModifierNameToUpper):        text.ToUpper,
-		string(text.ModifierNameReplace):        text.Replace,
-		string(text.ModifierNameReplacePattern): text.ReplacePattern,
-		string(text.ModifierNameReverse):        text.Reverse,
+		// text/case
+		string(casing.ModifierNameToLower):    casing.ToLower,
+		string(casing.ModifierNameToUpper):    casing.ToUpper,
+		string(casing.ModifierNameSlug):       casing.Slug,
+		string(casing.ModifierNameTitle):      casing.Title,
+		string(casing.ModifierNameModelTitle): casing.ModelTitle,
 
-		// collections
-		string(collections.ModifierNameFirst):   collections.First,
-		string(collections.ModifierNameLast):    collections.Last,
-		string(collections.ModifierNameFind):    collections.Find,
-		string(collections.ModifierNameFilter):  collections.Filter,
-		string(collections.ModifierNameHas):     collections.Has,
-		string(collections.ModifierNameIs):      collections.Is,
-		string(collections.ModifierNameKey):     collections.Key,
-		string(collections.ModifierNameMap):     collections.Map,
-		string(collections.ModifierNameWrap):    collections.Wrap,
-		string(collections.ModifierNameSort):    collections.Sort,
-		string(collections.ModifierNameMerge):   collections.Merge,
-		string(collections.ModifierNameSum):     collections.Sum,
-		string(collections.ModifierNamePluck):   collections.Pluck,
-		string(collections.ModifierNameFlatten): collections.Flatten,
+		// text/trim
+		string(trim.ModifierNameTrim):       trim.Trim,
+		string(trim.ModifierNameTrimPrefix): trim.TrimPrefix,
+		string(trim.ModifierNameTrimSuffix): trim.TrimSuffix,
+
+		// text/edit
+		string(textedit.ModifierNameShorten):        textedit.Shorten,
+		string(textedit.ModifierNameConcat):         textedit.Concat,
+		string(textedit.ModifierNameReplace):        textedit.Replace,
+		string(textedit.ModifierNameReplacePattern): textedit.ReplacePattern,
+		string(textedit.ModifierNameReverse):        textedit.Reverse,
+		string(textedit.ModifierNameWrap):           textedit.Wrap,
+
+		// text/splitjoin
+		string(splitjoin.ModifierNameLines): splitjoin.Lines,
+		string(splitjoin.ModifierNameJoin):  splitjoin.Join,
+		string(splitjoin.ModifierNameSplit): splitjoin.Split,
+
+		// collections/access
+		string(access.ModifierNameFirst): access.First,
+		string(access.ModifierNameLast):  access.Last,
+		string(access.ModifierNameKey):   access.Key,
+		string(access.ModifierNamePluck): access.Pluck,
+		string(access.ModifierNameFind):  access.Find,
+
+		// collections/query
+		string(collquery.ModifierNameFilter): collquery.Filter,
+		string(collquery.ModifierNameHas):    collquery.Has,
+		string(collquery.ModifierNameIs):     collquery.Is,
+
+		// collections/transform
+		string(transform.ModifierNameMap):     transform.Map,
+		string(transform.ModifierNameSort):    transform.Sort,
+		string(transform.ModifierNameMerge):   transform.Merge,
+		string(transform.ModifierNameSum):     transform.Sum,
+		string(transform.ModifierNameFlatten): transform.Flatten,
 
 		// boolean
 		string(boolean.ModifierNameNot): boolean.Not,

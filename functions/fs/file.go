@@ -1,3 +1,4 @@
+// Package fs provides a modifier that reads file contents from an allowlist.
 package fs
 
 import (
