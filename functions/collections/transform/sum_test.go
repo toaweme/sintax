@@ -7,6 +7,7 @@ import (
 )
 
 func Test_Sum(t *testing.T) {
+	sum := sumModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -64,47 +65,53 @@ func Test_Sum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Sum(tt.value, tt.params)
+			out, err := sum(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
 	}
 }
 
-// Test_Sum_NilInput proves an untyped nil value is rejected: only a typed nil
-// pointer or interface short-circuits to zero, a bare nil does not.
+// Test_Sum_NilInput proves an untyped nil value is rejected: coercion to a slice
+// fails, so a bare nil does not sum to zero.
 func Test_Sum_NilInput(t *testing.T) {
-	_, err := Sum(nil, nil)
+	sum := sumModifier
+	_, err := sum(nil, nil)
 	assert.Error(t, err)
 }
 
 // Test_Sum_WrongType proves a non-slice value is rejected.
 func Test_Sum_WrongType(t *testing.T) {
-	_, err := Sum("not a slice", nil)
+	sum := sumModifier
+	_, err := sum("not a slice", nil)
 	assert.Error(t, err)
 }
 
 // Test_Sum_NonNumericElement proves an element that is neither a number nor a
 // numeric string is rejected.
 func Test_Sum_NonNumericElement(t *testing.T) {
-	_, err := Sum([]any{1, "abc"}, nil)
+	sum := sumModifier
+	_, err := sum([]any{1, "abc"}, nil)
 	assert.Error(t, err)
 }
 
 // Test_Sum_NonStringFieldParam proves the field parameter must be a string.
 func Test_Sum_NonStringFieldParam(t *testing.T) {
-	_, err := Sum([]map[string]any{{"price": 1}}, []any{42})
+	sum := sumModifier
+	_, err := sum([]map[string]any{{"price": 1}}, []any{42})
 	assert.Error(t, err)
 }
 
 // Test_Sum_FieldNotFound proves summing a field absent from an element errors.
 func Test_Sum_FieldNotFound(t *testing.T) {
-	_, err := Sum([]map[string]any{{"price": 1}}, []any{"missing"})
+	sum := sumModifier
+	_, err := sum([]map[string]any{{"price": 1}}, []any{"missing"})
 	assert.Error(t, err)
 }
 
 // Test_Sum_FieldOnNonMap proves a field parameter over non-map elements errors.
 func Test_Sum_FieldOnNonMap(t *testing.T) {
-	_, err := Sum([]any{1, 2}, []any{"price"})
+	sum := sumModifier
+	_, err := sum([]any{1, 2}, []any{"price"})
 	assert.Error(t, err)
 }

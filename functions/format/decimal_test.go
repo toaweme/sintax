@@ -7,6 +7,7 @@ import (
 )
 
 func Test_Decimal(t *testing.T) {
+	decimal := decimalModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -31,7 +32,7 @@ func Test_Decimal(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := Decimal(tt.value, tt.params)
+			actual, err := decimal(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, actual)
 		})
@@ -40,15 +41,17 @@ func Test_Decimal(t *testing.T) {
 
 // Test_Decimal_BadPrecision asserts a non-numeric precision parameter is rejected.
 func Test_Decimal_BadPrecision(t *testing.T) {
-	_, err := Decimal(1.0, []any{"2"})
+	decimal := decimalModifier
+	_, err := decimal(1.0, []any{"2"})
 	assert.Error(t, err)
 }
 
 // Test_Decimal_BadValue asserts an unparseable string value is rejected.
 func Test_Decimal_BadValue(t *testing.T) {
-	_, err := Decimal("not a number", []any{2})
+	decimal := decimalModifier
+	_, err := decimal("not a number", []any{2})
 	assert.Error(t, err)
 
-	_, err = Decimal([]int{1, 2}, []any{2})
+	_, err = decimal([]int{1, 2}, []any{2})
 	assert.Error(t, err)
 }

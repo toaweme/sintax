@@ -10,37 +10,22 @@ import (
 // ModifierNameLength is the template name for the Length modifier.
 const ModifierNameLength functions.ModifierName = "length"
 
-// Length returns the size of a value: the number of bytes in a string or byte
-// slice, or the number of elements in a slice, array, or map. For strings the
-// count is UTF-8 bytes, not runes, so a multi-byte character such as "é" counts
-// as more than one. A nil pointer or nil interface counts as zero, but a bare
-// nil (no type) has no length and returns an error.
-//
-// value: string, bytes, array, map
-// returns: int
-//
-// example: count bytes in an ASCII name
-// in:  name = "Alice"
-// tpl: {{ name | length }}
-// out: 5
-//
-// example: count items in a cart
-// in:  items = ["mug", "pen", "pad"]
-// tpl: {{ items | length }}
-// out: 3
-//
-// example: a multi-byte character counts as its bytes, not one rune
-// in:  word = "café"
-// tpl: {{ word | length }}
-// out: 5
-var Length = func(value any, _ []any) (any, error) {
-	switch v := value.(type) {
-	case string:
-		return len(v), nil
-	case []byte:
-		return len(v), nil
-	}
+// LengthString returns the number of UTF-8 bytes in a string, so a multi-byte
+// character such as "é" counts as more than one.
+func LengthString(s string) (int, error) {
+	return len(s), nil
+}
 
+// LengthBytes returns the number of bytes in a byte slice.
+func LengthBytes(b []byte) (int, error) {
+	return len(b), nil
+}
+
+// LengthReflect counts the elements of a slice, array, or map via reflection,
+// dereferencing a pointer or interface first (a nil pointer counts as zero). It
+// is the fallback clause; a value with no meaningful length, including a bare
+// nil, is an error.
+func LengthReflect(value any) (int, error) {
 	rv := reflect.ValueOf(value)
 	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {
 		if rv.IsNil() {
@@ -52,7 +37,6 @@ var Length = func(value any, _ []any) (any, error) {
 	case reflect.Slice, reflect.Array, reflect.Map:
 		return rv.Len(), nil
 	default:
+		return 0, fmt.Errorf("length expected a string, bytes, slice, array, or map, got %T", value)
 	}
-
-	return nil, fmt.Errorf("length function expected string, bytes, slice, array, or map, got %T", value)
 }

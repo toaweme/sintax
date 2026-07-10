@@ -11,65 +11,52 @@ import (
 // ModifierNameSort is the template name for the Sort modifier.
 const ModifierNameSort functions.ModifierName = "sort"
 
-// Sort orders a slice ascending or descending. It compares strings
-// alphabetically, numbers numerically, and booleans with false before true. The
-// optional direction parameter is 'asc' (the default when omitted) or 'desc';
-// any other value is an error. When a slice mixes types, elements are grouped by
-// their type name first so the result stays deterministic, for example numbers
-// sort as one run and strings as another. A nil value passes through as nil.
-//
-// value: array
-// param:0?: string (sort direction, 'asc' or 'desc', default 'asc')
-// returns: array
-//
-// example: sort names alphabetically
-// in:  names = ["Charlie", "Alice", "Bob"]
-// tpl: {{ names | sort }}
-// out: ["Alice", "Bob", "Charlie"]
-//
-// example: sort scores from highest to lowest
-// in:  scores = [72, 95, 88]
-// tpl: {{ scores | sort:'desc' }}
-// out: [95, 88, 72]
-//
-// example: sort prices ascending
-// in:  prices = [9.99, 4.50, 14.00]
-// tpl: {{ prices | sort:'asc' }}
-// out: [4.50, 9.99, 14.00]
-//
-// example: flags sort with false first
-// in:  flags = [true, false, true]
-// tpl: {{ flags | sort }}
-// out: [false, true, true]
-func Sort(value any, params []any) (any, error) {
-	if value == nil {
-		return nil, nil //nolint:nilnil // deliberate: nil input passes through as nil, not an error
-	}
+// SortAsc sorts a slice ascending, the default direction when none is given. It
+// sorts a copy, so the caller's slice is never mutated (coerce may hand this
+// clause the caller's own backing array by reference).
+func SortAsc(slice []any) ([]any, error) {
+	out := append([]any{}, slice...)
+	sortSlice(out, true)
+	return out, nil
+}
 
-	slice, err := functions.ValueSlice(value)
-	if err != nil {
-		return nil, err
-	}
-
+// SortDir sorts a copy of a slice in the named direction, 'asc' or 'desc'; any
+// other direction is an error. An empty slice is returned untouched without
+// validating the direction, matching the original short-circuit.
+func SortDir(slice []any, direction string) ([]any, error) {
 	if len(slice) == 0 {
 		return slice, nil
 	}
-
-	direction, _ := functions.ParamString(params, 0)
-	if direction == "" {
-		direction = "asc"
+	out := append([]any{}, slice...)
+	switch direction {
+	case "asc":
+		sortSlice(out, true)
+	case "desc":
+		sortSlice(out, false)
+	default:
+		return nil, fmt.Errorf("sort expected direction 'asc' or 'desc', got %q", direction)
 	}
-	if direction != "asc" && direction != "desc" {
-		return nil, fmt.Errorf("sort: invalid direction %s, expected 'asc' or 'desc'", direction)
+	return out, nil
+}
+
+// sortNil is the sort clause that passes a nil value straight through as nil, and
+// declines any other value so Overload falls through to the typed clauses.
+func sortNil(value any, _ []any) (any, error) {
+	if value == nil {
+		return nil, nil //nolint:nilnil // deliberate: nil input passes through as nil, not an error
 	}
+	return nil, functions.ErrInvalidValueType
+}
 
-	ascending := direction == "asc"
-
+// sortSlice orders slice in place. It compares strings alphabetically, numbers
+// numerically, and booleans with false before true. A mixed-type slice groups
+// elements by type name first so the result stays deterministic, and nils sort
+// first regardless of direction.
+func sortSlice(slice []any, ascending bool) {
 	sort.Slice(slice, func(i, j int) bool {
 		vi := reflect.ValueOf(slice[i])
 		vj := reflect.ValueOf(slice[j])
 
-		// handle nil values - nils always come first (regardless of direction)
 		if !vi.IsValid() && !vj.IsValid() {
 			return false
 		}
@@ -80,11 +67,8 @@ func Sort(value any, params []any) (any, error) {
 			return false
 		}
 
-		// get the actual types
 		ti := vi.Type()
 		tj := vj.Type()
-
-		// if types don't match, compare by type string for consistent ordering
 		if ti != tj {
 			result := ti.String() < tj.String()
 			if ascending {
@@ -93,27 +77,19 @@ func Sort(value any, params []any) (any, error) {
 			return !result
 		}
 
-		// handle different types
 		var less bool
 		switch vi.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			less = vi.Int() < vj.Int()
-
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			less = vi.Uint() < vj.Uint()
-
 		case reflect.Float32, reflect.Float64:
 			less = vi.Float() < vj.Float()
-
 		case reflect.String:
 			less = vi.String() < vj.String()
-
 		case reflect.Bool:
-			// false < true
 			less = !vi.Bool() && vj.Bool()
-
 		default:
-			// for other types, convert to string and compare
 			less = fmt.Sprintf("%v", vi.Interface()) < fmt.Sprintf("%v", vj.Interface())
 		}
 
@@ -122,6 +98,4 @@ func Sort(value any, params []any) (any, error) {
 		}
 		return !less
 	})
-
-	return slice, nil
 }

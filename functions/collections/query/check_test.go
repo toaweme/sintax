@@ -109,6 +109,7 @@ func Test_Has_Errors(t *testing.T) {
 }
 
 func Test_Is(t *testing.T) {
+	is := isModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -126,16 +127,17 @@ func Test_Is(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Is(tt.value, tt.params)
+			out, err := is(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
 	}
 }
 
-// Test_Is_NoParams covers the sole error path: Is with no candidate values.
+// Test_Is_NoParams covers the sole error path: is with no candidate values.
 func Test_Is_NoParams(t *testing.T) {
-	out, err := Is("active", nil)
+	is := isModifier
+	out, err := is("active", nil)
 	assert.Error(t, err)
 	assert.Equal(t, false, out)
 }

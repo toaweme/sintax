@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
+	"github.com/toaweme/sintax/functions"
 )
 
 func Test_Replace(t *testing.T) {
+	replace := replaceModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -23,7 +25,7 @@ func Test_Replace(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Replace(tt.value, tt.params)
+			out, err := replace(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -31,29 +33,31 @@ func Test_Replace(t *testing.T) {
 }
 
 func Test_Replace_Errors(t *testing.T) {
+	replace := replaceModifier
 	t.Run("too few params", func(t *testing.T) {
-		_, err := Replace("x", []any{"only-one"})
-		assert.Error(t, err)
+		_, err := replace("x", []any{"only-one"})
+		assert.ErrorIs(t, err, functions.ErrMissingParam)
 	})
 	t.Run("no params", func(t *testing.T) {
-		_, err := Replace("x", nil)
-		assert.Error(t, err)
+		_, err := replace("x", nil)
+		assert.ErrorIs(t, err, functions.ErrMissingParam)
 	})
 	t.Run("non-string value", func(t *testing.T) {
-		_, err := Replace(42, []any{"a", "b"})
-		assert.Error(t, err)
+		_, err := replace(42, []any{"a", "b"})
+		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 	t.Run("non-string old param", func(t *testing.T) {
-		_, err := Replace("x", []any{1, "b"})
-		assert.Error(t, err)
+		_, err := replace("x", []any{1, "b"})
+		assert.ErrorIs(t, err, functions.ErrInvalidParamType)
 	})
 	t.Run("non-string new param", func(t *testing.T) {
-		_, err := Replace("x", []any{"a", 2})
-		assert.Error(t, err)
+		_, err := replace("x", []any{"a", 2})
+		assert.ErrorIs(t, err, functions.ErrInvalidParamType)
 	})
 }
 
 func Test_ReplacePattern(t *testing.T) {
+	replacePattern := replacePatternModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -70,7 +74,7 @@ func Test_ReplacePattern(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := ReplacePattern(tt.value, tt.params)
+			out, err := replacePattern(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -78,29 +82,31 @@ func Test_ReplacePattern(t *testing.T) {
 }
 
 func Test_ReplacePattern_Errors(t *testing.T) {
+	replacePattern := replacePatternModifier
 	t.Run("too few params", func(t *testing.T) {
-		_, err := ReplacePattern("x", []any{`\d`})
-		assert.Error(t, err)
+		_, err := replacePattern("x", []any{`\d`})
+		assert.ErrorIs(t, err, functions.ErrMissingParam)
 	})
 	t.Run("non-string value", func(t *testing.T) {
-		_, err := ReplacePattern(42, []any{`\d`, ""})
-		assert.Error(t, err)
+		_, err := replacePattern(42, []any{`\d`, ""})
+		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 	t.Run("non-string pattern param", func(t *testing.T) {
-		_, err := ReplacePattern("x", []any{1, ""})
-		assert.Error(t, err)
+		_, err := replacePattern("x", []any{1, ""})
+		assert.ErrorIs(t, err, functions.ErrInvalidParamType)
 	})
 	t.Run("non-string replacement param", func(t *testing.T) {
-		_, err := ReplacePattern("x", []any{`\d`, 2})
-		assert.Error(t, err)
+		_, err := replacePattern("x", []any{`\d`, 2})
+		assert.ErrorIs(t, err, functions.ErrInvalidParamType)
 	})
 	t.Run("invalid regex", func(t *testing.T) {
-		_, err := ReplacePattern("x", []any{`[unterminated`, ""})
+		_, err := replacePattern("x", []any{`[unterminated`, ""})
 		assert.Error(t, err)
 	})
 }
 
 func Test_Reverse(t *testing.T) {
+	reverse := reverseModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -116,7 +122,7 @@ func Test_Reverse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Reverse(tt.value, nil)
+			out, err := reverse(tt.value, nil)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -124,12 +130,13 @@ func Test_Reverse(t *testing.T) {
 }
 
 func Test_Reverse_Errors(t *testing.T) {
+	reverse := reverseModifier
 	t.Run("non-string value", func(t *testing.T) {
-		_, err := Reverse(42, nil)
-		assert.Error(t, err)
+		_, err := reverse(42, nil)
+		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 	t.Run("nil value", func(t *testing.T) {
-		_, err := Reverse(nil, nil)
-		assert.Error(t, err)
+		_, err := reverse(nil, nil)
+		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 }

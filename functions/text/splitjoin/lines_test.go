@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
+	"github.com/toaweme/sintax/functions"
 )
 
 func Test_Lines(t *testing.T) {
+	lines := linesModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -23,7 +25,7 @@ func Test_Lines(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Lines(tt.value, nil)
+			out, err := lines(tt.value, nil)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -31,18 +33,21 @@ func Test_Lines(t *testing.T) {
 }
 
 func Test_Lines_Bytes(t *testing.T) {
-	out, err := Lines([]byte("a\nb\nc"), nil)
+	lines := linesModifier
+	out, err := lines([]byte("a\nb\nc"), nil)
 	assert.NoError(t, err)
 	assert.Equal(t, [][]byte{[]byte("a"), []byte("b"), []byte("c")}, out)
 }
 
 func Test_Lines_Nil(t *testing.T) {
-	out, err := Lines(nil, nil)
+	lines := linesModifier
+	out, err := lines(nil, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, nil, out)
 }
 
 func Test_Lines_Errors(t *testing.T) {
+	lines := linesModifier
 	tests := []struct {
 		name  string
 		value any
@@ -52,8 +57,8 @@ func Test_Lines_Errors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := Lines(tt.value, nil)
-			assert.Error(t, err)
+			_, err := lines(tt.value, nil)
+			assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 		})
 	}
 }

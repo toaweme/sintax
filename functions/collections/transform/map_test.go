@@ -8,6 +8,7 @@ import (
 )
 
 func Test_Map(t *testing.T) {
+	mapMod := mapModifier
 	users := []map[string]any{
 		{"id": "u1", "name": "Alice"},
 		{"id": "u2", "name": "Bob"},
@@ -56,7 +57,7 @@ func Test_Map(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Map(tt.value, tt.params)
+			out, err := mapMod(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -65,25 +66,29 @@ func Test_Map(t *testing.T) {
 
 // Test_Map_MissingParam proves the field name is required.
 func Test_Map_MissingParam(t *testing.T) {
-	_, err := Map([]map[string]any{{"id": "u1"}}, nil)
-	assert.Error(t, err)
+	mapMod := mapModifier
+	_, err := mapMod([]map[string]any{{"id": "u1"}}, nil)
+	assert.ErrorIs(t, err, functions.ErrMissingParam)
 }
 
 // Test_Map_NonStringParam proves a non-string field parameter is rejected with
 // the shared ErrInvalidParamType sentinel.
 func Test_Map_NonStringParam(t *testing.T) {
-	_, err := Map([]map[string]any{{"id": "u1"}}, []any{42})
+	mapMod := mapModifier
+	_, err := mapMod([]map[string]any{{"id": "u1"}}, []any{42})
 	assert.ErrorIs(t, err, functions.ErrInvalidParamType)
 }
 
-// Test_Map_WrongValueType proves the value must be a slice of maps.
+// Test_Map_WrongValueType proves the value must be a slice of string-keyed maps.
 func Test_Map_WrongValueType(t *testing.T) {
-	_, err := Map([]any{"not a map"}, []any{"id"})
-	assert.Error(t, err)
+	mapMod := mapModifier
+	_, err := mapMod([]any{"not a map"}, []any{"id"})
+	assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 }
 
 // Test_Map_NonStringKeyValue proves the field being keyed on must hold a string.
 func Test_Map_NonStringKeyValue(t *testing.T) {
-	_, err := Map([]map[string]any{{"id": 1}}, []any{"id"})
+	mapMod := mapModifier
+	_, err := mapMod([]map[string]any{{"id": 1}}, []any{"id"})
 	assert.Error(t, err)
 }

@@ -7,6 +7,7 @@ import (
 )
 
 func Test_LineNumbers(t *testing.T) {
+	lineNumbers := lineNumbersModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -29,7 +30,7 @@ func Test_LineNumbers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := LineNumbers(tt.value, nil)
+			actual, err := lineNumbers(tt.value, nil)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, actual)
 		})
@@ -38,6 +39,7 @@ func Test_LineNumbers(t *testing.T) {
 
 // Test_LineNumbers_NonString asserts a non-string value is rejected.
 func Test_LineNumbers_NonString(t *testing.T) {
-	_, err := LineNumbers(42, nil)
+	lineNumbers := lineNumbersModifier
+	_, err := lineNumbers(42, nil)
 	assert.Error(t, err)
 }

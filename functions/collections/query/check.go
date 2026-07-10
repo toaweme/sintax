@@ -75,41 +75,20 @@ func Has(value any, params []any) (any, error) {
 	}
 }
 
-// Is reports whether the value equals any one of the given parameters, which
-// makes it a compact way to write an "is this one of these" test in a template.
-// Comparison is exact on type, so the number 5 does not match the string "5".
-//
-// value: any
-// param:...: any (one or more candidate values, matched in order)
-// returns: bool
-//
-// example: match a single status
-// in:  status = "active"
-// tpl: {{ status | is:'active' }}
-// out: true
-//
-// example: match any of several roles
-// in:  role = "admin"
-// tpl: {{ role | is:'admin','superuser' }}
-// out: true
-//
-// example: no candidate matches
-// in:  status = "archived"
-// tpl: {{ status | is:'active','pending' }}
-// out: false
-func Is(value any, params []any) (any, error) {
-	if len(params) == 0 {
-		return false, errors.New("`is` requires at least one parameter")
+// Is reports whether the value equals any one of the given candidates, a compact
+// way to write an "is this one of these" test in a template. Comparison is exact
+// on type, so the number 5 does not match the string "5".
+func Is(value any, candidates ...any) (bool, error) {
+	if len(candidates) == 0 {
+		return false, errors.New("is requires at least one candidate")
 	}
 
-	for _, param := range params {
-		if reflect.DeepEqual(value, param) {
-			// log.Trace("collections.Is", "matched", true, "value", value, "param", param)
+	for _, candidate := range candidates {
+		if reflect.DeepEqual(value, candidate) {
 			return true, nil
 		}
 	}
 
-	// log.Trace("collections.Is", "matched", false, "value", value, "params", params)
 	return false, nil
 }
 

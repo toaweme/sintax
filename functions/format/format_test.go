@@ -12,6 +12,7 @@ import (
 var moment = time.Date(2024, 3, 14, 9, 30, 5, 0, time.UTC)
 
 func Test_Format(t *testing.T) {
+	format := formatModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -30,7 +31,7 @@ func Test_Format(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := Format(tt.value, tt.params)
+			actual, err := format(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, actual)
 		})
@@ -39,13 +40,15 @@ func Test_Format(t *testing.T) {
 
 // Test_Format_BadParamType asserts a non-string format parameter is rejected.
 func Test_Format_BadParamType(t *testing.T) {
-	_, err := Format(moment, []any{123})
+	format := formatModifier
+	_, err := format(moment, []any{123})
 	assert.Error(t, err)
 }
 
 // Test_Format_BadValueType asserts a value that is neither a string nor a
 // time.Time is rejected.
 func Test_Format_BadValueType(t *testing.T) {
-	_, err := Format(42, []any{"Y-m-d"})
+	format := formatModifier
+	_, err := format(42, []any{"Y-m-d"})
 	assert.Error(t, err)
 }

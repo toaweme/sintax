@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
+	"github.com/toaweme/sintax/functions"
 )
 
 func Test_Concat(t *testing.T) {
+	concat := concatModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -25,7 +27,7 @@ func Test_Concat(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Concat(tt.value, tt.params)
+			out, err := concat(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -35,20 +37,22 @@ func Test_Concat(t *testing.T) {
 // Test_Concat_Errors covers the string-only contract: a non-string value or a
 // non-string parameter is rejected rather than coerced.
 func Test_Concat_Errors(t *testing.T) {
+	concat := concatModifier
 	tests := []struct {
-		name   string
-		value  any
-		params []any
+		name    string
+		value   any
+		params  []any
+		wrapped error
 	}{
-		{"non-string value", 42, []any{"!"}},
-		{"nil value", nil, []any{"!"}},
-		{"non-string param", "x", []any{7}},
-		{"non-string param among strings", "x", []any{"a", true, "b"}},
+		{"non-string value", 42, []any{"!"}, functions.ErrInvalidValueType},
+		{"nil value", nil, []any{"!"}, functions.ErrInvalidValueType},
+		{"non-string param", "x", []any{7}, functions.ErrInvalidParamType},
+		{"non-string param among strings", "x", []any{"a", true, "b"}, functions.ErrInvalidParamType},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := Concat(tt.value, tt.params)
-			assert.Error(t, err)
+			_, err := concat(tt.value, tt.params)
+			assert.ErrorIs(t, err, tt.wrapped)
 		})
 	}
 }

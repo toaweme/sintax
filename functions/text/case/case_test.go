@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
+	"github.com/toaweme/sintax/functions"
 )
 
 func Test_ToLower(t *testing.T) {
@@ -25,7 +26,7 @@ func Test_ToLower(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := ToLower(tt.input, nil)
+			result, err := ToLower(tt.input)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
 		})
@@ -51,59 +52,29 @@ func Test_ToUpper(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := ToUpper(tt.input, nil)
+			result, err := ToUpper(tt.input)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
 
-// Test_ToLower_NonString proves ToLower rejects non-string values with a
-// descriptive error naming the offending Go type.
+// Test_ToLower_NonString proves the registered lower modifier rejects non-string
+// values with the shared ErrInvalidValueType sentinel.
 func Test_ToLower_NonString(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    any
-		expected string
-	}{
-		{name: "int", input: 42, expected: "tolower function expected a string, got int"},
-		{name: "float", input: 3.14, expected: "tolower function expected a string, got float64"},
-		{name: "bool", input: true, expected: "tolower function expected a string, got bool"},
-		{name: "nil", input: nil, expected: "tolower function expected a string, got <nil>"},
-		{name: "slice", input: []int{1, 2}, expected: "tolower function expected a string, got []int"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := ToLower(tt.input, nil)
-			assert.Error(t, err)
-			assert.Equal(t, tt.expected, err.Error())
-			assert.Equal(t, nil, result)
-		})
+	lower := lowerModifier
+	for _, v := range []any{42, 3.14, true, nil, []int{1, 2}} {
+		_, err := lower(v, nil)
+		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	}
 }
 
-// Test_ToUpper_NonString proves ToUpper rejects non-string values with a
-// descriptive error naming the offending Go type.
+// Test_ToUpper_NonString proves the registered upper modifier rejects non-string
+// values with the shared ErrInvalidValueType sentinel.
 func Test_ToUpper_NonString(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    any
-		expected string
-	}{
-		{name: "int", input: 42, expected: "toupper function expected a string, got int"},
-		{name: "float", input: 3.14, expected: "toupper function expected a string, got float64"},
-		{name: "bool", input: true, expected: "toupper function expected a string, got bool"},
-		{name: "nil", input: nil, expected: "toupper function expected a string, got <nil>"},
-		{name: "slice", input: []int{1, 2}, expected: "toupper function expected a string, got []int"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := ToUpper(tt.input, nil)
-			assert.Error(t, err)
-			assert.Equal(t, tt.expected, err.Error())
-			assert.Equal(t, nil, result)
-		})
+	upper := upperModifier
+	for _, v := range []any{42, 3.14, true, nil, []int{1, 2}} {
+		_, err := upper(v, nil)
+		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	}
 }

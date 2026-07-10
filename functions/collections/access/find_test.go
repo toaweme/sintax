@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
-
 	"github.com/toaweme/sintax/functions"
 )
 
 func Test_Find(t *testing.T) {
+	find := findModifier
 	users := []any{
 		map[string]any{"id": 7, "name": "Bob"},
 		map[string]any{"id": 42, "name": "Alice"},
@@ -46,7 +46,7 @@ func Test_Find(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Find(tt.value, tt.params)
+			out, err := find(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -56,6 +56,7 @@ func Test_Find(t *testing.T) {
 // Test_Find_NotFound covers the not-found paths, which return the non-fatal
 // sentinel so the default modifier can supply a fallback.
 func Test_Find_NotFound(t *testing.T) {
+	find := findModifier
 	tests := []struct {
 		name   string
 		value  any
@@ -68,23 +69,24 @@ func Test_Find_NotFound(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := Find(tt.value, tt.params)
+			_, err := find(tt.value, tt.params)
 			assert.ErrorIs(t, err, functions.ErrAllowsDefaultFunc)
 		})
 	}
 }
 
 func Test_Find_Errors(t *testing.T) {
+	find := findModifier
 	t.Run("fewer than two params", func(t *testing.T) {
-		_, err := Find([]any{map[string]any{"id": 1}}, []any{"id"})
-		assert.Error(t, err)
+		_, err := find([]any{map[string]any{"id": 1}}, []any{"id"})
+		assert.ErrorIs(t, err, functions.ErrMissingParam)
 	})
 	t.Run("non-string key param", func(t *testing.T) {
-		_, err := Find([]any{map[string]any{"id": 1}}, []any{42, 1})
+		_, err := find([]any{map[string]any{"id": 1}}, []any{42, 1})
 		assert.ErrorIs(t, err, functions.ErrInvalidParamType)
 	})
 	t.Run("value is neither slice nor map", func(t *testing.T) {
-		_, err := Find("scalar", []any{"id", 1})
-		assert.Error(t, err)
+		_, err := find("scalar", []any{"id", 1})
+		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 }

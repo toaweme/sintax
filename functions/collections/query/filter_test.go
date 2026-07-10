@@ -8,6 +8,7 @@ import (
 )
 
 func Test_Filter(t *testing.T) {
+	filter := filterModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -84,7 +85,7 @@ func Test_Filter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Filter(tt.value, tt.params)
+			out, err := filter(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -122,9 +123,10 @@ func Test_Filter_Empty(t *testing.T) {
 			params: []any{"role", "admin"},
 		},
 	}
+	filter := filterModifier
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Filter(tt.value, tt.params)
+			out, err := filter(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Empty(t, out)
 		})
@@ -135,28 +137,30 @@ func Test_Filter_Empty(t *testing.T) {
 // yields ErrInvalidValueType, too few parameters yields a plain error, and a
 // non-string key parameter yields ErrInvalidParamType.
 func Test_Filter_Errors(t *testing.T) {
+	filter := filterModifier
+
 	t.Run("value is not a slice", func(t *testing.T) {
-		_, err := Filter("not a slice", []any{"role", "admin"})
+		_, err := filter("not a slice", []any{"role", "admin"})
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 
 	t.Run("nil value", func(t *testing.T) {
-		_, err := Filter(nil, []any{"role", "admin"})
+		_, err := filter(nil, []any{"role", "admin"})
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 
 	t.Run("missing both parameters", func(t *testing.T) {
-		_, err := Filter([]any{}, nil)
-		assert.Error(t, err)
+		_, err := filter([]any{}, nil)
+		assert.ErrorIs(t, err, functions.ErrMissingParam)
 	})
 
 	t.Run("only one parameter", func(t *testing.T) {
-		_, err := Filter([]any{}, []any{"role"})
-		assert.Error(t, err)
+		_, err := filter([]any{}, []any{"role"})
+		assert.ErrorIs(t, err, functions.ErrMissingParam)
 	})
 
 	t.Run("key parameter is not a string", func(t *testing.T) {
-		_, err := Filter([]any{map[string]any{"role": "admin"}}, []any{5, "admin"})
+		_, err := filter([]any{map[string]any{"role": "admin"}}, []any{5, "admin"})
 		assert.ErrorIs(t, err, functions.ErrInvalidParamType)
 	})
 }

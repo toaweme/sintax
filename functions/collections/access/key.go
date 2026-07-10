@@ -166,28 +166,15 @@ func convertToMapKeyType(key string, keyType reflect.Type) (reflect.Value, error
 	}
 }
 
+// convertToInt is the lenient index coercion for slice access: it reuses the
+// strict functions.ValueInt for the numeric kinds, then adds the leniency an
+// array index wants but Wrap's int slot must not have - truncating a fractional
+// float and parsing a numeric string.
 func convertToInt(value any) (int, error) {
+	if n, ok := functions.ValueInt(value); ok {
+		return n, nil
+	}
 	switch v := value.(type) {
-	case int:
-		return v, nil
-	case int8:
-		return int(v), nil
-	case int16:
-		return int(v), nil
-	case int32:
-		return int(v), nil
-	case int64:
-		return int(v), nil
-	case uint:
-		return int(v), nil
-	case uint8:
-		return int(v), nil
-	case uint16:
-		return int(v), nil
-	case uint32:
-		return int(v), nil
-	case uint64:
-		return int(v), nil
 	case float32:
 		return int(v), nil
 	case float64:

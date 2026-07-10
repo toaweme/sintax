@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
+	"github.com/toaweme/sintax/functions"
 )
 
 func Test_Split(t *testing.T) {
+	split := splitModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -26,7 +28,7 @@ func Test_Split(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Split(tt.value, tt.params)
+			out, err := split(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -34,21 +36,23 @@ func Test_Split(t *testing.T) {
 }
 
 func Test_Split_Errors(t *testing.T) {
+	split := splitModifier
 	tests := []struct {
-		name   string
-		value  any
-		params []any
+		name    string
+		value   any
+		params  []any
+		wrapped error
 	}{
-		{"no params", "a,b,c", nil},
-		{"empty params", "a,b,c", []any{}},
-		{"non-string value", 42, []any{","}},
-		{"nil value", nil, []any{","}},
-		{"non-string separator", "a,b,c", []any{42}},
+		{"no params", "a,b,c", nil, functions.ErrMissingParam},
+		{"empty params", "a,b,c", []any{}, functions.ErrMissingParam},
+		{"non-string value", 42, []any{","}, functions.ErrInvalidValueType},
+		{"nil value", nil, []any{","}, functions.ErrInvalidValueType},
+		{"non-string separator", "a,b,c", []any{42}, functions.ErrInvalidParamType},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := Split(tt.value, tt.params)
-			assert.Error(t, err)
+			_, err := split(tt.value, tt.params)
+			assert.ErrorIs(t, err, tt.wrapped)
 		})
 	}
 }

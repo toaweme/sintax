@@ -8,6 +8,7 @@ import (
 )
 
 func Test_Sort(t *testing.T) {
+	sortMod := sortModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -71,7 +72,7 @@ func Test_Sort(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Sort(tt.value, tt.params)
+			out, err := sortMod(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -81,7 +82,8 @@ func Test_Sort(t *testing.T) {
 // Test_Sort_NilInput proves a nil value passes through as nil rather than
 // erroring, so an absent variable renders as nothing.
 func Test_Sort_NilInput(t *testing.T) {
-	out, err := Sort(nil, nil)
+	sortMod := sortModifier
+	out, err := sortMod(nil, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, nil, out)
 }
@@ -89,13 +91,15 @@ func Test_Sort_NilInput(t *testing.T) {
 // Test_Sort_InvalidDirection proves a direction other than asc or desc is
 // rejected.
 func Test_Sort_InvalidDirection(t *testing.T) {
-	_, err := Sort([]any{"a", "b"}, []any{"sideways"})
+	sortMod := sortModifier
+	_, err := sortMod([]any{"a", "b"}, []any{"sideways"})
 	assert.Error(t, err)
 }
 
 // Test_Sort_WrongType proves a non-slice value is rejected with the shared
 // ErrInvalidValueType sentinel.
 func Test_Sort_WrongType(t *testing.T) {
-	_, err := Sort("not a slice", nil)
+	sortMod := sortModifier
+	_, err := sortMod("not a slice", nil)
 	assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 }

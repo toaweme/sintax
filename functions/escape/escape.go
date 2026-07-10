@@ -38,24 +38,12 @@ const (
 // HTML escapes a value for an HTML text node or a quoted attribute value. It is
 // not safe for an unquoted attribute, an href or src URL, or content inside
 // <script>, <style>, or an HTML comment. Reach for escape_js, escape_url, or a
-// dedicated sanitizer in those places.
-//
-// value: string (scalars are coerced to their string form)
-// returns: string
-//
-// example: escape a comment before dropping it into HTML
-// in:  comment = "<b>hi</b>"
-// tpl: {{ comment | escape_html }}
-// out: &lt;b&gt;hi&lt;/b&gt;
-//
-// example: keep a value inside a quoted attribute, quotes and all
-// in:  title = "a \"quoted\" word"
-// tpl: <img alt="{{ title | escape_html }}">
-// out: <img alt="a &#34;quoted&#34; word">
-func HTML(value any, _ []any) (any, error) {
+// dedicated sanitizer in those places. Scalar values are coerced to their string
+// form before escaping.
+func HTML(value any) (string, error) {
 	str, err := stringify(value)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	return html.EscapeString(str), nil
 }
@@ -63,19 +51,12 @@ func HTML(value any, _ []any) (any, error) {
 // URL escapes a value for use as a query-string value. It does not validate URL
 // schemes, so it never turns an attacker-controlled string into a safe href on
 // its own. A "javascript:" payload stays a live scheme if you drop the whole URL
-// into href unescaped.
-//
-// value: string (scalars are coerced to their string form)
-// returns: string
-//
-// example: escape a search term for a query string
-// in:  term = "tea & coffee"
-// tpl: https://example.com/s?q={{ term | escape_url }}
-// out: https://example.com/s?q=tea+%26+coffee
-func URL(value any, _ []any) (any, error) {
+// into href unescaped. Scalar values are coerced to their string form before
+// escaping.
+func URL(value any) (string, error) {
 	str, err := stringify(value)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	return url.QueryEscape(str), nil
 }
@@ -83,19 +64,11 @@ func URL(value any, _ []any) (any, error) {
 // JS escapes a value for use inside a quoted JavaScript string literal. It is
 // not safe as bare JavaScript, because escaping leaves a ";", a "(", or an
 // identifier untouched, so a value spliced outside a string literal is still
-// live code.
-//
-// value: string (scalars are coerced to their string form)
-// returns: string
-//
-// example: escape a value embedded in a script literal
-// in:  name = "a\"; drop()"
-// tpl: <script>var n = "{{ name | escape_js }}";</script>
-// out: <script>var n = "a\"; drop()";</script>
-func JS(value any, _ []any) (any, error) {
+// live code. Scalar values are coerced to their string form before escaping.
+func JS(value any) (string, error) {
 	str, err := stringify(value)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	return escapeJS(str), nil
 }

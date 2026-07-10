@@ -7,6 +7,7 @@ import (
 )
 
 func Test_Join(t *testing.T) {
+	join := joinModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -26,7 +27,7 @@ func Test_Join(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Join(tt.value, tt.params)
+			out, err := join(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -34,6 +35,7 @@ func Test_Join(t *testing.T) {
 }
 
 func Test_Join_Errors(t *testing.T) {
+	join := joinModifier
 	tests := []struct {
 		name   string
 		value  any
@@ -46,7 +48,7 @@ func Test_Join_Errors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := Join(tt.value, tt.params)
+			_, err := join(tt.value, tt.params)
 			assert.Error(t, err)
 		})
 	}

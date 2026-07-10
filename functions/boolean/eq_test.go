@@ -4,9 +4,14 @@ import (
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
+	"github.com/toaweme/sintax/functions"
 )
 
+// Test_Eq drives the registered modifier, since eq's behavior is the Overload
+// dispatch across its numeric, string, and any clauses (plus the nil guard).
 func Test_Eq(t *testing.T) {
+	eq := eqModifier
+
 	tests := []struct {
 		name     string
 		value    any
@@ -32,7 +37,7 @@ func Test_Eq(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Eq(tt.value, tt.params)
+			out, err := eq(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -40,8 +45,7 @@ func Test_Eq(t *testing.T) {
 }
 
 func Test_Eq_MissingParam(t *testing.T) {
-	out, err := Eq("active", nil)
-	assert.Error(t, err)
-	assert.Equal(t, nil, out)
-	assert.Equal(t, "eq function requires at least one parameter", err.Error())
+	eq := eqModifier
+	_, err := eq("active", nil)
+	assert.ErrorIs(t, err, functions.ErrMissingParam)
 }

@@ -7,6 +7,7 @@ import (
 )
 
 func Test_Flatten(t *testing.T) {
+	flatten := flattenModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -55,22 +56,24 @@ func Test_Flatten(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Flatten(tt.value, nil)
+			out, err := flatten(tt.value, nil)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
 	}
 }
 
-// Test_Flatten_NilInput proves an untyped nil value is rejected: only typed nil
-// pointers or interfaces short-circuit to an empty slice, a bare nil does not.
+// Test_Flatten_NilInput proves an untyped nil value is rejected: coercion to a
+// slice fails, so a bare nil does not flatten to an empty slice.
 func Test_Flatten_NilInput(t *testing.T) {
-	_, err := Flatten(nil, nil)
+	flatten := flattenModifier
+	_, err := flatten(nil, nil)
 	assert.Error(t, err)
 }
 
 // Test_Flatten_WrongType proves a non-slice value is rejected.
 func Test_Flatten_WrongType(t *testing.T) {
-	_, err := Flatten("not a slice", nil)
+	flatten := flattenModifier
+	_, err := flatten("not a slice", nil)
 	assert.Error(t, err)
 }

@@ -1,7 +1,6 @@
 package edit
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -11,51 +10,23 @@ import (
 // ModifierNameShorten is the template name for the Shorten modifier.
 const ModifierNameShorten functions.ModifierName = "shorten"
 
-// Shorten truncates a string to at most the given number of bytes. A string
-// shorter than the limit is returned unchanged. The limit counts bytes, not
-// characters, so cutting in the middle of a multi-byte character (for example
-// an accented letter or a CJK glyph) can leave a broken final byte. Keep this
-// in mind for non-ASCII text where one character may span several bytes.
-//
-// The length parameter may be an integer or a numeric string ("30"); anything
-// that does not parse as a whole number is rejected.
-//
-// value: string
-// param:0: int
-// returns: string
-//
-// example: clip a description for a card preview
-// in:  description = "Hand-picked single-origin coffee, slow-roasted in small batches."
-// tpl: {{ description | shorten:30 }}
-// out: Hand-picked single-origin coff
-//
-// example: limit a name to a column width
-// in:  name = "Alexandra Christine Whitehead"
-// tpl: {{ name | shorten:12 }}
-// out: Alexandra Ch
-//
-// example: a string already within the limit is returned unchanged
-// in:  code = "OK"
-// tpl: {{ code | shorten:10 }}
-// out: OK
-var Shorten = func(value any, args []any) (any, error) {
-	str, ok := value.(string)
-	if !ok {
-		return "", errors.New("shorten requires a text argument")
+// Shorten truncates s to at most length bytes, returning it unchanged when it is
+// already shorter. The limit counts bytes, not characters, so cutting inside a
+// multi-byte character can leave a broken final byte.
+func Shorten(s string, length int) (string, error) {
+	if len(s) > length {
+		return s[:length], nil
 	}
+	return s, nil
+}
 
-	if len(args) != 1 {
-		return "", errors.New("shorten requires 1 numeric argument")
-	}
-
-	length, err := strconv.Atoi(fmt.Sprint(args[0]))
+// ShortenParse is the shorten clause for a numeric-string length such as
+// shorten:'30', parsing it before delegating to Shorten. A non-numeric length is
+// an error.
+func ShortenParse(s, length string) (string, error) {
+	n, err := strconv.Atoi(length)
 	if err != nil {
-		return "", errors.New("shorten requires a numeric argument")
+		return "", fmt.Errorf("failed to parse shorten length %q: %w", length, err)
 	}
-
-	if len(str) > length {
-		return str[:length], nil
-	}
-
-	return str, nil
+	return Shorten(s, n)
 }

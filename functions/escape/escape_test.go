@@ -8,19 +8,15 @@ import (
 	"github.com/toaweme/sintax/functions"
 )
 
-// modifier is the shared signature of the three escapers.
-type modifier func(any, []any) (any, error)
+// modifier is the shared signature of the three typed escapers.
+type modifier func(any) (string, error)
 
-// mustEscape runs an escaper and fails the test on error or a non-string result.
+// mustEscape runs an escaper and fails the test on error.
 func mustEscape(t *testing.T, fn modifier, value any) string {
 	t.Helper()
-	out, err := fn(value, nil)
+	out, err := fn(value)
 	assert.NoError(t, err)
-	s, ok := out.(string)
-	if !ok {
-		t.Fatalf("escape returned %T, want string", out)
-	}
-	return s
+	return out
 }
 
 // xssVectors are payloads drawn from the OWASP XSS Filter Evasion cheat sheet
@@ -246,10 +242,44 @@ func Test_Coercion(t *testing.T) {
 // Test_CompositeRejected covers the shared rejection of non-scalar values.
 func Test_CompositeRejected(t *testing.T) {
 	for _, fn := range []modifier{HTML, URL, JS} {
-		_, err := fn([]int{1, 2}, nil)
+		_, err := fn([]int{1, 2})
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 
-		_, err = fn(map[string]int{"a": 1}, nil)
+		_, err = fn(map[string]int{"a": 1})
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	}
+}
+
+// Test_Modifiers exercises the registered modifiers through the Wrap adapter, so
+// the same string escaping is reached by template name. The adapter rejects a
+// nil value and any params before the escaper body runs.
+func Test_Modifiers(t *testing.T) {
+	names := []functions.ModifierName{ModifierNameHTML, ModifierNameURL, ModifierNameJS}
+	mods := Modifiers()
+	for _, name := range names {
+		fn := mods[string(name)]
+		if fn == nil {
+			t.Fatalf("modifier %q not registered", name)
+		}
+		out, err := fn("<a>", nil)
+		assert.NoError(t, err)
+		if s, ok := out.(string); !ok || s == "<a>" {
+			t.Errorf("modifier %q did not escape, got %v", name, out)
+		}
+
+		// nil coerces to the any input and stringifies to "", matching the
+		// direct HTML(nil) behaviour rather than rejecting.
+		nilOut, err := fn(nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, "", nilOut)
+
+		_, err = fn("x", []any{"extra"})
+		assert.ErrorIs(t, err, functions.ErrInvalidParamType)
+	}
+
+	assert.Equal(t, "&lt;a&gt;", func() string {
+		out, err := mods[string(ModifierNameHTML)]("<a>", nil)
+		assert.NoError(t, err)
+		return out.(string)
+	}())
 }

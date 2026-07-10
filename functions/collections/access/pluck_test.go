@@ -7,6 +7,7 @@ import (
 )
 
 func Test_Pluck(t *testing.T) {
+	pluck := pluckModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -46,7 +47,7 @@ func Test_Pluck(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Pluck(tt.value, tt.params)
+			out, err := pluck(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -54,6 +55,7 @@ func Test_Pluck(t *testing.T) {
 }
 
 func Test_Pluck_Errors(t *testing.T) {
+	pluck := pluckModifier
 	tests := []struct {
 		name   string
 		value  any
@@ -68,7 +70,7 @@ func Test_Pluck_Errors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := Pluck(tt.value, tt.params)
+			_, err := pluck(tt.value, tt.params)
 			assert.Error(t, err)
 		})
 	}

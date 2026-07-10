@@ -8,6 +8,7 @@ import (
 )
 
 func Test_Merge(t *testing.T) {
+	merge := mergeModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -47,7 +48,7 @@ func Test_Merge(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Merge(tt.value, tt.params)
+			out, err := merge(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -57,27 +58,30 @@ func Test_Merge(t *testing.T) {
 // Test_Merge_MatchesMap proves merge is a behavioural alias of map.
 func Test_Merge_MatchesMap(t *testing.T) {
 	value := []map[string]any{{"id": "a", "n": 1}, {"id": "b", "n": 2}}
-	mapped, err := Map(value, []any{"id"})
+	mapped, err := Map(value, "id")
 	assert.NoError(t, err)
-	merged, err := Merge(value, []any{"id"})
+	merged, err := Merge(value, "id")
 	assert.NoError(t, err)
 	assert.Equal(t, mapped, merged)
 }
 
 // Test_Merge_MissingParam proves the field name is required.
 func Test_Merge_MissingParam(t *testing.T) {
-	_, err := Merge([]map[string]any{{"id": "u1"}}, nil)
-	assert.Error(t, err)
+	merge := mergeModifier
+	_, err := merge([]map[string]any{{"id": "u1"}}, nil)
+	assert.ErrorIs(t, err, functions.ErrMissingParam)
 }
 
 // Test_Merge_NonStringParam proves a non-string field parameter is rejected.
 func Test_Merge_NonStringParam(t *testing.T) {
-	_, err := Merge([]map[string]any{{"id": "u1"}}, []any{42})
+	merge := mergeModifier
+	_, err := merge([]map[string]any{{"id": "u1"}}, []any{42})
 	assert.ErrorIs(t, err, functions.ErrInvalidParamType)
 }
 
 // Test_Merge_WrongValueType proves the value must be a slice of maps.
 func Test_Merge_WrongValueType(t *testing.T) {
-	_, err := Merge([]any{"not a map"}, []any{"id"})
-	assert.Error(t, err)
+	merge := mergeModifier
+	_, err := merge([]any{"not a map"}, []any{"id"})
+	assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 }

@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
+	"github.com/toaweme/sintax/functions"
 )
 
 func Test_Wrap(t *testing.T) {
+	wrap := wrapModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -22,7 +24,7 @@ func Test_Wrap(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Wrap(tt.value, tt.params)
+			out, err := wrap(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -30,12 +32,13 @@ func Test_Wrap(t *testing.T) {
 }
 
 func Test_Wrap_Errors(t *testing.T) {
+	wrap := wrapModifier
 	t.Run("no params", func(t *testing.T) {
-		_, err := Wrap("x", nil)
-		assert.Error(t, err)
+		_, err := wrap("x", nil)
+		assert.ErrorIs(t, err, functions.ErrMissingParam)
 	})
 	t.Run("empty params slice", func(t *testing.T) {
-		_, err := Wrap("x", []any{})
-		assert.Error(t, err)
+		_, err := wrap("x", []any{})
+		assert.ErrorIs(t, err, functions.ErrMissingParam)
 	})
 }

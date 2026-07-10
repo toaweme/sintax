@@ -10,8 +10,8 @@ import (
 func Test_FilenameTrimExt(t *testing.T) {
 	tests := []struct {
 		name     string
-		value    any
-		expected any
+		value    string
+		expected string
 	}{
 		{"simple extension", "avatar.png", "avatar"},
 		{"path with directories", "/uploads/avatar.png", "/uploads/avatar"},
@@ -29,7 +29,7 @@ func Test_FilenameTrimExt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := FilenameTrimExt(tt.value, nil)
+			out, err := FilenameTrimExt(tt.value)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -37,8 +37,9 @@ func Test_FilenameTrimExt(t *testing.T) {
 }
 
 func Test_FilenameTrimExt_NonStringValue(t *testing.T) {
+	trimExt := extTrimModifier
 	for _, v := range []any{42, 3.14, true, nil, []int{1}} {
-		_, err := FilenameTrimExt(v, nil)
+		_, err := trimExt(v, nil)
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	}
 }
@@ -46,9 +47,9 @@ func Test_FilenameTrimExt_NonStringValue(t *testing.T) {
 func Test_FilenamePrependExt(t *testing.T) {
 	tests := []struct {
 		name     string
-		value    any
+		value    string
 		param    string
-		expected any
+		expected string
 	}{
 		{"stylesheet minified", "assets/styles.css", "min", "assets/styles.min.css"},
 		{"script minified", "app.js", "min", "app.min.js"},
@@ -66,7 +67,7 @@ func Test_FilenamePrependExt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := FilenamePrependExt(tt.value, []any{tt.param})
+			out, err := FilenamePrependExt(tt.value, tt.param)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -74,21 +75,26 @@ func Test_FilenamePrependExt(t *testing.T) {
 }
 
 func Test_FilenamePrependExt_MissingParam(t *testing.T) {
-	_, err := FilenamePrependExt("app.js", nil)
+	prependExt := extPrependModifier
+
+	_, err := prependExt("app.js", nil)
 	assert.ErrorIs(t, err, functions.ErrMissingParam)
 
-	_, err = FilenamePrependExt("app.js", []any{})
+	_, err = prependExt("app.js", []any{})
 	assert.ErrorIs(t, err, functions.ErrMissingParam)
 }
 
 func Test_FilenamePrependExt_NonStringParam(t *testing.T) {
-	_, err := FilenamePrependExt("app.js", []any{42})
+	prependExt := extPrependModifier
+
+	_, err := prependExt("app.js", []any{42})
 	assert.ErrorIs(t, err, functions.ErrInvalidParamType)
 }
 
 func Test_FilenamePrependExt_NonStringValue(t *testing.T) {
+	prependExt := extPrependModifier
 	for _, v := range []any{42, 3.14, true, nil, []int{1}} {
-		_, err := FilenamePrependExt(v, []any{"min"})
+		_, err := prependExt(v, []any{"min"})
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	}
 }

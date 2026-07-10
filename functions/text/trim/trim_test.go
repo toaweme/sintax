@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
+	"github.com/toaweme/sintax/functions"
 )
 
 func Test_Trim(t *testing.T) {
+	trim := trimModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -30,7 +32,7 @@ func Test_Trim(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Trim(tt.value, tt.params)
+			out, err := trim(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -38,25 +40,27 @@ func Test_Trim(t *testing.T) {
 }
 
 func Test_Trim_Errors(t *testing.T) {
+	trim := trimModifier
 	t.Run("wrong value type", func(t *testing.T) {
-		_, err := Trim(42, nil)
-		assert.Error(t, err)
+		_, err := trim(42, nil)
+		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 	t.Run("nil value", func(t *testing.T) {
-		_, err := Trim(nil, nil)
+		_, err := trim(nil, nil)
 		assert.Error(t, err)
 	})
-	t.Run("non-string param", func(t *testing.T) {
-		_, err := Trim("x", []any{42})
+	t.Run("non-string param falls through to no match", func(t *testing.T) {
+		_, err := trim("x", []any{42})
 		assert.Error(t, err)
 	})
 	t.Run("non-string param on bytes", func(t *testing.T) {
-		_, err := Trim([]byte("x"), []any{42})
+		_, err := trim([]byte("x"), []any{42})
 		assert.Error(t, err)
 	})
 }
 
 func Test_TrimPrefix(t *testing.T) {
+	trimPrefix := trimPrefixModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -78,7 +82,7 @@ func Test_TrimPrefix(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := TrimPrefix(tt.value, tt.params)
+			out, err := trimPrefix(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -86,21 +90,23 @@ func Test_TrimPrefix(t *testing.T) {
 }
 
 func Test_TrimPrefix_Errors(t *testing.T) {
+	trimPrefix := trimPrefixModifier
 	t.Run("wrong value type", func(t *testing.T) {
-		_, err := TrimPrefix(3.14, nil)
-		assert.Error(t, err)
+		_, err := trimPrefix(3.14, nil)
+		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 	t.Run("nil value", func(t *testing.T) {
-		_, err := TrimPrefix(nil, nil)
+		_, err := trimPrefix(nil, nil)
 		assert.Error(t, err)
 	})
 	t.Run("non-string param", func(t *testing.T) {
-		_, err := TrimPrefix("x", []any{true})
+		_, err := trimPrefix("x", []any{true})
 		assert.Error(t, err)
 	})
 }
 
 func Test_TrimSuffix(t *testing.T) {
+	trimSuffix := trimSuffixModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -121,7 +127,7 @@ func Test_TrimSuffix(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := TrimSuffix(tt.value, tt.params)
+			out, err := trimSuffix(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -129,16 +135,17 @@ func Test_TrimSuffix(t *testing.T) {
 }
 
 func Test_TrimSuffix_Errors(t *testing.T) {
+	trimSuffix := trimSuffixModifier
 	t.Run("wrong value type", func(t *testing.T) {
-		_, err := TrimSuffix([]int{1}, nil)
-		assert.Error(t, err)
+		_, err := trimSuffix([]int{1}, nil)
+		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 	t.Run("nil value", func(t *testing.T) {
-		_, err := TrimSuffix(nil, nil)
+		_, err := trimSuffix(nil, nil)
 		assert.Error(t, err)
 	})
 	t.Run("non-string param", func(t *testing.T) {
-		_, err := TrimSuffix("x", []any{1.5})
+		_, err := trimSuffix("x", []any{1.5})
 		assert.Error(t, err)
 	})
 }

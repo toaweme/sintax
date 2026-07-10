@@ -10,7 +10,7 @@ import (
 func Test_Dirname(t *testing.T) {
 	tests := []struct {
 		name     string
-		value    any
+		value    string
 		expected string
 	}{
 		{"absolute path", "/var/log/app/server.log", "/var/log/app"},
@@ -25,7 +25,7 @@ func Test_Dirname(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Dirname(tt.value, nil)
+			out, err := Dirname(tt.value)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -33,8 +33,9 @@ func Test_Dirname(t *testing.T) {
 }
 
 func Test_Dirname_RejectsNonString(t *testing.T) {
+	dirname := dirnameModifier
 	for _, v := range []any{nil, 42, 3.14, true, []string{"a"}} {
-		_, err := Dirname(v, nil)
+		_, err := dirname(v, nil)
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
+	"github.com/toaweme/sintax/functions"
 )
 
 // Test_Default covers the whole substitution rule. The fallback replaces only a
@@ -11,6 +12,7 @@ import (
 // including an empty list, an empty object, zero, and false, is a real value and
 // passes through unchanged.
 func Test_Default(t *testing.T) {
+	def := defaultModifier
 	fallback := "anonymous"
 
 	tests := []struct {
@@ -36,7 +38,7 @@ func Test_Default(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Default(tt.value, tt.params)
+			out, err := def(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -44,25 +46,26 @@ func Test_Default(t *testing.T) {
 }
 
 // Test_Default_MissingParam locks in the guard for a `default` with no fallback.
-// It is a usage error, so the modifier returns an error rather than nil.
+// It is a usage error, so the modifier returns ErrMissingParam rather than nil.
 func Test_Default_MissingParam(t *testing.T) {
-	out, err := Default("value", nil)
-	assert.Error(t, err)
-	assert.Equal(t, nil, out)
+	def := defaultModifier
+	_, err := def("value", nil)
+	assert.ErrorIs(t, err, functions.ErrMissingParam)
 
-	_, err = Default(nil, []any{})
-	assert.Error(t, err)
+	_, err = def(nil, []any{})
+	assert.ErrorIs(t, err, functions.ErrMissingParam)
 }
 
 // Test_Default_EmptyCollectionFallback shows the real-world find + default pipe.
 // find reports "no match" softly, the engine turns that into nil, and default
 // substitutes an iterable stand-in so a downstream loop has something to range.
 func Test_Default_EmptyCollectionFallback(t *testing.T) {
-	out, err := Default(nil, []any{[]any{}})
+	def := defaultModifier
+	out, err := def(nil, []any{[]any{}})
 	assert.NoError(t, err)
 	assert.Len(t, out, 0)
 
-	out, err = Default(nil, []any{map[string]any{}})
+	out, err = def(nil, []any{map[string]any{}})
 	assert.NoError(t, err)
 	assert.Equal(t, map[string]any{}, out)
 }

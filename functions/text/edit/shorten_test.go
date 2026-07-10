@@ -7,6 +7,7 @@ import (
 )
 
 func Test_Shorten(t *testing.T) {
+	shorten := shortenModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -23,7 +24,7 @@ func Test_Shorten(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Shorten(tt.value, tt.params)
+			out, err := shorten(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -35,12 +36,14 @@ func Test_Shorten(t *testing.T) {
 // byte. "café" is 5 bytes (é is two), so a 4-byte cut yields "caf" plus the
 // first byte of é.
 func Test_Shorten_BytesNotRunes(t *testing.T) {
-	out, err := Shorten("café", []any{4})
+	shorten := shortenModifier
+	out, err := shorten("café", []any{4})
 	assert.NoError(t, err)
 	assert.Equal(t, "caf\xc3", out)
 }
 
 func Test_Shorten_Errors(t *testing.T) {
+	shorten := shortenModifier
 	tests := []struct {
 		name   string
 		value  any
@@ -55,7 +58,7 @@ func Test_Shorten_Errors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := Shorten(tt.value, tt.params)
+			_, err := shorten(tt.value, tt.params)
 			assert.Error(t, err)
 		})
 	}

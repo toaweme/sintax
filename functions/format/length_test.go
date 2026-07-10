@@ -7,6 +7,7 @@ import (
 )
 
 func Test_Length(t *testing.T) {
+	length := lengthModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -26,7 +27,7 @@ func Test_Length(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := Length(tt.value, nil)
+			actual, err := length(tt.value, nil)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, actual)
 		})
@@ -36,26 +37,28 @@ func Test_Length(t *testing.T) {
 // Test_Length_PointerAndInterface asserts the reflect path dereferences a
 // pointer to a collection and counts the underlying elements.
 func Test_Length_PointerAndInterface(t *testing.T) {
+	length := lengthModifier
 	s := []int{1, 2, 3}
-	actual, err := Length(&s, nil)
+	actual, err := length(&s, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, actual)
 
 	var nilPtr *[]int
-	actual, err = Length(nilPtr, nil)
+	actual, err = length(nilPtr, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, actual)
 }
 
 // Test_Length_Unsupported asserts a scalar with no meaningful length is rejected.
 func Test_Length_Unsupported(t *testing.T) {
-	_, err := Length(42, nil)
+	length := lengthModifier
+	_, err := length(42, nil)
 	assert.Error(t, err)
 
-	_, err = Length(true, nil)
+	_, err = length(true, nil)
 	assert.Error(t, err)
 
 	// a bare nil (no concrete type) has no length and is rejected.
-	_, err = Length(nil, nil)
+	_, err = length(nil, nil)
 	assert.Error(t, err)
 }

@@ -53,7 +53,7 @@ func Test_Slug(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			result, err := Slug(tt.input, nil)
+			result, err := Slug(tt.input)
 			if tt.expectedErr != "" {
 				assert.Equal(t, tt.expectedErr, err.Error())
 				return
@@ -64,11 +64,12 @@ func Test_Slug(t *testing.T) {
 	}
 }
 
-// Test_Slug_NonString proves Slug rejects non-string values with the shared
-// ErrInvalidValueType sentinel.
+// Test_Slug_NonString proves the registered slug modifier rejects non-string
+// values with the shared ErrInvalidValueType sentinel.
 func Test_Slug_NonString(t *testing.T) {
+	slug := slugModifier
 	for _, v := range []any{42, 3.14, true, nil, []int{1, 2}} {
-		_, err := Slug(v, nil)
+		_, err := slug(v, nil)
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	}
 }

@@ -10,7 +10,7 @@ import (
 func Test_Filename(t *testing.T) {
 	tests := []struct {
 		name     string
-		value    any
+		value    string
 		expected string
 	}{
 		{"absolute path", "/var/log/app/server.log", "server.log"},
@@ -24,7 +24,7 @@ func Test_Filename(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Filename(tt.value, nil)
+			out, err := Filename(tt.value)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -34,7 +34,7 @@ func Test_Filename(t *testing.T) {
 func Test_FilenameExt(t *testing.T) {
 	tests := []struct {
 		name     string
-		value    any
+		value    string
 		expected string
 	}{
 		{"simple extension", "/uploads/avatar.png", "png"},
@@ -48,7 +48,7 @@ func Test_FilenameExt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := FilenameExt(tt.value, nil)
+			out, err := FilenameExt(tt.value)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -58,7 +58,7 @@ func Test_FilenameExt(t *testing.T) {
 func Test_FilenameExtDot(t *testing.T) {
 	tests := []struct {
 		name     string
-		value    any
+		value    string
 		expected string
 	}{
 		{"simple extension", "/uploads/avatar.png", ".png"},
@@ -72,7 +72,7 @@ func Test_FilenameExtDot(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := FilenameExtDot(tt.value, nil)
+			out, err := FilenameExtDot(tt.value)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -80,10 +80,10 @@ func Test_FilenameExtDot(t *testing.T) {
 }
 
 func Test_Filename_RejectsNonString(t *testing.T) {
-	fns := map[string]func(any, []any) (any, error){
-		"filename": Filename,
-		"ext":      FilenameExt,
-		"ext_dot":  FilenameExtDot,
+	fns := map[string]functions.GlobalModifier{
+		string(ModifierNameFilename):       filenameModifier,
+		string(ModifierNameFilenameExt):    extModifier,
+		string(ModifierNameFilenameExtDot): extDotModifier,
 	}
 	for name, fn := range fns {
 		t.Run(name, func(t *testing.T) {

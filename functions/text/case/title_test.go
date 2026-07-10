@@ -43,7 +43,7 @@ func Test_Title(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			result, err := Title(tt.input, nil)
+			result, err := Title(tt.input)
 			if tt.expectedErr != "" {
 				assert.Equal(t, tt.expectedErr, err.Error())
 				return
@@ -60,25 +60,25 @@ func Test_Title_Params(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		params   []any
+		params   []string
 		expected string
 	}{
 		{
 			name:     "extra acronyms uppercased",
 			input:    "seo-and-cta-tips",
-			params:   []any{"seo", "cta"},
+			params:   []string{"seo", "cta"},
 			expected: "SEO And CTA Tips",
 		},
 		{
 			name:     "built-in acronyms still apply with params",
 			input:    "the-api-and-seo-guide",
-			params:   []any{"seo"},
+			params:   []string{"seo"},
 			expected: "The API And SEO Guide",
 		},
 		{
 			name:     "params are case-insensitive",
 			input:    "my-cta-button",
-			params:   []any{"CTA"},
+			params:   []string{"CTA"},
 			expected: "My CTA Button",
 		},
 		{
@@ -91,18 +91,19 @@ func Test_Title_Params(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := Title(tt.input, tt.params)
+			result, err := Title(tt.input, tt.params...)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
 
-// Test_Title_NonString proves Title rejects non-string values with the shared
-// ErrInvalidValueType sentinel.
+// Test_Title_NonString proves the registered title modifier rejects non-string
+// values with the shared ErrInvalidValueType sentinel.
 func Test_Title_NonString(t *testing.T) {
+	title := titleModifier
 	for _, v := range []any{42, 3.14, true, nil, []int{1, 2}} {
-		_, err := Title(v, nil)
+		_, err := title(v, nil)
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	}
 }

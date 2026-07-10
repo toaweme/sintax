@@ -7,6 +7,7 @@ import (
 )
 
 func Test_First(t *testing.T) {
+	first := firstModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -23,7 +24,7 @@ func Test_First(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := First(tt.value, nil)
+			out, err := first(tt.value, nil)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -31,6 +32,7 @@ func Test_First(t *testing.T) {
 }
 
 func Test_First_Errors(t *testing.T) {
+	first := firstModifier
 	tests := []struct {
 		name  string
 		value any
@@ -44,13 +46,14 @@ func Test_First_Errors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := First(tt.value, nil)
+			_, err := first(tt.value, nil)
 			assert.Error(t, err)
 		})
 	}
 }
 
 func Test_Last(t *testing.T) {
+	last := lastModifier
 	tests := []struct {
 		name     string
 		value    any
@@ -66,7 +69,7 @@ func Test_Last(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Last(tt.value, nil)
+			out, err := last(tt.value, nil)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
@@ -74,6 +77,7 @@ func Test_Last(t *testing.T) {
 }
 
 func Test_Last_Errors(t *testing.T) {
+	last := lastModifier
 	tests := []struct {
 		name  string
 		value any
@@ -86,7 +90,7 @@ func Test_Last_Errors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := Last(tt.value, nil)
+			_, err := last(tt.value, nil)
 			assert.Error(t, err)
 		})
 	}

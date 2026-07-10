@@ -1,7 +1,6 @@
 package access
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -12,54 +11,13 @@ import (
 const ModifierNamePluck functions.ModifierName = "pluck"
 
 // Pluck reads one named field from every element of a slice of maps and returns
-// the collected values as a slice, in order. It is the way to turn a list of
-// records into a flat list of one of their columns. Every element must be a map
-// that actually has the field: if any element is missing the field, is not a
-// map, or is nil, pluck fails rather than skipping it or padding with a blank,
-// so the result length always matches the input length. An empty slice yields
-// an empty slice.
-//
-// value: array
-// param:0: string
-// returns: array
-//
-// example: collect every user id
-// in:  users = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
-// tpl: {{ users | pluck:'id' }}
-// out: [1, 2]
-//
-// example: gather product names
-// in:  products = [{"name": "Mug", "price": 12}, {"name": "Pen", "price": 3}]
-// tpl: {{ products | pluck:'name' }}
-// out: ["Mug", "Pen"]
-//
-// example: an empty list plucks to an empty list
-// in:  users = []
-// tpl: {{ users | pluck:'id' }}
-// out: []
-func Pluck(value any, params []any) (any, error) {
-	if len(params) == 0 {
-		return nil, errors.New("pluck: missing field name")
-	}
-	field, ok := params[0].(string)
-	if !ok {
-		return nil, fmt.Errorf("pluck: field name must be a string, got %T", params[0])
-	}
-
-	rv := reflect.ValueOf(value)
-	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {
-		if rv.IsNil() {
-			return []any{}, nil
-		}
-		rv = rv.Elem()
-	}
-	if rv.Kind() != reflect.Slice && rv.Kind() != reflect.Array {
-		return nil, fmt.Errorf("pluck: expected slice or array, got %T", value)
-	}
-
-	out := make([]any, 0, rv.Len())
-	for i := range rv.Len() {
-		elem := rv.Index(i).Interface()
+// the collected values as a slice, in order. Every element must be a map that
+// has the field: a missing field, a non-map element, or a nil element is an
+// error rather than a skipped or padded entry, so the result length always
+// matches the input length. An empty slice yields an empty slice.
+func Pluck(value []any, field string) ([]any, error) {
+	out := make([]any, 0, len(value))
+	for i, elem := range value {
 		ev := reflect.ValueOf(elem)
 		for ev.Kind() == reflect.Pointer || ev.Kind() == reflect.Interface {
 			if ev.IsNil() {

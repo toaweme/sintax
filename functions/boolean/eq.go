@@ -1,67 +1,49 @@
 // Package boolean provides template modifiers for boolean comparisons.
 package boolean
 
-import (
-	"errors"
-
-	"github.com/toaweme/sintax/functions"
-)
+import "github.com/toaweme/sintax/functions"
 
 // ModifierNameEq is the template name for the Eq modifier.
 const ModifierNameEq functions.ModifierName = "eq"
 
-// Eq returns true if the value equals the given parameter. Numbers compare
-// numerically across the int and float kinds, so the integer 5 and the float
-// 5.0 are equal. Strings compare verbatim, and any other pair falls back to
-// Go's direct equality. Note that a number and its string form are never equal,
-// so 5 does not equal "5". nil is only equal to nil, so comparing nil against 0
-// yields false.
-//
-// value: any
-// param:0: any
-// returns: bool
-//
-// example: compare a status string
-// in:  status = "active"
-// tpl: {{ status | eq:'active' }}
-// out: true
-//
-// example: check for an empty inbox
-// in:  unread = 0
-// tpl: {{ unread | eq:0 }}
-// out: true
-//
-// example: check a feature flag
-// in:  newsletter = true
-// tpl: {{ newsletter | eq:true }}
-// out: true
-//
-// example: a mismatched value is not equal
-// in:  status = "active"
-// tpl: {{ status | eq:'archived' }}
-// out: false
-var Eq = func(value any, params []any) (any, error) {
-	if len(params) == 0 {
-		return nil, errors.New("eq function requires at least one parameter")
+// eq is an Overload of clauses reflecting how equality is decided: numbers
+// compare numerically across the int and float kinds (5 equals 5.0), strings
+// compare verbatim, and any other pair falls back to Go equality, so a number
+// and its string form are never equal. nil is equal only to nil, which the guard
+// clause enforces ahead of the typed clauses.
+
+// EqNumber reports numeric equality across the int and float kinds, so 5 equals
+// 5.0. It is eq's first typed clause; WrapOne rejects a non-numeric operand so
+// Overload falls through to the string and any clauses.
+func EqNumber(value, other float64) (bool, error) {
+	return value == other, nil
+}
+
+// EqString reports verbatim string equality, the eq clause reached when neither
+// operand is numeric.
+func EqString(value, other string) (bool, error) {
+	return value == other, nil
+}
+
+// EqAny is eq's fallback for operands that are neither numeric nor both strings
+// (for example two bools), comparing with Go equality. A number and its string
+// form reach here and are unequal because the numeric and string clauses each
+// reject the mixed pair first.
+func EqAny(value, other any) (bool, error) {
+	return value == other, nil
+}
+
+// eqNilGuard enforces eq's nil rule ahead of the typed clauses: nil is equal
+// only to nil, so nil against 0 is false. It runs first because EqNumber would
+// otherwise coerce nil to zero and compare it numerically. When neither operand
+// is nil it declines with ErrInvalidValueType so Overload falls through.
+func eqNilGuard(value any, params []any) (any, error) {
+	other, err := functions.ParamAny(params, 0)
+	if err != nil {
+		return nil, err
 	}
-
-	other := params[0]
-
 	if value == nil || other == nil {
 		return value == other, nil
 	}
-
-	valNum, errVal := functions.ValueNumber(value)
-	otherNum, errOther := functions.ValueNumber(other)
-	if errVal == nil && errOther == nil {
-		return valNum == otherNum, nil
-	}
-
-	valStr, okVal := value.(string)
-	otherStr, okOther := other.(string)
-	if okVal && okOther {
-		return valStr == otherStr, nil
-	}
-
-	return value == other, nil
+	return nil, functions.ErrInvalidValueType
 }

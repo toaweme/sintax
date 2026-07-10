@@ -17,36 +17,8 @@ const ModifierNameSlug functions.ModifierName = "slug"
 // punctuation does not. Note that non-ASCII letters (accented or non-Latin,
 // e.g. "é" or "日") are removed rather than transliterated, so use it on text
 // that is already mostly ASCII.
-//
-// value: string
-// returns: string
-//
-// example: turn a blog post title into a URL slug
-// in:  title = "Welcome to the Coffee Club!"
-// tpl: {{ title | slug }}
-// out: welcome-to-the-coffee-club
-//
-// example: slugify a product name
-// in:  name = "Premium Tea & Honey Set"
-// tpl: {{ name | slug }}
-// out: premium-tea-honey-set
-//
-// example: keep the dots inside a version number
-// in:  release = "Version 1.2.3 Release"
-// tpl: {{ release | slug }}
-// out: version-1.2.3-release
-//
-// example: non-ASCII letters are stripped, not transliterated
-// in:  name = "Café Münchën"
-// tpl: {{ name | slug }}
-// out: caf-m-nch-n
-func Slug(value any, params []any) (any, error) {
-	slug, err := functions.ValueString(value)
-	if err != nil {
-		return nil, err
-	}
-
-	return titleToSlug(slug), nil
+func Slug(s string) (string, error) {
+	return titleToSlug(s), nil
 }
 
 func titleToSlug(title string) string {

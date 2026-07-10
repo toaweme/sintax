@@ -10,7 +10,7 @@ func Test_Not(t *testing.T) {
 	tests := []struct {
 		name     string
 		value    any
-		expected any
+		expected bool
 	}{
 		{"true inverts to false", true, false},
 		{"false inverts to true", false, true},
@@ -30,7 +30,7 @@ func Test_Not(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := Not(tt.value, nil)
+			out, err := Not(tt.value)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, out)
 		})
