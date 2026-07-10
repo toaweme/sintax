@@ -43,7 +43,7 @@ func SortDir(slice []any, direction string) ([]any, error) {
 // declines any other value so Overload falls through to the typed clauses.
 func sortNil(value any, _ []any) (any, error) {
 	if value == nil {
-		return nil, nil //nolint:nilnil // deliberate: nil input passes through as nil, not an error
+		return nil, nil //nolint:nilnil // deliberate, nil input passes through as nil, not an error
 	}
 	return nil, functions.ErrInvalidValueType
 }

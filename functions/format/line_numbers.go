@@ -14,7 +14,7 @@ const ModifierNameLineNumbers functions.ModifierName = "line_numbers"
 // declines any other value so Overload falls through to the string clause.
 func lineNumbersNilEmpty(value any, _ []any) (any, error) {
 	if value == nil || value == "" {
-		return nil, nil //nolint:nilnil // deliberate: nil/empty input passes through as nil, not an error
+		return nil, nil //nolint:nilnil // deliberate, nil/empty input passes through as nil, not an error
 	}
 	return nil, functions.ErrInvalidValueType
 }

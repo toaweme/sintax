@@ -80,7 +80,7 @@ func Test_E2E_TemplateModifier_MultiLevelNesting(t *testing.T) {
 func Test_E2E_TemplateModifier_NestedRenderError(t *testing.T) {
 	s := New(builtins())
 
-	// the nested template references an undefined variable; the failure must
+	// the nested template references an undefined variable, so the failure must
 	// propagate out of the modifier rather than be swallowed.
 	_, err := s.Render(`{{ tpl | template }}`, map[string]any{
 		"tpl": "{{ missing }}",

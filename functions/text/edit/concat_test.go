@@ -24,6 +24,11 @@ func Test_Concat(t *testing.T) {
 		{"empty suffix", "head", []any{""}, "head"},
 		{"all empty", "", []any{""}, ""},
 		{"unicode parts", "café", []any{" ", "☕"}, "café ☕"},
+		// scalars stringify, in the value and in params
+		{"number value", 42, []any{" items"}, "42 items"},
+		{"number param", "id-", []any{7}, "id-7"},
+		{"bool param", "active: ", []any{true}, "active: true"},
+		{"mixed scalar parts", "v", []any{1, ".", 2}, "v1.2"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -34,8 +39,8 @@ func Test_Concat(t *testing.T) {
 	}
 }
 
-// Test_Concat_Errors covers the string-only contract: a non-string value or a
-// non-string parameter is rejected rather than coerced.
+// Test_Concat_Errors covers the text contract: scalars are accepted, but a
+// composite value or param (a slice or map) is rejected.
 func Test_Concat_Errors(t *testing.T) {
 	concat := concatModifier
 	tests := []struct {
@@ -44,10 +49,10 @@ func Test_Concat_Errors(t *testing.T) {
 		params  []any
 		wrapped error
 	}{
-		{"non-string value", 42, []any{"!"}, functions.ErrInvalidValueType},
+		{"composite value", []any{1, 2}, []any{"!"}, functions.ErrInvalidValueType},
 		{"nil value", nil, []any{"!"}, functions.ErrInvalidValueType},
-		{"non-string param", "x", []any{7}, functions.ErrInvalidParamType},
-		{"non-string param among strings", "x", []any{"a", true, "b"}, functions.ErrInvalidParamType},
+		{"composite param", "x", []any{[]any{1}}, functions.ErrInvalidParamType},
+		{"composite param among scalars", "x", []any{"a", map[string]any{}, "b"}, functions.ErrInvalidParamType},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

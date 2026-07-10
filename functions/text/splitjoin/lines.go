@@ -27,7 +27,7 @@ func LinesBytes(b []byte) ([][]byte, error) {
 // to the string and []byte clauses.
 func linesNil(value any, _ []any) (any, error) {
 	if value == nil {
-		return nil, nil //nolint:nilnil // deliberate: nil input passes through as nil, not an error
+		return nil, nil //nolint:nilnil // deliberate, nil input passes through as nil, not an error
 	}
 	return nil, functions.ErrInvalidValueType
 }

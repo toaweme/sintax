@@ -42,8 +42,9 @@ func Test_Replace_Errors(t *testing.T) {
 		_, err := replace("x", nil)
 		assert.ErrorIs(t, err, functions.ErrMissingParam)
 	})
-	t.Run("non-string value", func(t *testing.T) {
-		_, err := replace(42, []any{"a", "b"})
+	t.Run("composite value", func(t *testing.T) {
+		// scalars stringify via AsText. A slice or map is still rejected.
+		_, err := replace([]any{1, 2}, []any{"a", "b"})
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 	t.Run("non-string old param", func(t *testing.T) {
@@ -87,8 +88,8 @@ func Test_ReplacePattern_Errors(t *testing.T) {
 		_, err := replacePattern("x", []any{`\d`})
 		assert.ErrorIs(t, err, functions.ErrMissingParam)
 	})
-	t.Run("non-string value", func(t *testing.T) {
-		_, err := replacePattern(42, []any{`\d`, ""})
+	t.Run("composite value", func(t *testing.T) {
+		_, err := replacePattern([]any{1, 2}, []any{`\d`, ""})
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 	t.Run("non-string pattern param", func(t *testing.T) {
@@ -131,8 +132,8 @@ func Test_Reverse(t *testing.T) {
 
 func Test_Reverse_Errors(t *testing.T) {
 	reverse := reverseModifier
-	t.Run("non-string value", func(t *testing.T) {
-		_, err := reverse(42, nil)
+	t.Run("composite value", func(t *testing.T) {
+		_, err := reverse([]any{1, 2}, nil)
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	})
 	t.Run("nil value", func(t *testing.T) {

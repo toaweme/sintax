@@ -111,7 +111,7 @@ func (r *StringRenderer) renderRange(tokens []Token, start, end int, vars map[st
 				i++
 				continue
 			}
-			// passthrough: a single non-string variable returns the value directly
+			// pass a single non-string variable straight through, returning the value directly
 			if allowDirect && start == i && i+1 == end && str.Len() == 0 {
 				return variable, i + 1, nil
 			}
@@ -132,7 +132,7 @@ func (r *StringRenderer) renderRange(tokens []Token, start, end int, vars map[st
 			str.WriteString(out)
 			i = next
 		case ElseToken, IfEndToken, ForEndToken:
-			// caller should have stopped before this; reaching here means a stray closer
+			// caller should have stopped before this, so reaching here means a stray closer
 			return nil, i, fmt.Errorf("unexpected control token: %s", controlName(token.Type()))
 		default:
 			i++
@@ -266,13 +266,13 @@ func (r *StringRenderer) renderFor(tokens []Token, start, end int, vars map[stri
 		rv = rv.Elem()
 	}
 
-	// the loop-binding key names are constant across iterations; build them once
+	// the loop-binding key names are constant across iterations, so build them once
 	// rather than re-concatenating loopVar+"_index" etc. on every pass.
 	idxKey := loopVar + "_index"
 	firstKey := loopVar + "_first"
 	lastKey := loopVar + "_last"
 
-	// one child scope, reused across every iteration: the bindings below are
+	// one child scope, reused across every iteration. The bindings below are
 	// overwritten each pass, so a fresh copy per iteration is unnecessary. this
 	// is sound only because nothing retains the map beyond the synchronous body
 	// render - global modifiers never receive vars, and contextual modifiers
@@ -285,7 +285,7 @@ func (r *StringRenderer) renderFor(tokens []Token, start, end int, vars map[stri
 		for i := range n {
 			child[loopVar] = rv.Index(i).Interface()
 			if keyName != "" {
-				// "for i, v in xs" — bind index under the user-chosen name
+				// "for i, v in xs" binds the index under the user-chosen name
 				child[keyName] = i
 			}
 			child[idxKey] = i
@@ -369,7 +369,7 @@ func (r *StringRenderer) evalCondition(expr string, vars map[string]any) (bool, 
 func (r *StringRenderer) evalExpr(expr string, vars map[string]any) (any, error) {
 	expr = strings.TrimSpace(expr)
 	if expr == "" {
-		return nil, nil //nolint:nilnil // deliberate: an empty expression evaluates to nil, not an error
+		return nil, nil //nolint:nilnil // deliberate, an empty expression evaluates to nil, not an error
 	}
 	tt := r.parser.detectTokenType(expr)
 	if tt != VariableToken && tt != FilteredVariableToken {

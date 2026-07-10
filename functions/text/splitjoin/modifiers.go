@@ -17,7 +17,7 @@ var (
 		functions.WrapOne(JoinAny),
 		functions.Wrap(JoinDefault),
 	)
-	splitModifier = functions.WrapOne(Split)
+	splitModifier = functions.AsText(functions.WrapOne(Split))
 )
 
 // Modifiers returns the split and join modifiers keyed by their template names.

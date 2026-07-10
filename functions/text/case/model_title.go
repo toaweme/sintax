@@ -369,7 +369,7 @@ func normalizeWord(word string, isFirstWord bool) string {
 		return "(" + flipDate(word, flip) + ")"
 	}
 
-	// title case: capitalize first letter
+	// title-case, capitalizing the first letter
 	if len(word) > 0 {
 		if ok, m := isSpecificModel(word); ok {
 			return m
@@ -579,7 +579,7 @@ func isDatePattern(word string) (bool, bool) {
 		return false, false
 	}
 
-	// check for date-like patterns: xxxx-xx-xx or xxxx-xx
+	// check for date-like patterns such as xxxx-xx-xx or xxxx-xx
 	parts := strings.Split(stripped, "-")
 	if len(parts) == 2 || len(parts) == 3 {
 		// First part should be 4 digits (year)

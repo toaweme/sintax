@@ -6,22 +6,23 @@ import (
 )
 
 // Overload binds one modifier name to several typed clauses, for the modifiers
-// whose behaviour changes with the shape of the piped value or the number of
-// params (for example trim over a string versus []byte, or sum over the whole
-// slice versus one field). Each clause is an ordinary Wrap* adapter; Overload
-// tries them in the given order and returns the first that accepts the inputs.
+// whose behavior changes with the shape of the piped value or the number of
+// params, such as trim over a string versus []byte, or sum over the whole slice
+// versus one field. Each clause is an ordinary Wrap* adapter, and Overload tries
+// them in order and returns the first that accepts the inputs.
 //
-// A clause "rejects" the inputs by returning one of the coercion sentinels
-// (ErrInvalidValueType, ErrInvalidParamType, ErrMissingParam), which is exactly
-// what a Wrap* adapter emits when the value or a param will not coerce to the
-// clause's declared type, or when a required param is absent. That is the only
-// signal Overload needs, so clauses carry no separate predicate. Any other error
-// is a genuine failure from inside a matched clause and is returned as-is.
+// A clause declines the inputs by returning one of the coercion sentinels
+// (ErrInvalidValueType, ErrInvalidParamType, or ErrMissingParam), which is what
+// a Wrap* adapter emits when the value or a param will not coerce to the clause's
+// declared type, or when a required param is absent. That is the only signal
+// Overload needs, so clauses carry no separate predicate. Any other error is a
+// genuine failure from inside a matched clause and is returned as-is.
 //
-// Order is significant: list the most specific clause first and the most
-// permissive (an any-typed value, or the lowest arity) last, so a broad clause
-// cannot shadow a narrower one. With no clause accepting the inputs, Overload
-// returns the last rejection so the caller sees a concrete type mismatch.
+// Order matters. List the most specific clause first and the most permissive one
+// (an any-typed value, or the lowest arity) last, so a broad clause cannot shadow
+// a narrower one. When no clause accepts the inputs, Overload surfaces a param
+// mismatch in preference to a value mismatch, so the caller sees the most
+// informative error rather than the last one to occur.
 func Overload(clauses ...GlobalModifier) GlobalModifier {
 	return func(value any, params []any) (any, error) {
 		// track value-shape and param rejections separately. A param rejection
@@ -48,8 +49,8 @@ func Overload(clauses ...GlobalModifier) GlobalModifier {
 			}
 			return out, err
 		}
-		// every clause declined; add the concrete detail once here, wrapping the
-		// most informative sentinel so errors.Is still identifies the mismatch.
+		// every clause declined, so add the concrete detail once here, wrapping
+		// the most informative sentinel so errors.Is still identifies the mismatch.
 		reject := paramReject
 		if reject == nil {
 			reject = valueReject

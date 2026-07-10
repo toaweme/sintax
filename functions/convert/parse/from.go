@@ -88,7 +88,7 @@ func fromJSON(value any) (any, error) {
 }
 
 // fromCSV parses a CSV string into a list of header-keyed maps. The first
-// non-empty record is treated as the header. Values stay as strings — callers
+// non-empty record is treated as the header. Values stay as strings, so callers
 // can coerce downstream via other modifiers.
 func fromCSV(value any) (any, error) {
 	val, ok := value.(string)

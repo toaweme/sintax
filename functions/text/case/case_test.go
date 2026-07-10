@@ -59,21 +59,31 @@ func Test_ToUpper(t *testing.T) {
 	}
 }
 
-// Test_ToLower_NonString proves the registered lower modifier rejects non-string
-// values with the shared ErrInvalidValueType sentinel.
-func Test_ToLower_NonString(t *testing.T) {
+// Test_ToLower_TextLenient proves the registered lower modifier (wrapped in
+// AsText) stringifies a scalar value and rejects only a composite or nil.
+func Test_ToLower_TextLenient(t *testing.T) {
 	lower := lowerModifier
-	for _, v := range []any{42, 3.14, true, nil, []int{1, 2}} {
+	for _, v := range []any{42, 3.14, true} {
+		if _, err := lower(v, nil); err != nil {
+			t.Fatalf("expected scalar %v accepted, got %v", v, err)
+		}
+	}
+	for _, v := range []any{nil, []int{1, 2}, map[string]any{"a": 1}} {
 		_, err := lower(v, nil)
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	}
 }
 
-// Test_ToUpper_NonString proves the registered upper modifier rejects non-string
-// values with the shared ErrInvalidValueType sentinel.
-func Test_ToUpper_NonString(t *testing.T) {
+// Test_ToUpper_TextLenient proves the registered upper modifier stringifies a
+// scalar value and rejects only a composite or nil.
+func Test_ToUpper_TextLenient(t *testing.T) {
 	upper := upperModifier
-	for _, v := range []any{42, 3.14, true, nil, []int{1, 2}} {
+	for _, v := range []any{42, 3.14, true} {
+		if _, err := upper(v, nil); err != nil {
+			t.Fatalf("expected scalar %v accepted, got %v", v, err)
+		}
+	}
+	for _, v := range []any{nil, []int{1, 2}, map[string]any{"a": 1}} {
 		_, err := upper(v, nil)
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	}

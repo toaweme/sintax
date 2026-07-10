@@ -64,11 +64,16 @@ func Test_Slug(t *testing.T) {
 	}
 }
 
-// Test_Slug_NonString proves the registered slug modifier rejects non-string
-// values with the shared ErrInvalidValueType sentinel.
-func Test_Slug_NonString(t *testing.T) {
+// Test_Slug_TextLenient proves the registered slug modifier (wrapped in AsText)
+// stringifies a scalar value and rejects only a composite or nil.
+func Test_Slug_TextLenient(t *testing.T) {
 	slug := slugModifier
-	for _, v := range []any{42, 3.14, true, nil, []int{1, 2}} {
+	for _, v := range []any{42, 3.14, true} {
+		if _, err := slug(v, nil); err != nil {
+			t.Fatalf("expected scalar %v accepted, got %v", v, err)
+		}
+	}
+	for _, v := range []any{nil, []int{1, 2}, map[string]any{"a": 1}} {
 		_, err := slug(v, nil)
 		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	}

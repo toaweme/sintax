@@ -49,7 +49,7 @@ func Test_Shorten_Errors(t *testing.T) {
 		value  any
 		params []any
 	}{
-		{"non-string value", 42, []any{5}},
+		{"composite value", []any{1, 2}, []any{5}},
 		{"nil value", nil, []any{5}},
 		{"no params", "hello", nil},
 		{"too many params", "hello", []any{5, 6}},

@@ -49,7 +49,7 @@ func Key(value any, params []any) (any, error) {
 	if err != nil {
 		// we don't fail the function, we just return nil
 		// easier to handle logic in templates
-		return nil, nil //nolint:nilerr,nilnil // deliberate: lookup failures render as nil, not a template error
+		return nil, nil //nolint:nilerr,nilnil // deliberate, lookup failures render as nil, not a template error
 	}
 	return val, nil
 }

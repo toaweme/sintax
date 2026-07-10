@@ -45,7 +45,7 @@ func Test_Split_Errors(t *testing.T) {
 	}{
 		{"no params", "a,b,c", nil, functions.ErrMissingParam},
 		{"empty params", "a,b,c", []any{}, functions.ErrMissingParam},
-		{"non-string value", 42, []any{","}, functions.ErrInvalidValueType},
+		{"composite value", []any{1, 2}, []any{","}, functions.ErrInvalidValueType},
 		{"nil value", nil, []any{","}, functions.ErrInvalidValueType},
 		{"non-string separator", "a,b,c", []any{42}, functions.ErrInvalidParamType},
 	}
