@@ -14,21 +14,47 @@ import (
 // ModifierNameFrom is the template name for the From modifier.
 const ModifierNameFrom functions.ModifierName = "from"
 
-// From parses the string value as the given format and returns the parsed result.
+// From parses the string value as the named format and returns the parsed data,
+// so a serialized payload (an API response body, a config blob) can be turned
+// back into a map or list of rows that later template steps can index into.
+// The format argument is required and only "json" and "csv" are supported.
+// An unknown format, a missing format, or a non-string value all return an error.
 //
 // value: string
-// param:0: string ("json" | "csv")
-// returns: map for json, []map[string]any for csv
+// param:0: string, the format to parse, one of "json" or "csv"
+// returns: map[string]any for json, []map[string]any for csv
 //
-// example: parse a JSON string into a map
+// The "json" format expects a top-level JSON object and returns it as a map.
+// Numbers decode to native int64 or float64 (a value with a decimal point or
+// exponent becomes float64, otherwise int64) rather than json.Number, so
+// downstream numeric modifiers see real numbers. A top-level JSON array or
+// scalar is not an object and returns an error.
+//
+// example: parse a JSON object into a map
 // in:  body = "{\"name\": \"Alice\", \"role\": \"admin\"}"
 // tpl: {{ body | from:'json' }}
-// out: {"name": "Alice", "role": "admin"}
+// out: map[name:Alice role:admin]
+//
+// example: numbers decode to native int64 and float64
+// in:  body = "{\"count\": 3, \"ratio\": 1.5}"
+// tpl: {{ body | from:'json' }}
+// out: map[count:3 ratio:1.5]
+//
+// The "csv" format treats the first record as the header row and returns one
+// map per remaining row, keyed by header. Cells stay strings, so coerce them
+// downstream with other modifiers if you need numbers. Fully blank lines are
+// skipped, and a row with fewer cells than the header pads the missing columns
+// with an empty string.
 //
 // example: parse a CSV string into a list of rows
 // in:  body = "name,age\nAlice,30\nBob,25"
 // tpl: {{ body | from:'csv' }}
-// out: [{"name": "Alice", "age": "30"}, {"name": "Bob", "age": "25"}]
+// out: [map[age:30 name:Alice] map[age:25 name:Bob]]
+//
+// example: a header-only CSV yields an empty list
+// in:  body = "name,age\n"
+// tpl: {{ body | from:'csv' }}
+// out: []
 func From(value any, params []any) (any, error) {
 	if len(params) == 0 {
 		return nil, errors.New("from function requires a format parameter")

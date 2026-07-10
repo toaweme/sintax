@@ -10,11 +10,13 @@ import (
 // ModifierNameDecimal is the template name for the Decimal modifier.
 const ModifierNameDecimal functions.ModifierName = "decimal"
 
-// Decimal formats a number with a fixed number of decimal places. The default
-// is 2.
+// Decimal formats a number as a string with a fixed number of decimal places,
+// rounding to the nearest value at that precision. A numeric string is parsed
+// first, and a nil value is treated as zero. The precision parameter is optional
+// and defaults to 2.
 //
 // value: float, int, string
-// param:0?: int
+// param:0?: int - number of decimal places to keep (default 2)
 // returns: string
 //
 // example: format a price with two decimals
@@ -31,6 +33,11 @@ const ModifierNameDecimal functions.ModifierName = "decimal"
 // in:  total = 7
 // tpl: {{ total | decimal }}
 // out: 7.00
+//
+// example: parse and format a numeric string to whole units
+// in:  reading = "3.14159"
+// tpl: {{ reading | decimal:0 }}
+// out: 3
 func Decimal(value any, params []any) (any, error) {
 	places := 2
 	if len(params) > 0 {

@@ -11,8 +11,13 @@ import (
 // ModifierNamePluck is the template name for the Pluck modifier.
 const ModifierNamePluck functions.ModifierName = "pluck"
 
-// Pluck extracts a single field from each element of a slice of maps and
-// returns a slice of values.
+// Pluck reads one named field from every element of a slice of maps and returns
+// the collected values as a slice, in order. It is the way to turn a list of
+// records into a flat list of one of their columns. Every element must be a map
+// that actually has the field: if any element is missing the field, is not a
+// map, or is nil, pluck fails rather than skipping it or padding with a blank,
+// so the result length always matches the input length. An empty slice yields
+// an empty slice.
 //
 // value: array
 // param:0: string
@@ -27,6 +32,11 @@ const ModifierNamePluck functions.ModifierName = "pluck"
 // in:  products = [{"name": "Mug", "price": 12}, {"name": "Pen", "price": 3}]
 // tpl: {{ products | pluck:'name' }}
 // out: ["Mug", "Pen"]
+//
+// example: an empty list plucks to an empty list
+// in:  users = []
+// tpl: {{ users | pluck:'id' }}
+// out: []
 func Pluck(value any, params []any) (any, error) {
 	if len(params) == 0 {
 		return nil, errors.New("pluck: missing field name")

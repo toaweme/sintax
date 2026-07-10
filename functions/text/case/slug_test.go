@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
+	"github.com/toaweme/sintax/functions"
 )
 
 func Test_Slug(t *testing.T) {
@@ -28,6 +29,26 @@ func Test_Slug(t *testing.T) {
 			input:    "Hello, World! @2023",
 			expected: "hello-world-2023",
 		},
+		{
+			title:    "keeps dots between digits",
+			input:    "Version 1.2.3 Release",
+			expected: "version-1.2.3-release",
+		},
+		{
+			title:    "collapses extra whitespace and hyphens",
+			input:    "  Hello -- World  ",
+			expected: "hello-world",
+		},
+		{
+			title:    "strips non-ASCII letters",
+			input:    "Café Münchën",
+			expected: "caf-m-nch-n",
+		},
+		{
+			title:    "empty input",
+			input:    "",
+			expected: "",
+		},
 	}
 
 	for _, tt := range tests {
@@ -40,5 +61,14 @@ func Test_Slug(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
 		})
+	}
+}
+
+// Test_Slug_NonString proves Slug rejects non-string values with the shared
+// ErrInvalidValueType sentinel.
+func Test_Slug_NonString(t *testing.T) {
+	for _, v := range []any{42, 3.14, true, nil, []int{1, 2}} {
+		_, err := Slug(v, nil)
+		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 	}
 }

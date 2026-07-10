@@ -10,8 +10,13 @@ import (
 // ModifierNameSlug is the template name for the Slug modifier.
 const ModifierNameSlug functions.ModifierName = "slug"
 
-// Slug converts a string to a URL-friendly slug.
-// Lowercases, replaces spaces with hyphens, and removes non-alphanumeric characters.
+// Slug converts a string to a URL-friendly slug. It lowercases the text,
+// drops anything that is not an ASCII letter, digit, or dot, and joins the
+// remaining words with single hyphens. A dot is preserved only when it sits
+// between two digits, so version numbers like "4.5" survive while sentence
+// punctuation does not. Note that non-ASCII letters (accented or non-Latin,
+// e.g. "é" or "日") are removed rather than transliterated, so use it on text
+// that is already mostly ASCII.
 //
 // value: string
 // returns: string
@@ -25,6 +30,16 @@ const ModifierNameSlug functions.ModifierName = "slug"
 // in:  name = "Premium Tea & Honey Set"
 // tpl: {{ name | slug }}
 // out: premium-tea-honey-set
+//
+// example: keep the dots inside a version number
+// in:  release = "Version 1.2.3 Release"
+// tpl: {{ release | slug }}
+// out: version-1.2.3-release
+//
+// example: non-ASCII letters are stripped, not transliterated
+// in:  name = "Café Münchën"
+// tpl: {{ name | slug }}
+// out: caf-m-nch-n
 func Slug(value any, params []any) (any, error) {
 	slug, err := functions.ValueString(value)
 	if err != nil {

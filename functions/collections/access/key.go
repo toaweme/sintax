@@ -13,11 +13,16 @@ import (
 // ModifierNameKey is the template name for the Key modifier.
 const ModifierNameKey functions.ModifierName = "key"
 
-// Key extracts a value from a map or slice by key path or index.
-// Use dot notation to traverse nested maps.
+// Key reads one value out of a map by key or out of a slice by index.
+// Pass a string to look up a map key, and use dot notation in that string to
+// walk into nested maps (for example 'database.host'). Pass a number to index
+// into a slice. Key is forgiving by design so templates stay simple: a missing
+// key, an out-of-range index, a nil value, or a type it cannot descend into all
+// render as nothing (nil) instead of raising a template error. Pair it with the
+// default modifier to supply a fallback when the lookup comes back empty.
 //
 // value: map, array
-// param:0: string
+// param:0: string (map key or dot path) or int (slice index)
 // returns: any
 //
 // example: read a top-level field
@@ -34,6 +39,11 @@ const ModifierNameKey functions.ModifierName = "key"
 // in:  items = ["espresso", "latte", "macchiato"]
 // tpl: {{ items | key:0 }}
 // out: espresso
+//
+// example: a missing key renders as nothing, so default can step in
+// in:  user = {"name": "Alice"}
+// tpl: {{ user | key:'phone' | default:'n/a' }}
+// out: n/a
 func Key(value any, params []any) (any, error) {
 	val, err := key(value, params)
 	if err != nil {

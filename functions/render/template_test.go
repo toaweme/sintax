@@ -1,9 +1,11 @@
 package render
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/toaweme/sintax/assert"
+	"github.com/toaweme/sintax/functions"
 )
 
 // Test_Template exercises the modifier's own logic (value coercion and scope
@@ -80,5 +82,70 @@ func Test_Template(t *testing.T) {
 			assert.Equal(t, tt.wantSrc, gotSrc)
 			assert.Equal(t, tt.wantScope, gotScope)
 		})
+	}
+}
+
+// Test_Template_NonStringValue confirms the modifier rejects a non-string value
+// with the shared ErrInvalidValueType sentinel before it ever calls render, so
+// callers can branch on the well-known error rather than a message string.
+func Test_Template_NonStringValue(t *testing.T) {
+	render := func(string, map[string]any) (any, error) {
+		t.Fatalf("render must not be called for a non-string value")
+		return nil, nil
+	}
+
+	_, err := Template(render, map[string]any{}, 123, nil)
+	assert.Error(t, err)
+	assert.ErrorIs(t, err, functions.ErrInvalidValueType)
+}
+
+// Test_Template_NonMapExtra confirms that an isolated-scope param of the wrong
+// type is rejected, since an isolated scope must be a variable map.
+func Test_Template_NonMapExtra(t *testing.T) {
+	render := func(string, map[string]any) (any, error) {
+		t.Fatalf("render must not be called for a non-map extra param")
+		return nil, nil
+	}
+
+	_, err := Template(render, map[string]any{}, "x", []any{"not-a-map"})
+	assert.Error(t, err)
+}
+
+// Test_Template_PropagatesRenderError proves the modifier surfaces a failure from
+// the nested render rather than swallowing it. The recursion guard reaches the
+// modifier this way: at max depth the engine's render callback returns
+// ErrMaxDepthExceeded, and the modifier must wrap and propagate it. That real
+// sentinel lives in the root package (an import cycle keeps it out of this unit
+// test), so the end-to-end guard is asserted in Test_E2E_TemplateModifier_RecursionGuard;
+// here a stand-in error stands for any nested-render failure.
+func Test_Template_PropagatesRenderError(t *testing.T) {
+	depthExceeded := errors.New("max template nesting depth exceeded")
+	render := func(string, map[string]any) (any, error) {
+		return nil, depthExceeded
+	}
+
+	_, err := Template(render, map[string]any{}, "{{ self | template }}", nil)
+	assert.Error(t, err)
+	assert.ErrorIs(t, err, depthExceeded)
+}
+
+// Test_Template_ScopeIsReplacedNotMerged documents that isolated scope is total
+// replacement, not a merge: a variable present only in the parent must not leak
+// into the isolated render.
+func Test_Template_ScopeIsReplacedNotMerged(t *testing.T) {
+	parent := map[string]any{"name": "parent", "secret": "leak"}
+	extra := map[string]any{"city": "Vilnius"}
+
+	var gotScope map[string]any
+	render := func(_ string, vars map[string]any) (any, error) {
+		gotScope = vars
+		return "ok", nil
+	}
+
+	_, err := Template(render, parent, "{{ city }}", []any{extra})
+	assert.NoError(t, err)
+	assert.Equal(t, extra, gotScope)
+	if _, leaked := gotScope["secret"]; leaked {
+		t.Fatalf("parent var leaked into isolated scope: %v", gotScope)
 	}
 }

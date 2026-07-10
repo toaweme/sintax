@@ -52,6 +52,7 @@ func Test_HTML(t *testing.T) {
 		{"single quote", "'", "&#39;"},
 		{"tag", "<b>hi</b>", "&lt;b&gt;hi&lt;/b&gt;"},
 		{"mixed", `a<b>&"'`, `a&lt;b&gt;&amp;&#34;&#39;`},
+		{"quoted attribute value", `a "quoted" word`, `a &#34;quoted&#34; word`},
 		{"plain passes through", "hello world 123", "hello world 123"},
 		{"unicode passes through", "café ☕ 日本", "café ☕ 日本"},
 		{"empty", "", ""},

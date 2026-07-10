@@ -11,10 +11,14 @@ import (
 // ModifierNameMap is the template name for the Map modifier.
 const ModifierNameMap functions.ModifierName = "map"
 
-// Map converts a slice of maps into a map keyed by the given field's string value.
+// Map converts a slice of maps into a single map keyed by the given field's
+// value, turning a list you have to scan into a lookup table. The value must be
+// a slice of string-keyed maps and the named field must hold a string, which
+// becomes the key. Elements missing that field are skipped rather than erroring.
+// When two elements share a key value, the later one wins.
 //
 // value: array
-// param:0: string
+// param:0: string (the field name whose value becomes each entry's key)
 // returns: map
 //
 // example: index a list of users by id

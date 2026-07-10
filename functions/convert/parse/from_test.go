@@ -57,6 +57,45 @@ func Test_From(t *testing.T) {
 			},
 		},
 		{
+			name:   "json nested map and array preserve native numbers",
+			value:  `{"user": {"id": 7}, "scores": [1, 2.5]}`,
+			params: []any{"json"},
+			expected: map[string]any{
+				"user":   map[string]any{"id": int64(7)},
+				"scores": []any{int64(1), 2.5},
+			},
+		},
+		{
+			name:     "json empty object",
+			value:    `{}`,
+			params:   []any{"json"},
+			expected: map[string]any{},
+		},
+		{
+			name:        "json top-level array is not an object",
+			value:       `[1, 2, 3]`,
+			params:      []any{"json"},
+			expectedErr: true,
+		},
+		{
+			name:        "json malformed input",
+			value:       `not json`,
+			params:      []any{"json"},
+			expectedErr: true,
+		},
+		{
+			name:        "json empty string",
+			value:       "",
+			params:      []any{"json"},
+			expectedErr: true,
+		},
+		{
+			name:        "json non-string input",
+			value:       123,
+			params:      []any{"json"},
+			expectedErr: true,
+		},
+		{
 			name:        "missing format",
 			value:       "irrelevant",
 			params:      []any{},
@@ -66,6 +105,12 @@ func Test_From(t *testing.T) {
 			name:        "unsupported format",
 			value:       "irrelevant",
 			params:      []any{"xml"},
+			expectedErr: true,
+		},
+		{
+			name:        "unsupported format yaml",
+			value:       "key: value",
+			params:      []any{"yaml"},
 			expectedErr: true,
 		},
 		{

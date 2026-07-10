@@ -11,7 +11,10 @@ import (
 // ModifierNameConcat is the template name for the Concat modifier.
 const ModifierNameConcat functions.ModifierName = "concat"
 
-// Concat appends one or more strings to the value.
+// Concat appends one or more strings to the value, joining them with no
+// separator. It takes any number of parameters and glues them on in order.
+// Both the value and every parameter must be strings; a non-string anywhere
+// is an error, so coerce numbers to strings before piping them in.
 //
 // value: string
 // param:...: string
@@ -22,7 +25,12 @@ const ModifierNameConcat functions.ModifierName = "concat"
 // tpl: {{ greeting | concat:'!' }}
 // out: Hello!
 //
-// example: build a kebab-cased identifier
+// example: append several parts in one call
+// in:  base = "file"
+// tpl: {{ base | concat:'-','01','.txt' }}
+// out: file-01.txt
+//
+// example: build a kebab-cased identifier across two calls
 // in:  prefix = "user"
 // in:  suffix = "profile"
 // tpl: {{ prefix | concat:'-' | concat:suffix }}

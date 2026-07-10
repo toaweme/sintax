@@ -10,13 +10,16 @@ import (
 // ModifierNameLength is the template name for the Length modifier.
 const ModifierNameLength functions.ModifierName = "length"
 
-// Length returns the number of characters in a string, bytes in a byte slice,
-// or elements in a slice/array/map.
+// Length returns the size of a value: the number of bytes in a string or byte
+// slice, or the number of elements in a slice, array, or map. For strings the
+// count is UTF-8 bytes, not runes, so a multi-byte character such as "é" counts
+// as more than one. A nil pointer or nil interface counts as zero, but a bare
+// nil (no type) has no length and returns an error.
 //
 // value: string, bytes, array, map
 // returns: int
 //
-// example: count characters in a name
+// example: count bytes in an ASCII name
 // in:  name = "Alice"
 // tpl: {{ name | length }}
 // out: 5
@@ -25,6 +28,11 @@ const ModifierNameLength functions.ModifierName = "length"
 // in:  items = ["mug", "pen", "pad"]
 // tpl: {{ items | length }}
 // out: 3
+//
+// example: a multi-byte character counts as its bytes, not one rune
+// in:  word = "café"
+// tpl: {{ word | length }}
+// out: 5
 var Length = func(value any, _ []any) (any, error) {
 	switch v := value.(type) {
 	case string:

@@ -10,7 +10,11 @@ import (
 // ModifierNameDirname is the template name for the Dirname modifier.
 const ModifierNameDirname functions.ModifierName = "dirname"
 
-// Dirname returns the directory portion of a file path.
+// Dirname returns the directory portion of a file path, that is everything up
+// to but not including the final path element. A path that already ends in a
+// slash has an empty final element, so dirname returns the path itself without
+// the trailing slash. A path with no directory part yields "." (the current
+// directory), and the input must be a string.
 //
 // value: string
 // returns: string
@@ -24,6 +28,16 @@ const ModifierNameDirname functions.ModifierName = "dirname"
 // in:  source_file = "src/handlers/users.go"
 // tpl: {{ source_file | dirname }}
 // out: src/handlers
+//
+// example: a bare file name has no directory, so the result is "."
+// in:  name = "file.txt"
+// tpl: {{ name | dirname }}
+// out: .
+//
+// example: a trailing slash means the path is already a directory
+// in:  dir = "/foo/bar/"
+// tpl: {{ dir | dirname }}
+// out: /foo/bar
 func Dirname(value any, params []any) (any, error) {
 	path, err := functions.ValueString(value)
 	if err != nil {

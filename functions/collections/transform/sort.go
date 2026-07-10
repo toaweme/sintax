@@ -11,11 +11,15 @@ import (
 // ModifierNameSort is the template name for the Sort modifier.
 const ModifierNameSort functions.ModifierName = "sort"
 
-// Sort sorts a slice in ascending or descending order.
-// Handles strings, numbers, and booleans. Elements of mixed types are grouped by type name.
+// Sort orders a slice ascending or descending. It compares strings
+// alphabetically, numbers numerically, and booleans with false before true. The
+// optional direction parameter is 'asc' (the default when omitted) or 'desc';
+// any other value is an error. When a slice mixes types, elements are grouped by
+// their type name first so the result stays deterministic, for example numbers
+// sort as one run and strings as another. A nil value passes through as nil.
 //
 // value: array
-// param:0?: string
+// param:0?: string (sort direction, 'asc' or 'desc', default 'asc')
 // returns: array
 //
 // example: sort names alphabetically
@@ -32,6 +36,11 @@ const ModifierNameSort functions.ModifierName = "sort"
 // in:  prices = [9.99, 4.50, 14.00]
 // tpl: {{ prices | sort:'asc' }}
 // out: [4.50, 9.99, 14.00]
+//
+// example: flags sort with false first
+// in:  flags = [true, false, true]
+// tpl: {{ flags | sort }}
+// out: [false, true, true]
 func Sort(value any, params []any) (any, error) {
 	if value == nil {
 		return nil, nil //nolint:nilnil // deliberate: nil input passes through as nil, not an error

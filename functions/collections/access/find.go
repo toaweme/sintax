@@ -11,18 +11,29 @@ import (
 // ModifierNameFind is the template name for the Find modifier.
 const ModifierNameFind functions.ModifierName = "find"
 
-// Find returns the first element in a slice or map where a field equals the given value.
-// Returns a non-fatal error when not found, allowing the default modifier to handle it.
+// Find returns the first map in a slice whose named field equals a given value.
+// It scans the slice in order and returns the whole matching map, not just the
+// field. The value can also be a single map, in which case find returns that
+// map when its field matches. Matching is exact on both value and type, so the
+// field's stored type must equal the type you pass: a field holding the integer
+// 42 is not matched by the string "42", and vice versa. When nothing matches,
+// find returns a non-fatal error so the default modifier can supply a fallback
+// instead of failing the render.
 //
 // value: array, map
-// param:0: string
-// param:1: any
+// param:0: string (field name)
+// param:1: any (value to match, compared by exact type and value)
 // returns: map
 //
 // example: look up a user by id
 // in:  users = [{"id": 7, "name": "Bob"}, {"id": 42, "name": "Alice"}]
 // tpl: {{ users | find:'id',42 }}
 // out: {"id": 42, "name": "Alice"}
+//
+// example: match on a string field
+// in:  products = [{"slug": "hat", "price": 25}, {"slug": "mug", "price": 12}]
+// tpl: {{ products | find:'slug','mug' }}
+// out: {"slug": "mug", "price": 12}
 //
 // example: fall back when not found
 // in:  items = [{"slug": "hat", "price": 25}]

@@ -76,6 +76,24 @@ func Test_resolveSafePaths(t *testing.T) {
 			wantRel:   "../b/doc.md",
 			wantPaths: []string{filepath.Join("a", "b", "doc.md")},
 		},
+		{
+			// an absolute-looking path is joined onto the safe dir, never the
+			// real filesystem root, so it stays sandboxed
+			name:      "absolute path is contained inside the safe dir",
+			value:     "/etc/passwd",
+			safeDirs:  []string{"tpl"},
+			wantRel:   "/etc/passwd",
+			wantPaths: []string{filepath.Join("tpl", "etc", "passwd")},
+		},
+		{
+			// a deep traversal that only partway escapes is still dropped
+			name:      "deep parent traversal is dropped",
+			value:     "../../../../etc/passwd",
+			safeDirs:  []string{"tpl"},
+			wantRel:   "../../../../etc/passwd",
+			wantErr:   true,
+			wantErrIs: os.ErrNotExist,
+		},
 	}
 
 	for _, tt := range tests {
@@ -119,6 +137,37 @@ func Test_File_ResolvesFromFirstMatchingDir(t *testing.T) {
 	out, err := File([]string{missing, present})("doc.md", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, want, out)
+}
+
+func Test_File_ReadsNestedPath(t *testing.T) {
+	dir := t.TempDir()
+	nested := filepath.Join(dir, "emails")
+	if err := os.Mkdir(nested, 0o700); err != nil {
+		t.Fatalf("failed to create nested dir: %v", err)
+	}
+	want := "welcome aboard"
+	if err := os.WriteFile(filepath.Join(nested, "welcome.txt"), []byte(want), 0o600); err != nil {
+		t.Fatalf("failed to write fixture: %v", err)
+	}
+
+	out, err := File([]string{dir})("emails/welcome.txt", nil)
+	assert.NoError(t, err)
+	assert.Equal(t, want, out)
+}
+
+func Test_File_AbsolutePathIsSandboxed(t *testing.T) {
+	dir := t.TempDir()
+	// "/etc/passwd" must resolve under the safe dir, not the real root, so
+	// reading it fails with not-exist rather than leaking the host file
+	_, err := File([]string{dir})("/etc/passwd", nil)
+	assert.ErrorIs(t, err, os.ErrNotExist)
+}
+
+func Test_File_NonStringArgIsRejected(t *testing.T) {
+	dir := t.TempDir()
+
+	_, err := File([]string{dir})(42, nil)
+	assert.ErrorIs(t, err, functions.ErrInvalidValueType)
 }
 
 func Test_File_MissingFileErrors(t *testing.T) {

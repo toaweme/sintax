@@ -10,8 +10,11 @@ import (
 // ModifierNameFlatten is the template name for the Flatten modifier.
 const ModifierNameFlatten functions.ModifierName = "flatten"
 
-// Flatten flattens a slice of slices by one level. Non-slice elements are
-// passed through unchanged.
+// Flatten flattens a slice of slices by exactly one level. Any element that is
+// itself a slice or array is spread into the result; every other element is
+// copied through unchanged. Only one level is removed, so a slice nested two
+// deep still comes out as a slice. An untyped nil element is dropped, and a nil
+// value overall is an error rather than an empty result.
 //
 // value: array
 // returns: array

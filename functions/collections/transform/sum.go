@@ -11,12 +11,15 @@ import (
 // ModifierNameSum is the template name for the Sum modifier.
 const ModifierNameSum functions.ModifierName = "sum"
 
-// Sum returns the numeric sum of the elements of a slice. With no parameter,
-// every element must be (or be parseable as) a number. With a string field
-// parameter, each element is treated as a map and the named field is summed.
+// Sum adds up the elements of a slice and always returns a float. With no
+// parameter every element must be a number or a string that parses as one, and
+// a nil element counts as zero. With a string field parameter each element is
+// treated as a map and the named field is summed instead, which is how you total
+// one column across a list of records. A missing field or a value that is not a
+// number is an error.
 //
 // value: array
-// param:0?: string
+// param:0?: string (a field name to sum across map elements instead of the elements themselves)
 // returns: float
 //
 // example: total a list of amounts
@@ -28,6 +31,11 @@ const ModifierNameSum functions.ModifierName = "sum"
 // in:  items = [{"name": "Mug", "price": 12}, {"name": "Pen", "price": 3}, {"name": "Pad", "price": 5}]
 // tpl: {{ items | sum:'price' }}
 // out: 20
+//
+// example: sum numeric strings coming from a form
+// in:  quantities = ["1.5", "2.5"]
+// tpl: {{ quantities | sum }}
+// out: 4
 func Sum(value any, params []any) (any, error) {
 	rv := reflect.ValueOf(value)
 	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {

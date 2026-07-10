@@ -47,6 +47,11 @@ const (
 // in:  comment = "<b>hi</b>"
 // tpl: {{ comment | escape_html }}
 // out: &lt;b&gt;hi&lt;/b&gt;
+//
+// example: keep a value inside a quoted attribute, quotes and all
+// in:  title = "a \"quoted\" word"
+// tpl: <img alt="{{ title | escape_html }}">
+// out: <img alt="a &#34;quoted&#34; word">
 func HTML(value any, _ []any) (any, error) {
 	str, err := stringify(value)
 	if err != nil {

@@ -17,10 +17,14 @@ const ModifierNameTrimPrefix functions.ModifierName = "trim_prefix"
 // ModifierNameTrimSuffix is the template name for the TrimSuffix modifier.
 const ModifierNameTrimSuffix functions.ModifierName = "trim_suffix"
 
-// Trim removes leading and trailing whitespace, or the given character set.
+// Trim removes leading and trailing whitespace from the value. With a parameter
+// it instead removes any of the characters in that parameter from both ends. The
+// parameter is a character set (a cutset), not a fixed prefix or suffix, so
+// trim:'/' strips every leading and trailing slash. When a cutset is given the
+// default whitespace stripping no longer applies.
 //
 // value: string, bytes
-// param:0?: string
+// param:0?: string (a set of characters to trim from both ends; defaults to whitespace)
 // returns: string, bytes
 //
 // example: clean whitespace from a name
@@ -28,10 +32,15 @@ const ModifierNameTrimSuffix functions.ModifierName = "trim_suffix"
 // tpl: {{ name | trim }}
 // out: Alice
 //
-// example: strip a wrapping character
+// example: strip wrapping characters (every leading and trailing comma)
 // in:  list = ",apples,bananas,"
 // tpl: {{ list | trim:',' }}
 // out: apples,bananas
+//
+// example: the cutset removes any of its characters, not a fixed string
+// in:  tags = "xy-hello-yx"
+// tpl: {{ tags | trim:'xy' }}
+// out: -hello-
 var Trim = func(value any, params []any) (any, error) {
 	switch v := value.(type) {
 	case string:
@@ -57,14 +66,22 @@ var Trim = func(value any, params []any) (any, error) {
 	}
 }
 
-// TrimPrefix removes a leading prefix string or leading whitespace from the value.
+// TrimPrefix removes the given prefix from the start of the value. The parameter
+// is matched as a whole string, once, and if the value does not start with it the
+// value is returned unchanged. Without a parameter it trims leading whitespace
+// (spaces, tabs, and newlines) instead.
 //
 // value: string, bytes
-// param:0?: string
+// param:0?: string (the exact prefix to remove; defaults to trimming leading whitespace)
 // returns: string, bytes
 //
 // example: drop a leading slash from a path
 // in:  path = "/api/v1/users"
+// tpl: {{ path | trim_prefix:'/' }}
+// out: api/v1/users
+//
+// example: no-op when the prefix is absent (the value is returned unchanged)
+// in:  path = "api/v1/users"
 // tpl: {{ path | trim_prefix:'/' }}
 // out: api/v1/users
 //
@@ -100,16 +117,24 @@ var TrimPrefix = func(value any, params []any) (any, error) {
 	}
 }
 
-// TrimSuffix removes a trailing suffix string or trailing whitespace from the value.
+// TrimSuffix removes the given suffix from the end of the value. The parameter is
+// matched as a whole string, once, and if the value does not end with it the value
+// is returned unchanged. Without a parameter it trims trailing whitespace (spaces,
+// tabs, and newlines) instead.
 //
 // value: string, bytes
-// param:0?: string
+// param:0?: string (the exact suffix to remove; defaults to trimming trailing whitespace)
 // returns: string, bytes
 //
 // example: drop a trailing slash from a URL
 // in:  url = "https://example.com/users/"
 // tpl: {{ url | trim_suffix:'/' }}
 // out: https://example.com/users
+//
+// example: drop a file extension
+// in:  file = "report.txt"
+// tpl: {{ file | trim_suffix:'.txt' }}
+// out: report
 //
 // example: trim trailing whitespace from a paragraph
 // in:  text = "Welcome aboard.   "

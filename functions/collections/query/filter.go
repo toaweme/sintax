@@ -12,12 +12,16 @@ import (
 // ModifierNameFilter is the template name for the Filter modifier.
 const ModifierNameFilter functions.ModifierName = "filter"
 
-// Filter returns a subset of a slice where a nested field matches a value.
-// Supports dot notation for nested field access.
+// Filter returns the items of a slice whose named field equals a search value.
+// Each item is expected to be a map, and the field is looked up by key. Use dot
+// notation to reach into a nested map (for example "meta.published"). Numbers
+// compare by value across integer and float types, so 10 matches 10.0. An item
+// is dropped when the field is missing or the values differ, and a slice where
+// nothing matches comes back empty rather than as an error.
 //
 // value: array
-// param:0: string
-// param:1: any
+// param:0: string (the field key, with optional dot notation for nested maps)
+// param:1: any (the value the field must equal)
 // returns: array
 //
 // example: keep only active items
@@ -34,6 +38,16 @@ const ModifierNameFilter functions.ModifierName = "filter"
 // in:  posts = [{"title": "Hello", "meta": {"published": true}}, {"title": "Draft", "meta": {"published": false}}]
 // tpl: {{ posts | filter:'meta.published',true }}
 // out: [{"title": "Hello", "meta": {"published": true}}]
+//
+// example: numbers match by value across int and float
+// in:  products = [{"name": "Mug", "price": 10}, {"name": "Cup", "price": 8}]
+// tpl: {{ products | filter:'price',10 }}
+// out: [{"name": "Mug", "price": 10}]
+//
+// example: nothing matches, so the result is empty
+// in:  users = [{"name": "Alice", "role": "admin"}, {"name": "Bob", "role": "viewer"}]
+// tpl: {{ users | filter:'role','owner' }}
+// out: []
 func Filter(value any, params []any) (any, error) {
 	slice, err := functions.ValueSlice(value) // []any
 	if err != nil {

@@ -11,10 +11,14 @@ import (
 const ModifierNameJoin functions.ModifierName = "join"
 
 // Join combines an array of strings into a single string with a separator.
-// Defaults to newline if no separator is provided.
+// The separator is optional and defaults to a newline when it is omitted (or
+// when a non-string value is passed where the separator is expected). Every
+// element of the array must be a string, a non-string element is an error. An
+// empty array joins to an empty string and a single-element array returns that
+// element unchanged.
 //
-// value: array
-// param:0?: string
+// value: array of strings
+// param:0?: string, the separator placed between elements (defaults to "\n")
 // returns: string
 //
 // example: join tags into a CSV string
@@ -22,7 +26,7 @@ const ModifierNameJoin functions.ModifierName = "join"
 // tpl: {{ tags | join:',' }}
 // out: coffee,sale,new
 //
-// example: rebuild lines into a paragraph
+// example: rebuild lines into a paragraph, the default separator is a newline
 // in:  lines = ["Dear Alice,", "Welcome aboard.", "Best,"]
 // tpl: {{ lines | join }}
 // out: Dear Alice,

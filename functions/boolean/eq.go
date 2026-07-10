@@ -10,9 +10,12 @@ import (
 // ModifierNameEq is the template name for the Eq modifier.
 const ModifierNameEq functions.ModifierName = "eq"
 
-// Eq returns true if the value equals the given parameter.
-// Numbers compare numerically across int/float types, strings compare verbatim,
-// and other types fall back to direct equality.
+// Eq returns true if the value equals the given parameter. Numbers compare
+// numerically across the int and float kinds, so the integer 5 and the float
+// 5.0 are equal. Strings compare verbatim, and any other pair falls back to
+// Go's direct equality. Note that a number and its string form are never equal,
+// so 5 does not equal "5". nil is only equal to nil, so comparing nil against 0
+// yields false.
 //
 // value: any
 // param:0: any
@@ -32,6 +35,11 @@ const ModifierNameEq functions.ModifierName = "eq"
 // in:  newsletter = true
 // tpl: {{ newsletter | eq:true }}
 // out: true
+//
+// example: a mismatched value is not equal
+// in:  status = "active"
+// tpl: {{ status | eq:'archived' }}
+// out: false
 var Eq = func(value any, params []any) (any, error) {
 	if len(params) == 0 {
 		return nil, errors.New("eq function requires at least one parameter")

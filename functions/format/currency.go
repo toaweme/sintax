@@ -12,23 +12,31 @@ import (
 // ModifierNameCurrency is the template name for the Currency modifier.
 const ModifierNameCurrency functions.ModifierName = "currency"
 
-// Currency converts a numeric value between currency units by applying a unit multiplier ratio.
-// Useful for converting between minor (cents) and major (dollars) units.
+// Currency converts a numeric value between currency units by scaling it with a
+// ratio of unit sizes. The result is value * toUnits / fromUnits, truncated to a
+// whole integer (fractional remainders are dropped, not rounded). It is handy for
+// moving between minor units (cents) and major units (dollars). A string value may
+// carry a leading currency symbol ($, EUR, GBP, JPY), which is stripped before parsing.
 //
 // value: int, float, string
-// param:0: int
-// param:1: int
+// param:0: int - number of sub-units the source value is expressed in
+// param:1: int - number of sub-units the target value should be expressed in
 // returns: int
 //
-// example: convert dollars to cents
+// example: convert whole dollars to cents (100 cents per dollar)
 // in:  price = 9
 // tpl: {{ price | currency:1,100 }}
 // out: 900
 //
-// example: convert cents back to dollars
+// example: convert cents back to whole dollars, dropping the remainder
 // in:  cents = 1299
 // tpl: {{ cents | currency:100,1 }}
 // out: 12
+//
+// example: parse a formatted price string, stripping the symbol, into cents
+// in:  price = "$9.99"
+// tpl: {{ price | currency:1,100 }}
+// out: 999
 func Currency(value any, params []any) (any, error) {
 	if len(params) == 0 {
 		return nil, errors.New("currency requires 2 parameters")

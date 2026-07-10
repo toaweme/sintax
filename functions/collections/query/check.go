@@ -15,12 +15,23 @@ const ModifierNameHas functions.ModifierName = "has"
 // ModifierNameIs is the template name for the Is modifier.
 const ModifierNameIs functions.ModifierName = "is"
 
-// Has returns true if the slice or map contains the given value.
-// For a slice of maps, provide a key and value to match on a specific field.
+// Has reports whether a collection contains something, and what "contains"
+// means depends on the shape of the value.
+//
+// For a plain slice, a single parameter is the element to look for, and Has is
+// true when any element equals it. For a slice of maps, the first parameter is a
+// field key and the rest are candidate values, so Has is true when any item's
+// field equals any of those values. For a map with one parameter, Has tests only
+// whether the key exists (the stored value is ignored, so a key mapped to false
+// still counts as present). For a map with a key plus one or more values, Has is
+// true when the key exists and its value equals any of the given values.
+//
+// Matching is exact on type, so an integer element is not found by a string
+// parameter of the same digits.
 //
 // value: array, map
-// param:0: any
-// param:1?: any
+// param:0: any (an element for a plain slice, or a field key for a map or slice of maps)
+// param:1?: any (one or more values to match when param:0 is a key; may repeat)
 // returns: bool
 //
 // example: check a list of tags
@@ -33,10 +44,20 @@ const ModifierNameIs functions.ModifierName = "is"
 // tpl: {{ items | has:'status','active' }}
 // out: true
 //
-// example: check a config map for a key
+// example: match any of several field values
+// in:  items = [{"name": "Coffee", "status": "sold-out"}, {"name": "Tea", "status": "active"}]
+// tpl: {{ items | has:'status','active','pending' }}
+// out: true
+//
+// example: a map with one key tests existence, not the stored value
 // in:  config = {"debug_mode": false, "region": "eu-west-1"}
 // tpl: {{ config | has:'debug_mode' }}
 // out: true
+//
+// example: a map with a key and value tests the stored value
+// in:  config = {"region": "eu-west-1"}
+// tpl: {{ config | has:'region','us-east-1' }}
+// out: false
 func Has(value any, params []any) (any, error) {
 	if len(params) == 0 {
 		return false, errors.New("`has` requires at least one parameter")
@@ -54,10 +75,12 @@ func Has(value any, params []any) (any, error) {
 	}
 }
 
-// Is returns true if the value equals any of the given parameters.
+// Is reports whether the value equals any one of the given parameters, which
+// makes it a compact way to write an "is this one of these" test in a template.
+// Comparison is exact on type, so the number 5 does not match the string "5".
 //
 // value: any
-// param:...: any
+// param:...: any (one or more candidate values, matched in order)
 // returns: bool
 //
 // example: match a single status
@@ -69,6 +92,11 @@ func Has(value any, params []any) (any, error) {
 // in:  role = "admin"
 // tpl: {{ role | is:'admin','superuser' }}
 // out: true
+//
+// example: no candidate matches
+// in:  status = "archived"
+// tpl: {{ status | is:'active','pending' }}
+// out: false
 func Is(value any, params []any) (any, error) {
 	if len(params) == 0 {
 		return false, errors.New("`is` requires at least one parameter")

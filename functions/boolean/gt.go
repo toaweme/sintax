@@ -10,7 +10,10 @@ import (
 // ModifierNameGt is the template name for the Gt modifier.
 const ModifierNameGt functions.ModifierName = "gt"
 
-// Gt returns true if the numeric value is greater than the threshold.
+// Gt returns true if the numeric value is greater than the threshold. Both the
+// value and the threshold are coerced to numbers across the int and float
+// kinds, and nil counts as zero. A non-numeric value such as a string produces
+// an error rather than a false result.
 //
 // value: int, float
 // param:0: number
@@ -25,6 +28,11 @@ const ModifierNameGt functions.ModifierName = "gt"
 // in:  total = 49.99
 // tpl: {{ total | gt:50 }}
 // out: false
+//
+// example: an integer value beats a float threshold
+// in:  score = 91
+// tpl: {{ score | gt:90.5 }}
+// out: true
 var Gt = func(value any, params []any) (any, error) {
 	if len(params) == 0 {
 		return nil, errors.New("gt function requires at least one parameter")

@@ -10,11 +10,15 @@ import (
 // ModifierNameMerge is the template name for the Merge modifier.
 const ModifierNameMerge functions.ModifierName = "merge"
 
-// Merge converts a slice of maps into a map keyed by the given field's string value.
-// Behaves identically to map; use as an alias when "map" conflicts with other syntax.
+// Merge converts a slice of maps into a single map keyed by the given field's
+// value. It behaves identically to map and exists as an alias, useful when the
+// name "map" reads awkwardly or clashes with other syntax. The value must be a
+// slice of string-keyed maps and the named field must hold a string, which
+// becomes the key. Elements missing that field are skipped, and when two
+// elements share a key value the later one wins.
 //
 // value: array
-// param:0: string
+// param:0: string (the field name whose value becomes each entry's key)
 // returns: map
 //
 // example: index a list of users by id
