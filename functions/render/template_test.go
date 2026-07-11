@@ -91,7 +91,7 @@ func Test_Template(t *testing.T) {
 func Test_Template_NonStringValue(t *testing.T) {
 	render := func(string, map[string]any) (any, error) {
 		t.Fatalf("render must not be called for a non-string value")
-		return nil, nil
+		return nil, functions.ErrInvalidValueType
 	}
 
 	_, err := Template(render, map[string]any{}, 123, nil)
@@ -104,7 +104,7 @@ func Test_Template_NonStringValue(t *testing.T) {
 func Test_Template_NonMapExtra(t *testing.T) {
 	render := func(string, map[string]any) (any, error) {
 		t.Fatalf("render must not be called for a non-map extra param")
-		return nil, nil
+		return nil, functions.ErrInvalidValueType
 	}
 
 	_, err := Template(render, map[string]any{}, "x", []any{"not-a-map"})

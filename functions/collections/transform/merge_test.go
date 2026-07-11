@@ -55,7 +55,7 @@ func Test_Merge(t *testing.T) {
 	}
 }
 
-// Test_Merge_MatchesMap proves merge is a behavioural alias of map.
+// Test_Merge_MatchesMap proves merge is a behavioral alias of map.
 func Test_Merge_MatchesMap(t *testing.T) {
 	value := []map[string]any{{"id": "a", "n": 1}, {"id": "b", "n": 2}}
 	mapped, err := Map(value, "id")

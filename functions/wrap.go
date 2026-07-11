@@ -122,22 +122,28 @@ func coerce[T any](v any) (T, bool) {
 		// coercion may still accept nil (ValueNumber(nil) == 0 for float64).
 		return zero, true
 	}
+	// each case matched on T's own zero value, so the coerced result is always a
+	// T; the comma-ok assertion is for the linter, the ok can never be false here.
 	switch any(zero).(type) {
 	case string:
 		if s, err := ValueString(v); err == nil {
-			return any(s).(T), true
+			out, _ := any(s).(T)
+			return out, true
 		}
 	case float64:
 		if n, err := ValueNumber(v); err == nil {
-			return any(n).(T), true
+			out, _ := any(n).(T)
+			return out, true
 		}
 	case int:
 		if n, ok := ValueInt(v); ok {
-			return any(n).(T), true
+			out, _ := any(n).(T)
+			return out, true
 		}
 	case []any:
 		if sl, err := ValueSlice(v); err == nil {
-			return any(sl).(T), true
+			out, _ := any(sl).(T)
+			return out, true
 		}
 	}
 	return zero, false

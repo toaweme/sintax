@@ -268,7 +268,7 @@ func Test_Modifiers(t *testing.T) {
 		}
 
 		// nil coerces to the any input and stringifies to "", matching the
-		// direct HTML(nil) behaviour rather than rejecting.
+		// direct HTML(nil) behavior rather than rejecting.
 		nilOut, err := fn(nil, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, "", nilOut)
