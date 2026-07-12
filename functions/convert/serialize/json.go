@@ -14,9 +14,9 @@ const ModifierNameJSON functions.ModifierName = "json"
 // jsonModePretty selects indented output in JSONMode.
 const jsonModePretty = "pretty"
 
-// JSON serializes value to a compact JSON string via Go's encoding/json. Object
-// keys always come out sorted alphabetically, so the output is stable regardless
-// of the input map's insertion order. It is the no-param json clause.
+// JSON serializes value to a compact JSON string. Object keys always come out
+// sorted alphabetically, so the output is stable regardless of the input map's
+// insertion order. Pass 'pretty' to indent the output instead.
 func JSON(value any) (string, error) {
 	jsonBytes, err := json.Marshal(value)
 	if err != nil {

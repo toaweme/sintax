@@ -11,10 +11,10 @@ import (
 const ModifierNameTemplate functions.ModifierName = "template"
 
 // Template renders its incoming string value as a nested sintax template, so a
-// value loaded from a file (or any string variable) can itself contain
-// {{ ... }} markup that is expanded in a second pass. It is the partial/include
-// primitive and composes with the file modifier, e.g.
-// {{ "partial.tpl" | file | template }} reads a file and then renders it.
+// string loaded from a file (or any variable) can itself contain sintax markup
+// that is expanded in a second pass. It is the partial/include primitive and
+// composes with the file modifier, e.g. {{ "partial.tpl" | file | template }}
+// reads a file and then renders it.
 //
 // With no params the nested template renders against the parent's variables, so
 // the partial sees everything the outer template sees (inherited scope). Passing
@@ -22,12 +22,10 @@ const ModifierNameTemplate functions.ModifierName = "template"
 // only that map and the parent variables are hidden. Isolation is total, not a
 // merge, so any variable the partial needs must be present in the passed map.
 //
-// The render callback is supplied by the engine and re-enters it with the same
-// modifiers and the same recursion guard, so this modifier holds no renderer
-// state of its own. Each re-entry increments a depth counter and a template that
-// renders itself (directly or through a chain) is stopped at a fixed maximum
-// nesting depth with ErrMaxDepthExceeded rather than recursing forever. A
-// non-string value or a non-map extra param is rejected before any rendering.
+// The nested render uses the same modifiers as the outer template. A template
+// that renders itself, directly or through a chain, is stopped at a fixed
+// maximum nesting depth with ErrMaxDepthExceeded rather than recursing forever.
+// A non-string value, or a non-map extra param, is an error.
 //
 // value: string (the template source)
 // param:0: map (optional; the isolated scope, replacing the parent variables)

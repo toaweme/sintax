@@ -13,8 +13,7 @@ const ModifierNameEq functions.ModifierName = "eq"
 // clause enforces ahead of the typed clauses.
 
 // EqNumber reports numeric equality across the int and float kinds, so 5 equals
-// 5.0. It is eq's first typed clause; WrapOne rejects a non-numeric operand so
-// Overload falls through to the string and any clauses.
+// 5.0. Numbers and their string form are never equal, so 5 does not equal "5".
 func EqNumber(value, other float64) (bool, error) {
 	return value == other, nil
 }

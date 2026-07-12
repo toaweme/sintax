@@ -11,10 +11,8 @@ import (
 const ModifierNameJoin functions.ModifierName = "join"
 
 // JoinAny joins the elements of a slice into a single string. Every element must
-// be a string; a non-string element is an error. The separator is typed as any
-// and defaults to a newline both when it is absent and when it is a non-string
-// or the empty string, preserving the original lenient behavior. A []string
-// value reaches here as []any via the engine's slice coercion.
+// be a string; a non-string element is an error. The separator defaults to a
+// newline when it is omitted or empty.
 func JoinAny(v []any, separator any) (string, error) {
 	sep, _ := separator.(string)
 	if sep == "" {

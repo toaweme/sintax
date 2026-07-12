@@ -13,21 +13,21 @@ import (
 // ModifierNameFile is the template name for the File modifier.
 const ModifierNameFile functions.ModifierName = "file"
 
-// File builds the `file` modifier body, a typed func(string) (string, error)
-// that reads a file's contents as a string. Unlike the plain global modifiers,
-// `file` is a security boundary, so it is constructed with a caller-supplied
-// allowlist of safe directories. A caller closes File over that allowlist to
-// control exactly which directories a template may read from. Pass an empty
-// allowlist to keep file reads disabled entirely.
+// File builds the `file` modifier, which reads a file's contents as a string so
+// a template can embed on-disk content (for example piping the result into the
+// template modifier as a partial). Unlike the plain global modifiers, `file` is
+// a security boundary. The application that wires it in supplies an allowlist of
+// safe directories that controls exactly which directories a template may read
+// from, and an empty allowlist disables file reads entirely.
 //
 // The path is resolved against each safe dir in order and the first dir that
-// contains a readable file wins. A path may only point inside a safe dir:
-// anything that escapes via ".." is dropped, so a template author cannot read
+// contains a readable file wins. A path may only point inside a safe dir.
+// Anything that escapes via ".." is dropped, so a template author cannot read
 // siblings or parents of a safe dir. Absolute paths are not an escape hatch
 // either. They are joined onto the safe dir (so "/etc/passwd" against safe dir
 // "tpl" resolves to "tpl/etc/passwd"), never to the real root. When no safe dir
-// yields the file it returns an os.ErrNotExist error, which deliberately does
-// not reveal whether the file existed outside the allowlist.
+// yields the file it returns a not-found error that deliberately does not reveal
+// whether the file existed outside the allowlist.
 func File(safeDirs []string) func(path string) (string, error) {
 	return func(path string) (string, error) {
 		paths, err := resolveSafePaths(path, safeDirs)

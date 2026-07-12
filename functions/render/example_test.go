@@ -40,3 +40,23 @@ func ExampleTemplate_scope() {
 	}))
 	// Output: Vilnius
 }
+
+// ExampleTemplate_multipleVars expands a partial with several placeholders, each
+// resolved against the inherited parent variables in a single second pass.
+func ExampleTemplate_multipleVars() {
+	fmt.Println(renderTpl(`{{ tpl | template }}`, map[string]any{
+		"tpl":      "{{ greeting }}, {{ name }}!",
+		"greeting": "Hi",
+		"name":     "Ada",
+	}))
+	// Output: Hi, Ada!
+}
+
+// ExampleTemplate_plainText passes a string with no markup straight through, so
+// a partial that happens to contain no placeholders renders unchanged.
+func ExampleTemplate_plainText() {
+	fmt.Println(renderTpl(`{{ tpl | template }}`, map[string]any{
+		"tpl": "no markup here",
+	}))
+	// Output: no markup here
+}

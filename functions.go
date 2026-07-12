@@ -5,14 +5,12 @@ import (
 	"github.com/toaweme/sintax/functions/render"
 )
 
-// GlobalModifier is a stateless modifier that transforms a piped value given
-// its call params, independent of any render context. It aliases the type in
-// functions so callers can keep referring to sintax.GlobalModifier while the
-// concrete modifiers live in leaf packages the engine does not import.
+// GlobalModifier is a stateless modifier that transforms a piped value using its
+// call params, with no access to render state.
 type GlobalModifier = functions.GlobalModifier
 
-// ContextualModifier is a modifier that needs live render state - the current
-// variables and a re-entrant renderer - rather than only its piped value.
+// ContextualModifier is a modifier that needs live render state, the current
+// variables and a re-entrant renderer, rather than only its piped value.
 type ContextualModifier = functions.ContextualModifier
 
 // builtinContextualModifiers returns the contextual modifiers wired into every

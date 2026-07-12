@@ -21,8 +21,8 @@ func SortAsc(slice []any) ([]any, error) {
 }
 
 // SortDir sorts a copy of a slice in the named direction, 'asc' or 'desc'; any
-// other direction is an error. An empty slice is returned untouched without
-// validating the direction, matching the original short-circuit.
+// other direction is an error. The original slice is left unmodified, and an
+// empty slice comes back untouched.
 func SortDir(slice []any, direction string) ([]any, error) {
 	if len(slice) == 0 {
 		return slice, nil

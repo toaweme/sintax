@@ -33,7 +33,7 @@ func FirstSlice(v []any) (any, error) {
 }
 
 // LastString returns the trailing byte of a string as a one-byte string, with
-// the same ASCII caveat as FirstString. An empty string is an error.
+// the same ASCII caveat as the first modifier. An empty string is an error.
 func LastString(s string) (string, error) {
 	if len(s) == 0 {
 		return "", errors.New("last expected a non-empty string")

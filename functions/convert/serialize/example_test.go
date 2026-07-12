@@ -28,6 +28,30 @@ func ExampleJSON() {
 	// Output: {"name":"Alice","role":"admin"}
 }
 
+// ExampleJSON_slice serializes a list, preserving its order in a JSON array.
+func ExampleJSON_slice() {
+	fmt.Println(render(`{{ tags | json }}`, map[string]any{
+		"tags": []any{"go", "rust"},
+	}))
+	// Output: ["go","rust"]
+}
+
+// ExampleJSON_string wraps a bare string in JSON quotes.
+func ExampleJSON_string() {
+	fmt.Println(render(`{{ name | json }}`, map[string]any{
+		"name": "Alice",
+	}))
+	// Output: "Alice"
+}
+
+// ExampleJSON_null renders a nil value as the JSON null literal.
+func ExampleJSON_null() {
+	fmt.Println(render(`{{ missing | json }}`, map[string]any{
+		"missing": nil,
+	}))
+	// Output: null
+}
+
 // ExampleJSONMode selects indented output with the literal 'pretty' mode, using
 // two spaces per level.
 func ExampleJSONMode() {
@@ -37,4 +61,24 @@ func ExampleJSONMode() {
 	// Output: {
 	//   "name": "Alice"
 	// }
+}
+
+// ExampleJSONMode_slice indents a JSON array, placing one element per line.
+func ExampleJSONMode_slice() {
+	fmt.Println(render(`{{ scores | json:'pretty' }}`, map[string]any{
+		"scores": []any{1, 2},
+	}))
+	// Output: [
+	//   1,
+	//   2
+	// ]
+}
+
+// ExampleJSONMode_compactFallback shows that any mode other than 'pretty' falls
+// back to compact output.
+func ExampleJSONMode_compactFallback() {
+	fmt.Println(render(`{{ scores | json:'inline' }}`, map[string]any{
+		"scores": []any{1, 2},
+	}))
+	// Output: [1,2]
 }
