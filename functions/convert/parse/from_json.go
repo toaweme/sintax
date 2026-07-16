@@ -2,6 +2,7 @@ package parse
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -32,7 +33,7 @@ func FromJSON(value string) (map[string]any, error) {
 	// same map comes back out with its json.Number leaves swapped for natives.
 	converted, ok := functions.ConvertNumbersJSON(raw).(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("failed to convert JSON numbers to native types")
+		return nil, errors.New("failed to convert JSON numbers to native types")
 	}
 	return converted, nil
 }

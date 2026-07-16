@@ -15,16 +15,17 @@ import (
 	"github.com/toaweme/sintax/functions/fs"
 	pathedit "github.com/toaweme/sintax/functions/path/edit"
 	pathquery "github.com/toaweme/sintax/functions/path/query"
+	"github.com/toaweme/sintax/functions/render"
 	casing "github.com/toaweme/sintax/functions/text/case"
 	textedit "github.com/toaweme/sintax/functions/text/edit"
 	"github.com/toaweme/sintax/functions/text/splitjoin"
 	"github.com/toaweme/sintax/functions/text/trim"
 )
 
-// builtins assembles the full built-in modifier set for the engine's own tests.
-// It mirrors defaults.All, which the internal test package cannot import (that
+// builtins wires the full built-in modifier set for the engine's own tests. It
+// mirrors defaults.All, which the internal test package cannot import (that
 // would be an import cycle, since defaults imports sintax).
-func builtins(safeDirs ...string) map[string]GlobalModifier {
+func builtins(safeDirs ...string) Option {
 	groups := []map[string]GlobalModifier{
 		casing.Modifiers(),
 		trim.Modifiers(),
@@ -48,5 +49,9 @@ func builtins(safeDirs ...string) map[string]GlobalModifier {
 	for _, g := range groups {
 		maps.Copy(all, g)
 	}
-	return all
+
+	return WithOptions(
+		WithModifiers(all),
+		WithContextualModifiers(render.ContextualModifiers()),
+	)
 }

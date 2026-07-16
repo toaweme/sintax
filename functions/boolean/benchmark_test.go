@@ -7,9 +7,9 @@ import (
 	"github.com/toaweme/sintax/functions"
 )
 
-// The *Baseline functions below reproduce the pre-migration untyped bodies, so a
-// run measures the Wrap / Overload coercion overhead against the exact code the
-// typed clauses replaced rather than against an abstract ideal. Compare a
+// The *Baseline functions below are hand-written untyped modifier bodies, so a
+// run measures the Wrap / Overload coercion overhead against equivalent code
+// doing the same work by hand rather than against an abstract ideal. Compare a
 // Baseline benchmark with its Wrapped / Overload sibling to read the delta.
 
 var errBenchMissing = errors.New("requires at least one parameter")

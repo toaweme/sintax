@@ -8,7 +8,7 @@ import (
 )
 
 func render(tpl string, vars map[string]any) string {
-	out, err := sintax.New(boolean.Modifiers()).Render(tpl, vars)
+	out, err := sintax.New(sintax.WithModifiers(boolean.Modifiers())).Render(tpl, vars)
 	if err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}

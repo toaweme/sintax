@@ -5,10 +5,16 @@ import (
 
 	"github.com/toaweme/sintax"
 	"github.com/toaweme/sintax/functions/fs"
+	sintaxrender "github.com/toaweme/sintax/functions/render"
 )
 
+// the contextual modifiers come along so ExampleFile_intoTemplate can pipe a
+// file's contents into `template`.
 func render(tpl string, vars map[string]any) string {
-	out, err := sintax.New(fs.Modifiers([]string{"testdata"})).Render(tpl, vars)
+	out, err := sintax.New(
+		sintax.WithModifiers(fs.Modifiers([]string{"testdata"})),
+		sintax.WithContextualModifiers(sintaxrender.ContextualModifiers()),
+	).Render(tpl, vars)
 	if err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}

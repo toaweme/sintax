@@ -10,7 +10,7 @@ import (
 )
 
 func render(tpl string, vars map[string]any) string {
-	out, err := sintax.New(transform.Modifiers()).Render(tpl, vars)
+	out, err := sintax.New(sintax.WithModifiers(transform.Modifiers())).Render(tpl, vars)
 	if err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}

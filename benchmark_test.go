@@ -132,7 +132,7 @@ func Benchmark_RenderTokens_Complex(b *testing.B) {
 	if err != nil {
 		b.Fatalf("parse failed: %v", err)
 	}
-	r := NewStringRenderer(builtins())
+	r := NewTokenRenderer(builtins())
 	vars := benchComplexVars()
 	if _, err := r.Render(tokens, vars); err != nil {
 		b.Fatalf("setup render failed: %v", err)

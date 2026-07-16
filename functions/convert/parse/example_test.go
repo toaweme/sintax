@@ -12,7 +12,7 @@ import (
 )
 
 func render(tpl string, vars map[string]any) string {
-	out, err := sintax.New(parse.Modifiers()).Render(tpl, vars)
+	out, err := sintax.New(sintax.WithModifiers(parse.Modifiers())).Render(tpl, vars)
 	if err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}
@@ -139,7 +139,7 @@ func ExampleFromCSV_shortRow() {
 func renderInjected(name functions.ModifierName, impl functions.GlobalModifier, tpl string, vars map[string]any) string {
 	mods := parse.Modifiers()
 	mods[string(name)] = impl
-	out, err := sintax.New(mods).Render(tpl, vars)
+	out, err := sintax.New(sintax.WithModifiers(mods)).Render(tpl, vars)
 	if err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}

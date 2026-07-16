@@ -1,13 +1,14 @@
 // Package defaults provides the batteries-included set of sintax modifiers.
-// Pass the map it builds to sintax.New. Importing this package links every
-// built-in modifier; consumers that want a smaller binary should compose only
-// the modifier groups they use instead (each group under functions/* exposes a
-// Modifiers() constructor).
+// Pass All() to sintax.New for the whole battery. Importing this package links
+// every built-in modifier; consumers that want a smaller binary should compose
+// only the modifier groups they use instead (each group under functions/*
+// exposes a Modifiers() constructor).
 package defaults
 
 import (
 	"maps"
 
+	"github.com/toaweme/sintax"
 	"github.com/toaweme/sintax/functions"
 	"github.com/toaweme/sintax/functions/boolean"
 	"github.com/toaweme/sintax/functions/collections/access"
@@ -21,6 +22,7 @@ import (
 	"github.com/toaweme/sintax/functions/fs"
 	pathedit "github.com/toaweme/sintax/functions/path/edit"
 	pathquery "github.com/toaweme/sintax/functions/path/query"
+	"github.com/toaweme/sintax/functions/render"
 	casing "github.com/toaweme/sintax/functions/text/case"
 	textedit "github.com/toaweme/sintax/functions/text/edit"
 	"github.com/toaweme/sintax/functions/text/splitjoin"
@@ -57,10 +59,24 @@ func New(safeDirs ...string) map[string]functions.GlobalModifier {
 	return all
 }
 
-// NewWith returns New layered with overrides on top, replacing any built-in of the
-// same name. It is the drop-in replacement for the old overrides argument.
-func NewWith(overrides map[string]functions.GlobalModifier, safeDirs ...string) map[string]functions.GlobalModifier {
-	all := New(safeDirs...)
-	maps.Copy(all, overrides)
-	return all
+// Contextual returns the built-in contextual modifiers, which need live render
+// state rather than only their piped value. They are wired separately from the
+// global set because sintax.New takes the two through different options.
+func Contextual() map[string]functions.ContextualModifier {
+	return render.ContextualModifiers()
+}
+
+// All bundles every built-in modifier, global and contextual alike, into a
+// single option for sintax.New. Pass one or more safeDirs to enable the `file`
+// modifier against that allowlist; with none, file reads stay disabled.
+//
+// Options merge in order, so layering your own on top replaces a built-in of
+// the same name:
+//
+//	s := sintax.New(defaults.All(), sintax.WithModifiers(overrides))
+func All(safeDirs ...string) sintax.Option {
+	return sintax.WithOptions(
+		sintax.WithModifiers(New(safeDirs...)),
+		sintax.WithContextualModifiers(Contextual()),
+	)
 }

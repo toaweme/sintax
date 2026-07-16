@@ -9,13 +9,10 @@ import (
 	"github.com/toaweme/sintax/functions/render"
 )
 
-// template is a contextual modifier auto-wired into every renderer, so it is
-// available without registering any modifier map. The reference keeps the
-// package import live and links the example to the exported symbol.
-var _ = render.Template
-
 func renderTpl(tpl string, vars map[string]any) string {
-	out, err := sintax.New(nil).Render(tpl, vars)
+	out, err := sintax.New(
+		sintax.WithContextualModifiers(render.ContextualModifiers()),
+	).Render(tpl, vars)
 	if err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}
@@ -67,7 +64,9 @@ func ExampleTemplate_plainText() {
 // re-enters the engine, so the chain is stopped at the maximum nesting depth
 // and the guard error surfaces instead of recursing forever.
 func ExampleTemplate_depthGuard() {
-	_, err := sintax.New(nil).Render(`{{ self | template }}`, map[string]any{
+	_, err := sintax.New(
+		sintax.WithContextualModifiers(render.ContextualModifiers()),
+	).Render(`{{ self | template }}`, map[string]any{
 		"self": "{{ self | template }}",
 	})
 	fmt.Println(errors.Is(err, sintax.ErrMaxDepthExceeded))
@@ -79,7 +78,10 @@ func ExampleTemplate_depthGuard() {
 // parent's variables. This is the include primitive, and it is a composition
 // rather than a feature. file brings the text in, and template expands it.
 func ExampleTemplate_fromFile() {
-	out, err := sintax.New(fs.Modifiers([]string{"testdata"})).Render(
+	out, err := sintax.New(
+		sintax.WithModifiers(fs.Modifiers([]string{"testdata"})),
+		sintax.WithContextualModifiers(render.ContextualModifiers()),
+	).Render(
 		`{{ p | file | template }}`,
 		map[string]any{"p": "partial.tpl", "name": "Alice", "count": 3},
 	)

@@ -11,7 +11,7 @@ import (
 // ExampleNew builds an engine with the batteries-included modifier set and
 // renders a template against a set of variables.
 func ExampleNew() {
-	engine := sintax.New(defaults.New())
+	engine := sintax.New(defaults.All())
 
 	out, err := engine.Render(`{{ name | upper }}`, map[string]any{
 		"name": "ada",
@@ -29,7 +29,7 @@ func ExampleRender() {
 	out, err := sintax.Render(
 		`{{ greeting | default:'hello' }}, {{ name }}`,
 		map[string]any{"name": "world"},
-		defaults.New(),
+		defaults.All(),
 	)
 	if err != nil {
 		panic(err)
@@ -41,7 +41,7 @@ func ExampleRender() {
 // ExampleNew_pipeline chains modifiers to turn a raw JSON response into a single
 // formatted number, without leaving the template.
 func ExampleNew_pipeline() {
-	engine := sintax.New(defaults.New())
+	engine := sintax.New(defaults.All())
 
 	out, err := engine.Render(
 		`{{ response | from_json | key:'orders' | filter:'status','paid' | pluck:'total' | sum | decimal:2 }}`,
@@ -64,7 +64,7 @@ func ExampleNew_pipeline() {
 // to a slice hands back a real slice with its element types intact, not a
 // stringified one.
 func ExampleNew_returnsValue() {
-	engine := sintax.New(defaults.New())
+	engine := sintax.New(defaults.All())
 
 	out, err := engine.Render(`{{ tags | split:',' }}`, map[string]any{
 		"tags": "go,templates,data",
@@ -77,9 +77,10 @@ func ExampleNew_returnsValue() {
 	// Output: 3 tags, first is "go"
 }
 
-// ExampleNewWith registers a custom modifier alongside the defaults, so a
-// template can call it by name like any built-in.
-func ExampleNewWith() {
+// ExampleWithModifiers registers a custom modifier alongside the defaults, so a
+// template can call it by name like any built-in. Options merge in order, so a
+// modifier registered here under a built-in's name would replace it.
+func ExampleWithModifiers() {
 	shout := func(value any, _ []any) (any, error) {
 		s, ok := value.(string)
 		if !ok {
@@ -88,7 +89,7 @@ func ExampleNewWith() {
 		return strings.ToUpper(s) + "!", nil
 	}
 
-	engine := sintax.New(defaults.NewWith(map[string]sintax.GlobalModifier{
+	engine := sintax.New(defaults.All(), sintax.WithModifiers(map[string]sintax.GlobalModifier{
 		"shout": shout,
 	}))
 
@@ -105,7 +106,7 @@ func ExampleNewWith() {
 // ExampleNew_conditional renders an if/else block, choosing a branch from the
 // truthiness of a variable.
 func ExampleNew_conditional() {
-	engine := sintax.New(defaults.New())
+	engine := sintax.New(defaults.All())
 
 	out, err := engine.Render(
 		`{{ if admin }}full access{{ else }}read only{{ endif }}`,
@@ -121,7 +122,7 @@ func ExampleNew_conditional() {
 // ExampleNew_loop iterates a slice with a for block, binding the loop index to
 // number each item.
 func ExampleNew_loop() {
-	engine := sintax.New(defaults.New())
+	engine := sintax.New(defaults.All())
 
 	out, err := engine.Render(
 		`{{ for i, name in names }}{{ i }}. {{ name }}

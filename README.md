@@ -57,34 +57,57 @@ import (
 )
 
 func main() {
-    s := sintax.New(defaults.New())
+    s := sintax.New(defaults.All())
 
     out, _ := s.Render("Hello, {{ name | title }}!", map[string]any{"name": "alice-cooper"})
     fmt.Println(out) // Hello, Alice Cooper!
 }
 ```
 
-`sintax.New(funcs)` takes the exact set of modifiers the engine may call and merges in nothing on its own.
-`defaults.New(safeDirs...)` builds the full `map[string]functions.GlobalModifier` of built-ins - pass one
-or more directories to enable the `file` modifier against that allowlist; with none, file reads stay
-disabled. `defaults.NewWith(overrides, safeDirs...)` layers your overrides on top. Because the engine does
-not import the modifiers, a size-conscious program can skip `defaults` entirely and compose only the
-groups it uses - each group under `functions/*` exposes a `Modifiers()` constructor:
+`sintax.New(opts...)` starts from nothing and knows only the modifiers you pass it, so an engine can never
+call something you did not wire. `defaults.All(safeDirs...)` is the batteries-included shortcut, bundling
+every built-in into one option - pass one or more directories to enable the `file` modifier against that
+allowlist; with none, file reads stay disabled.
+
+Because the engine imports no modifiers itself, a size-conscious program can skip `defaults` entirely and
+compose only the groups it uses. Each group under `functions/*` exposes a `Modifiers()` constructor, and
+`WithModifiers` merges rather than replaces, so groups stack in a single call:
 
 ```go
 import (
-    "maps"
     "github.com/toaweme/sintax"
-    "github.com/toaweme/sintax/functions"
     casing "github.com/toaweme/sintax/functions/text/case"
     "github.com/toaweme/sintax/functions/boolean"
 )
 
-funcs := map[string]functions.GlobalModifier{}
-maps.Copy(funcs, casing.Modifiers())
-maps.Copy(funcs, boolean.Modifiers())
-s := sintax.New(funcs) // links only these groups, not the whole battery
+s := sintax.New( // links only these groups, not the whole battery
+    sintax.WithModifiers(casing.Modifiers()),
+    sintax.WithModifiers(boolean.Modifiers()),
+)
 ```
+
+Options apply in order, so layering one on top of `defaults.All()` replaces any built-in of the same name:
+
+```go
+s := sintax.New(defaults.All(), sintax.WithModifiers(overrides))
+```
+
+### Contextual modifiers
+
+`template` is not a global modifier. It renders its input as a nested template, so it needs live render
+state rather than only its piped value, and it is wired through `WithContextualModifiers` instead.
+`defaults.All()` includes it. If you compose groups by hand, ask for it explicitly:
+
+```go
+s := sintax.New(
+    sintax.WithModifiers(fs.Modifiers([]string{"partials"})),
+    sintax.WithContextualModifiers(render.ContextualModifiers()),
+)
+// `{{ p | file | template }}` now reads a partial and expands it
+```
+
+`WithMaxDepth(n)` bounds how deeply `template` may re-enter the engine before `ErrMaxDepthExceeded`,
+guarding against a template that renders itself. It defaults to 10.
 
 ---
 
@@ -271,7 +294,7 @@ custom modifiers, and surfacing typed errors. The template syntax itself is docu
 ## Public API
 
 The engine speaks through a small, stable set of interfaces. Everything else (`StringParser`,
-`StringRenderer`, `BaseToken`) is an implementation detail.
+`TokenRenderer`, `BaseToken`) is an implementation detail.
 
 ### `Sintax`
 
@@ -338,8 +361,8 @@ case err != nil:
 
 ## Custom modifiers
 
-Pass a map of overrides to `defaults.NewWith`. Overrides also replace built-ins of the same name,
-useful for sandboxing or instrumenting a modifier.
+Pass your own modifiers with `WithModifiers`. A later option wins, so registering a built-in's name
+replaces it, which is useful for sandboxing or instrumenting a modifier.
 
 ```go
 overrides := map[string]functions.GlobalModifier{
@@ -347,7 +370,7 @@ overrides := map[string]functions.GlobalModifier{
         return "***", nil
     },
 }
-s := sintax.New(defaults.NewWith(overrides))
+s := sintax.New(defaults.All(), sintax.WithModifiers(overrides))
 // {{ secret | redact }} → ***
 ```
 
@@ -370,7 +393,7 @@ overrides := map[string]functions.GlobalModifier{
         return string(b), err
     },
 }
-s := sintax.New(defaults.NewWith(overrides))
+s := sintax.New(defaults.All(), sintax.WithModifiers(overrides))
 ```
 
 **HTML to Markdown**: the example uses `github.com/JohannesKaufmann/html-to-markdown/v2`, but any converter works
@@ -383,7 +406,7 @@ overrides := map[string]functions.GlobalModifier{
         return conv.ConvertString(html)
     },
 }
-s := sintax.New(defaults.NewWith(overrides))
+s := sintax.New(defaults.All(), sintax.WithModifiers(overrides))
 ```
 
 ---

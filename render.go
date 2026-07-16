@@ -33,8 +33,11 @@ type Func struct {
 	Args []Arg
 }
 
-// StringRenderer handles rendering templates with a given context.
-type StringRenderer struct {
+// TokenRenderer renders a token stream against a variable set. It is named for
+// what it consumes rather than what it produces: StringParser turns a string
+// into tokens, and TokenRenderer turns those tokens into a value, which is not
+// necessarily a string.
+type TokenRenderer struct {
 	funcs    map[string]GlobalModifier
 	ctxFuncs map[string]ContextualModifier
 	parser   *StringParser
@@ -42,15 +45,22 @@ type StringRenderer struct {
 	depth    int
 }
 
-var _ Renderer = (*StringRenderer)(nil)
+var _ Renderer = (*TokenRenderer)(nil)
 
-// NewStringRenderer creates a new instance of StringRenderer with the provided context.
-func NewStringRenderer(funcs map[string]GlobalModifier) *StringRenderer {
-	return &StringRenderer{
-		funcs:    funcs,
-		ctxFuncs: builtinContextualModifiers(),
+// NewTokenRenderer creates a TokenRenderer configured by opts, which are the
+// same options New takes.
+func NewTokenRenderer(opts ...Option) *TokenRenderer {
+	return newTokenRenderer(newConfig(opts))
+}
+
+// newTokenRenderer builds a renderer from an already-resolved config, so New
+// does not resolve the same options twice.
+func newTokenRenderer(cfg *config) *TokenRenderer {
+	return &TokenRenderer{
+		funcs:    cfg.funcs,
+		ctxFuncs: cfg.ctxFuncs,
 		parser:   NewStringParser(),
-		maxDepth: defaultMaxTemplateDepth,
+		maxDepth: cfg.maxDepth,
 	}
 }
 
@@ -62,7 +72,7 @@ const defaultMaxTemplateDepth = 10
 // renderNested renders a string template against vars through the same engine,
 // enforcing the recursion guard. Its signature matches the render callback
 // handed to contextual modifiers (e.g. `template`).
-func (r *StringRenderer) renderNested(template string, vars map[string]any) (any, error) {
+func (r *TokenRenderer) renderNested(template string, vars map[string]any) (any, error) {
 	if r.depth+1 > r.maxDepth {
 		return nil, fmt.Errorf("failed to render nested template: %w", ErrMaxDepthExceeded)
 	}
@@ -70,12 +80,12 @@ func (r *StringRenderer) renderNested(template string, vars map[string]any) (any
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse nested template: %w", err)
 	}
-	child := &StringRenderer{funcs: r.funcs, ctxFuncs: r.ctxFuncs, parser: r.parser, maxDepth: r.maxDepth, depth: r.depth + 1}
+	child := &TokenRenderer{funcs: r.funcs, ctxFuncs: r.ctxFuncs, parser: r.parser, maxDepth: r.maxDepth, depth: r.depth + 1}
 	return child.Render(tokens, vars)
 }
 
 // Render processes the provided tokens and variables, returning a rendered string or any value
-func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error) {
+func (r *TokenRenderer) Render(tokens []Token, vars map[string]any) (any, error) {
 	out, _, err := r.renderRange(tokens, 0, len(tokens), vars, true)
 	return out, err
 }
@@ -85,9 +95,10 @@ func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error
 // and any error.
 //
 // if allowDirect is true and the only meaningful token in the range is a single
-// non-string variable, the value is returned directly (legacy passthrough
-// behavior). otherwise everything is stringified.
-func (r *StringRenderer) renderRange(tokens []Token, start, end int, vars map[string]any, allowDirect bool) (any, int, error) {
+// non-string variable, the value is returned directly rather than stringified,
+// so a template that is nothing but `{{ x }}` yields x's own type. otherwise
+// everything is stringified.
+func (r *TokenRenderer) renderRange(tokens []Token, start, end int, vars map[string]any, allowDirect bool) (any, int, error) {
 	var str strings.Builder
 	i := start
 	for i < end {
@@ -201,7 +212,7 @@ func findForEnd(tokens []Token, start, end int) (int, error) {
 	return -1, errors.New("unterminated for block (missing endfor)")
 }
 
-func (r *StringRenderer) renderIf(tokens []Token, start, end int, vars map[string]any) (string, int, error) {
+func (r *TokenRenderer) renderIf(tokens []Token, start, end int, vars map[string]any) (string, int, error) {
 	elseIdx, endIdx, err := findIfEnd(tokens, start, end)
 	if err != nil {
 		return "", start, err
@@ -232,7 +243,7 @@ func (r *StringRenderer) renderIf(tokens []Token, start, end int, vars map[strin
 	return s, endIdx + 1, nil
 }
 
-func (r *StringRenderer) renderFor(tokens []Token, start, end int, vars map[string]any) (string, int, error) {
+func (r *TokenRenderer) renderFor(tokens []Token, start, end int, vars map[string]any) (string, int, error) {
 	endIdx, err := findForEnd(tokens, start, end)
 	if err != nil {
 		return "", start, err
@@ -351,7 +362,7 @@ func childScope(parent map[string]any) map[string]any {
 
 // evalCondition renders a single expression and returns its truthiness via
 // functions.ConditionIsTrue.
-func (r *StringRenderer) evalCondition(expr string, vars map[string]any) (bool, error) {
+func (r *TokenRenderer) evalCondition(expr string, vars map[string]any) (bool, error) {
 	val, err := r.evalExpr(expr, vars)
 	if err != nil {
 		return false, err
@@ -366,7 +377,7 @@ func (r *StringRenderer) evalCondition(expr string, vars map[string]any) (bool, 
 // delimiters, allocate a token slice, and run the block-trim post-pass). This
 // path is hot: every if-condition and for-iterable runs through it, including
 // once per iteration for conditions inside a loop body.
-func (r *StringRenderer) evalExpr(expr string, vars map[string]any) (any, error) {
+func (r *TokenRenderer) evalExpr(expr string, vars map[string]any) (any, error) {
 	expr = strings.TrimSpace(expr)
 	if expr == "" {
 		return nil, nil //nolint:nilnil // deliberate, an empty expression evaluates to nil, not an error
@@ -379,7 +390,7 @@ func (r *StringRenderer) evalExpr(expr string, vars map[string]any) (any, error)
 }
 
 // renderVariable renders a single variable token
-func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, error) {
+func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, error) {
 	if token.Type() == TextToken {
 		return token.Raw(), nil
 	}

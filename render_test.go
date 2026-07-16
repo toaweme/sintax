@@ -123,7 +123,7 @@ func Test_StringRenderer_RenderVariable(t *testing.T) {
 		},
 	}
 
-	r := NewStringRenderer(builtins())
+	r := NewTokenRenderer(builtins())
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
