@@ -2,7 +2,10 @@
 // the built-in template modifiers under functions/*.
 package functions
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // ModifierName is the template-syntax name used to invoke a modifier (e.g. "lower", "trim_prefix").
 type ModifierName string
@@ -25,8 +28,33 @@ type GlobalModifier func(value any, params []any) (any, error)
 // snapshot. Copy out anything that must outlive the call.
 type ContextualModifier func(render func(template string, vars map[string]any) (any, error), vars map[string]any, value any, params []any) (any, error)
 
+// Miss reports a non-fatal "nothing here" condition, the kind the default
+// modifier exists to catch: a lookup that matched no element, a collection with
+// no element to take. It is the counterpart to a type rejection, which means the
+// template itself is wrong and must not be swallowed.
+//
+// The returned error reads as its own message while still matching
+// errors.Is(err, ErrAllowsDefaultFunc). Wrapping the sentinel with %w instead
+// would splice "non-fatal error" into text a template author reads, and it says
+// nothing they can act on.
+func Miss(format string, args ...any) error {
+	return &missError{msg: fmt.Sprintf(format, args...)}
+}
+
+// missError carries a Miss message while keeping ErrAllowsDefaultFunc reachable
+// through Unwrap rather than through the message text.
+type missError struct{ msg string }
+
+var _ error = (*missError)(nil)
+
+func (e *missError) Error() string { return e.msg }
+
+func (e *missError) Unwrap() error { return ErrAllowsDefaultFunc }
+
 var (
-	// ErrAllowsDefaultFunc marks non-fatal errors that the default modifier can catch.
+	// ErrAllowsDefaultFunc marks non-fatal errors that the default modifier can
+	// catch. Report one with Miss rather than wrapping this directly, so the
+	// marker stays out of the message.
 	ErrAllowsDefaultFunc = errors.New("non-fatal error")
 
 	// ErrInvalidValueType is returned when a modifier receives an unsupported value type.

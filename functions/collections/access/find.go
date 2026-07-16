@@ -1,7 +1,6 @@
 package access
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/toaweme/sintax/functions"
@@ -23,7 +22,7 @@ func FindSlice(v []any, key string, keyValue any) (any, error) {
 			}
 		}
 	}
-	return nil, fmt.Errorf("%w: key %q with value %v not found in slice", functions.ErrAllowsDefaultFunc, key, keyValue)
+	return nil, functions.Miss("key %q with value %v not found in slice", key, keyValue)
 }
 
 // FindMap returns the map itself when its key field equals keyValue, and
@@ -33,5 +32,5 @@ func FindMap(v map[string]any, key string, keyValue any) (any, error) {
 	if val, ok := v[key]; ok && reflect.DeepEqual(val, keyValue) {
 		return v, nil
 	}
-	return nil, fmt.Errorf("%w: key %q with value %v not found in map", functions.ErrAllowsDefaultFunc, key, keyValue)
+	return nil, functions.Miss("key %q with value %v not found in map", key, keyValue)
 }
