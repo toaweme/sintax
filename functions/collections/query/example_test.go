@@ -136,6 +136,18 @@ func ExampleHas_sliceOfMaps() {
 	// Output: true
 }
 
+// ExampleHas_anyOf passes several candidate values after the field key, so a
+// slice of maps matches when any item's field equals any one of them.
+func ExampleHas_anyOf() {
+	fmt.Println(render(`{{ items | has:'status','active','pending' }}`, map[string]any{
+		"items": []any{
+			map[string]any{"name": "Coffee", "status": "sold-out"},
+			map[string]any{"name": "Tea", "status": "pending"},
+		},
+	}))
+	// Output: true
+}
+
 // ExampleHas_mapValue tests the stored value when given both a key and a value,
 // returning false when the key holds a different value.
 func ExampleHas_mapValue() {

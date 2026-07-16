@@ -12,10 +12,12 @@ import "github.com/toaweme/sintax/functions"
 var (
 	firstModifier = functions.Overload(
 		functions.Wrap(FirstString),
+		functions.Wrap(FirstBytes),
 		functions.Wrap(FirstSlice),
 	)
 	lastModifier = functions.Overload(
 		functions.Wrap(LastString),
+		functions.Wrap(LastBytes),
 		functions.Wrap(LastSlice),
 	)
 	pluckModifier = functions.WrapOne(Pluck)

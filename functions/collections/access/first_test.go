@@ -21,6 +21,8 @@ func Test_First(t *testing.T) {
 		{"ascii string first byte", "Alice", "A"},
 		{"single char string", "x", "x"},
 		{"leading multibyte byte", "café", "c"},
+		{"byte buffer reads as text", []byte("Alice"), "A"},
+		{"single byte buffer", []byte("x"), "x"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -39,6 +41,7 @@ func Test_First_Errors(t *testing.T) {
 	}{
 		{"empty slice", []any{}},
 		{"empty string", ""},
+		{"empty byte buffer", []byte{}},
 		{"nil", nil},
 		{"int is not a collection", 42},
 		{"bool is not a collection", true},
@@ -66,6 +69,8 @@ func Test_Last(t *testing.T) {
 		{"typed int slice", []int{7, 8, 9}, 9},
 		{"ascii string last byte", "Hello", "o"},
 		{"single char string", "x", "x"},
+		{"byte buffer reads as text", []byte("Hello"), "o"},
+		{"single byte buffer", []byte("x"), "x"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -84,6 +89,7 @@ func Test_Last_Errors(t *testing.T) {
 	}{
 		{"empty slice", []any{}},
 		{"empty string", ""},
+		{"empty byte buffer", []byte{}},
 		{"nil", nil},
 		{"int is not a collection", 42},
 		{"map is not indexable by last", map[string]any{"a": 1}},

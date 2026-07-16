@@ -12,12 +12,10 @@ import (
 func Test_Markdown_StubReturnsError(t *testing.T) {
 	tests := []struct {
 		name  string
-		value any
+		value string
 	}{
 		{"html string", "<h1>Welcome</h1>"},
 		{"empty string", ""},
-		{"nil", nil},
-		{"non-string", 42},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -25,6 +23,27 @@ func Test_Markdown_StubReturnsError(t *testing.T) {
 			assert.Error(t, err)
 			assert.Equal(t, "", out)
 			assert.Equal(t, "markdown function needs to be injected", err.Error())
+		})
+	}
+}
+
+// Test_Markdown_RejectsNonString proves the modifier turns a value that is not
+// HTML text away before any converter sees it. The clause takes a string, so
+// Wrap coerces strictly, and a piped map fails here rather than reaching a
+// converter stringified as "map[a:1]" and being converted as if it were markup.
+func Test_Markdown_RejectsNonString(t *testing.T) {
+	tests := []struct {
+		name  string
+		value any
+	}{
+		{"map", map[string]any{"a": 1}},
+		{"number", 42},
+		{"nil", nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := markdownModifier(tt.value, nil)
+			assert.Error(t, err)
 		})
 	}
 }

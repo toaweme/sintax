@@ -18,7 +18,7 @@
 Zero dependency templating engine built for workflows, document generation, and data transformations.
 
 ```
-{{ response | from:'json' | key:'orders' | filter:'status','paid' | pluck:'total' | sum | decimal:2 }}
+{{ response | from_json | key:'orders' | filter:'status','paid' | pluck:'total' | sum | decimal:2 }}
 ```
 
 ---
@@ -222,7 +222,9 @@ Move between Go values, JSON, YAML, and other serialized formats.
 
 | Item | Description | Example |
 | --- | --- | --- |
-| `from` | From parses the string value as the given format and returns the parsed result. | `{{ body \| from:'json' }}` |
+| `from_csv` | Parses a CSV string into a list of rows keyed by the header row. | `{{ body \| from_csv }}` |
+| `from_json` | Parses a JSON object string into a map. | `{{ body \| from_json }}` |
+| `from_yaml` | Parses a YAML document into a map. Ships as a stub until you inject a codec. | `{{ body \| from_yaml }}` |
 | `json` | JSON serializes the value to a JSON string. | `{{ user \| json }}` |
 | `markdown` | Markdown converts an HTML string to Markdown. | `{{ html_content \| markdown }}` |
 | `yaml` | YAML serializes or parses a value as YAML. | `{{ config \| yaml }}` |

@@ -52,29 +52,6 @@ var weirdProviders = map[string]string{
 // size suffixes (GPT, OSS, 8B), rewrites date suffixes into a "(2024-10-22)"
 // parenthetical, and title-cases the remaining segments. This is the engine
 // behind the title_model modifier.
-//
-// value: string
-// returns: string
-//
-// example: format a hosted model id
-// in:  model_id = "openai/gpt-4o-mini"
-// tpl: {{ model_id | title_model }}
-// out: OpenAI: GPT 4o Mini
-//
-// example: normalize a size suffix and provider name
-// in:  model_id = "meta-llama/llama-3.1-8b-instruct"
-// tpl: {{ model_id | title_model }}
-// out: Meta Llama: Llama 3.1 8B Instruct
-//
-// example: move a trailing date into a parenthetical
-// in:  model_id = "anthropic/claude-3.5-haiku-20241022"
-// tpl: {{ model_id | title_model }}
-// out: Anthropic: Claude 3.5 Haiku (2024-10-22)
-//
-// example: format an Ollama tag with quantization
-// in:  model_id = "olmo-3:7b-instruct-q4_K_M"
-// tpl: {{ model_id | title_model }}
-// out: Olmo 3 7B Instruct Q4_K_M
 func FormatModelTitle(model string) string {
 	for p := range weirdProviders {
 		if strings.HasPrefix(model, p) {

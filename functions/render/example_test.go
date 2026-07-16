@@ -1,9 +1,11 @@
 package render_test
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/toaweme/sintax"
+	"github.com/toaweme/sintax/functions/fs"
 	"github.com/toaweme/sintax/functions/render"
 )
 
@@ -59,4 +61,32 @@ func ExampleTemplate_plainText() {
 		"tpl": "no markup here",
 	}))
 	// Output: no markup here
+}
+
+// ExampleTemplate_depthGuard shows a template that renders itself. Each pass
+// re-enters the engine, so the chain is stopped at the maximum nesting depth
+// and the guard error surfaces instead of recursing forever.
+func ExampleTemplate_depthGuard() {
+	_, err := sintax.New(nil).Render(`{{ self | template }}`, map[string]any{
+		"self": "{{ self | template }}",
+	})
+	fmt.Println(errors.Is(err, sintax.ErrMaxDepthExceeded))
+	// Output: true
+}
+
+// ExampleTemplate_fromFile reads a partial from disk with the file modifier and
+// pipes it into template, so the file's own markup is rendered against the
+// parent's variables. This is the include primitive, and it is a composition
+// rather than a feature. file brings the text in, and template expands it.
+func ExampleTemplate_fromFile() {
+	out, err := sintax.New(fs.Modifiers([]string{"testdata"})).Render(
+		`{{ p | file | template }}`,
+		map[string]any{"p": "partial.tpl", "name": "Alice", "count": 3},
+	)
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+		return
+	}
+	fmt.Println(out)
+	// Output: Hello, Alice! You have 3 new messages.
 }

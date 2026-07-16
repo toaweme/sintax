@@ -120,6 +120,16 @@ func ExampleFirstSlice_numbers() {
 	// Output: 3
 }
 
+// ExampleFirstBytes reads the leading byte of a []byte buffer as text, so a file
+// read or an HTTP body behaves the same as a string rather than yielding a raw
+// byte number from the slice clause.
+func ExampleFirstBytes() {
+	fmt.Println(render(`{{ buffer | first }}`, map[string]any{
+		"buffer": []byte("hello"),
+	}))
+	// Output: h
+}
+
 // ExampleFirstString_empty shows that first has nothing to return for an empty
 // string, so it reports an error.
 func ExampleFirstString_empty() {
@@ -152,6 +162,16 @@ func ExampleLastSlice_numbers() {
 		"scores": []any{3, 1, 4, 1, 5},
 	}))
 	// Output: 5
+}
+
+// ExampleLastBytes reads the trailing byte of a []byte buffer as text, so a file
+// read or an HTTP body behaves the same as a string rather than yielding a raw
+// byte number from the slice clause.
+func ExampleLastBytes() {
+	fmt.Println(render(`{{ buffer | last }}`, map[string]any{
+		"buffer": []byte("hello"),
+	}))
+	// Output: o
 }
 
 // ExampleLastString_empty shows that last has nothing to return for an empty

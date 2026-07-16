@@ -44,7 +44,7 @@ func ExampleNew_pipeline() {
 	engine := sintax.New(defaults.New())
 
 	out, err := engine.Render(
-		`{{ response | from:'json' | key:'orders' | filter:'status','paid' | pluck:'total' | sum | decimal:2 }}`,
+		`{{ response | from_json | key:'orders' | filter:'status','paid' | pluck:'total' | sum | decimal:2 }}`,
 		map[string]any{
 			"response": `{"orders":[
 				{"total":10.5,"status":"paid"},

@@ -28,36 +28,6 @@ const ModifierNameIs functions.ModifierName = "is"
 //
 // Matching is exact on type, so an integer element is not found by a string
 // parameter of the same digits.
-//
-// value: array, map
-// param:0: any (an element for a plain slice, or a field key for a map or slice of maps)
-// param:1?: any (one or more values to match when param:0 is a key; may repeat)
-// returns: bool
-//
-// example: check a list of tags
-// in:  tags = ["featured", "sale", "new"]
-// tpl: {{ tags | has:'featured' }}
-// out: true
-//
-// example: find an active item in a list
-// in:  items = [{"name": "Coffee", "status": "sold-out"}, {"name": "Tea", "status": "active"}]
-// tpl: {{ items | has:'status','active' }}
-// out: true
-//
-// example: match any of several field values
-// in:  items = [{"name": "Coffee", "status": "sold-out"}, {"name": "Tea", "status": "active"}]
-// tpl: {{ items | has:'status','active','pending' }}
-// out: true
-//
-// example: a map with one key tests existence, not the stored value
-// in:  config = {"debug_mode": false, "region": "eu-west-1"}
-// tpl: {{ config | has:'debug_mode' }}
-// out: true
-//
-// example: a map with a key and value tests the stored value
-// in:  config = {"region": "eu-west-1"}
-// tpl: {{ config | has:'region','us-east-1' }}
-// out: false
 func Has(value any, params []any) (any, error) {
 	if len(params) == 0 {
 		return false, errors.New("`has` requires at least one parameter")

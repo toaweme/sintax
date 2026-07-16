@@ -23,6 +23,18 @@ func FirstString(s string) (string, error) {
 	return string(s[0]), nil
 }
 
+// FirstBytes returns the leading byte of a []byte as a one-byte string, so a
+// text buffer (a file read, an HTTP body) reads the same as the string clause
+// rather than falling through to the slice clause and yielding a raw byte
+// number. The same ASCII caveat as FirstString applies. An empty buffer is an
+// error.
+func FirstBytes(b []byte) (string, error) {
+	if len(b) == 0 {
+		return "", errors.New("first expected a non-empty []byte")
+	}
+	return string(b[0]), nil
+}
+
 // FirstSlice returns the first element of a slice as-is, keeping its type. An
 // empty slice is an error.
 func FirstSlice(v []any) (any, error) {
@@ -39,6 +51,17 @@ func LastString(s string) (string, error) {
 		return "", errors.New("last expected a non-empty string")
 	}
 	return string(s[len(s)-1]), nil
+}
+
+// LastBytes returns the trailing byte of a []byte as a one-byte string, with the
+// same ASCII caveat as LastString, so a text buffer reads the same as the string
+// clause instead of yielding a raw byte number via the slice clause. An empty
+// buffer is an error.
+func LastBytes(b []byte) (string, error) {
+	if len(b) == 0 {
+		return "", errors.New("last expected a non-empty []byte")
+	}
+	return string(b[len(b)-1]), nil
 }
 
 // LastSlice returns the last element of a slice as-is. An empty slice is an

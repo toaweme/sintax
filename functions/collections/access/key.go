@@ -20,30 +20,6 @@ const ModifierNameKey functions.ModifierName = "key"
 // key, an out-of-range index, a nil value, or a type it cannot descend into all
 // render as nothing (nil) instead of raising a template error. Pair it with the
 // default modifier to supply a fallback when the lookup comes back empty.
-//
-// value: map, array
-// param:0: string (map key or dot path) or int (slice index)
-// returns: any
-//
-// example: read a top-level field
-// in:  user = {"name": "Alice", "email": "alice@example.com"}
-// tpl: {{ user | key:'name' }}
-// out: Alice
-//
-// example: read a nested field with dot notation
-// in:  config = {"database": {"host": "db.local", "port": 5432}}
-// tpl: {{ config | key:'database.host' }}
-// out: db.local
-//
-// example: index into a list
-// in:  items = ["espresso", "latte", "macchiato"]
-// tpl: {{ items | key:0 }}
-// out: espresso
-//
-// example: a missing key renders as nothing, so default can step in
-// in:  user = {"name": "Alice"}
-// tpl: {{ user | key:'phone' | default:'n/a' }}
-// out: n/a
 func Key(value any, params []any) (any, error) {
 	val, err := key(value, params)
 	if err != nil {

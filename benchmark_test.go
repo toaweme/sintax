@@ -42,7 +42,7 @@ func Benchmark_Render_ModifierChain(b *testing.B) {
 func Benchmark_Render_JSONPipeline(b *testing.B) {
 	resp := `{"orders":[{"status":"paid","total":10.5},{"status":"pending","total":5},{"status":"paid","total":20.25}]}`
 	benchRender(b,
-		`{{ response | from:'json' | key:'orders' | filter:'status','paid' | pluck:'total' | sum | decimal:2 }}`,
+		`{{ response | from_json | key:'orders' | filter:'status','paid' | pluck:'total' | sum | decimal:2 }}`,
 		map[string]any{"response": resp},
 	)
 }

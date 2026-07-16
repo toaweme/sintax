@@ -26,33 +26,6 @@ const ModifierNameTemplate functions.ModifierName = "template"
 // that renders itself, directly or through a chain, is stopped at a fixed
 // maximum nesting depth with ErrMaxDepthExceeded rather than recursing forever.
 // A non-string value, or a non-map extra param, is an error.
-//
-// value: string (the template source)
-// param:0: map (optional; the isolated scope, replacing the parent variables)
-// returns: the rendered value
-//
-// example: render a string variable that itself contains markup, inheriting parent vars
-// in:  tpl = "Hi {{ name }}"
-// in:  name = "Bob"
-// tpl: {{ tpl | template }}
-// out: Hi Bob
-//
-// example: read a partial from disk and render it against the parent scope
-// in:  who = "World"
-// tpl: {{ "p.tpl" | file | template }}
-// out: Hello World
-//
-// example: isolated scope hides parent vars and exposes only the extra map
-// in:  tpl = "{{ name | default:'?' }}/{{ city }}"
-// in:  name = "parent"
-// in:  extra = {"city": "Vilnius"}
-// tpl: {{ tpl | template:extra }}
-// out: ?/Vilnius
-//
-// example: a self-referential template is stopped by the depth guard
-// in:  self = "{{ self | template }}"
-// tpl: {{ self | template }}
-// out: <error: max template nesting depth exceeded>
 func Template(render func(template string, vars map[string]any) (any, error), vars map[string]any, value any, params []any) (any, error) {
 	src, err := functions.ValueString(value)
 	if err != nil {
