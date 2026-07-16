@@ -25,21 +25,6 @@ type GlobalModifier func(value any, params []any) (any, error)
 // snapshot. Copy out anything that must outlive the call.
 type ContextualModifier func(render func(template string, vars map[string]any) (any, error), vars map[string]any, value any, params []any) (any, error)
 
-// Type represents the kind of value a modifier accepts or returns.
-type Type string
-
-// The supported modifier value types.
-const (
-	TypeAny    Type = "any"
-	TypeString Type = "string"
-	TypeBytes  Type = "bytes"
-	TypeInt    Type = "int"
-	TypeFloat  Type = "float"
-	TypeBool   Type = "bool"
-	TypeArray  Type = "array"
-	TypeMap    Type = "map"
-)
-
 var (
 	// ErrAllowsDefaultFunc marks non-fatal errors that the default modifier can catch.
 	ErrAllowsDefaultFunc = errors.New("non-fatal error")
