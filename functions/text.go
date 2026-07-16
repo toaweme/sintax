@@ -12,6 +12,12 @@ import "fmt"
 // other GlobalModifier, and it leaves value-type dispatch strict.
 func AsText(mod GlobalModifier) GlobalModifier {
 	return func(value any, params []any) (any, error) {
+		// a string is already the form the modifier wants, and reassigning it
+		// would box an identical string into a fresh any, allocating to replace
+		// a value with itself. strings are the common path here, so skip it.
+		if _, ok := value.(string); ok {
+			return mod(value, params)
+		}
 		if s, ok := Stringish(value); ok {
 			value = s
 		}
