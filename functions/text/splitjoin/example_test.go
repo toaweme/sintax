@@ -68,7 +68,7 @@ func ExampleJoinAny_nonString() {
 	fmt.Println(render(`{{ nums | join:',' }}`, map[string]any{
 		"nums": []any{"1", 2, "3"},
 	}))
-	// Output: error: failed to render template: failed to render variable token 'nums': function failed to apply: join expected an array of strings, got int at index 1
+	// Output: error: failed to render template: failed to render variable token 'nums': modifier "join": function failed to apply: join expected an array of strings, got int at index 1
 }
 
 // ExampleJoinDefault joins the elements of a slice on a newline when no

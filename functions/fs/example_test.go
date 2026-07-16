@@ -36,7 +36,7 @@ func ExampleFile_missing() {
 	fmt.Println(render(`{{ p | file }}`, map[string]any{
 		"p": "does-not-exist.txt",
 	}))
-	// Output: error: failed to render template: failed to render variable token 'p': function failed to apply: failed to read file "does-not-exist.txt": file does not exist
+	// Output: error: failed to render template: failed to render variable token 'p': modifier "file": function failed to apply: failed to read file "does-not-exist.txt": file does not exist
 }
 
 // ExampleFile_traversal keeps a path from escaping the allowlist, so "../"
@@ -45,7 +45,7 @@ func ExampleFile_traversal() {
 	fmt.Println(render(`{{ p | file }}`, map[string]any{
 		"p": "../secret.txt",
 	}))
-	// Output: error: failed to render template: failed to render variable token 'p': function failed to apply: failed to read file "../secret.txt": file does not exist
+	// Output: error: failed to render template: failed to render variable token 'p': modifier "file": function failed to apply: failed to read file "../secret.txt": file does not exist
 }
 
 // ExampleFile_intoTemplate reads a file and renders its contents as a template,

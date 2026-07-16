@@ -136,7 +136,7 @@ func ExampleFirstString_empty() {
 	fmt.Println(render(`{{ word | first }}`, map[string]any{
 		"word": "",
 	}))
-	// Output: error: failed to render template: failed to render variable token 'word': function failed to apply: first expected a non-empty string
+	// Output: error: failed to render template: failed to render variable token 'word': modifier "first": function failed to apply: first expected a non-empty string
 }
 
 // ExampleLastString returns the trailing byte of a string as a one-byte string.
@@ -180,7 +180,7 @@ func ExampleLastString_empty() {
 	fmt.Println(render(`{{ word | last }}`, map[string]any{
 		"word": "",
 	}))
-	// Output: error: failed to render template: failed to render variable token 'word': function failed to apply: last expected a non-empty string
+	// Output: error: failed to render template: failed to render variable token 'word': modifier "last": function failed to apply: last expected a non-empty string
 }
 
 // ExampleKey reads one value out of a map by key, walking nested maps with dot

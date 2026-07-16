@@ -181,5 +181,5 @@ func ExampleFromYAML_notInjected() {
 	fmt.Println(render(`{{ body | from_yaml }}`, map[string]any{
 		"body": "host: localhost",
 	}))
-	// Output: error: failed to render template: failed to render variable token 'body': function failed to apply: from_yaml function needs to be injected
+	// Output: error: failed to render template: failed to render variable token 'body': modifier "from_yaml": function failed to apply: from_yaml function needs to be injected
 }

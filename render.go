@@ -69,6 +69,20 @@ func newTokenRenderer(cfg *config) *TokenRenderer {
 // self-referential templates that would otherwise recurse forever.
 const defaultMaxTemplateDepth = 10
 
+// modifierFailure reports a modifier's failure with the modifier and variable it
+// came from. The name is only known here, at the call site, since a modifier is
+// a bare function that has no idea what it was registered as, and Wrap keeps its
+// rejections bare on purpose because Overload reads them to fall through
+// clauses. This is the one place that has both the name and the certainty that
+// the failure is terminal.
+func modifierFailure(name, variable string, err error) error {
+	return &ModifierError{
+		Modifier: name,
+		Variable: variable,
+		Err:      fmt.Errorf("%w: %w", ErrFunctionApplyFailed, err),
+	}
+}
+
 // renderNested renders a string template against vars through the same engine,
 // enforcing the recursion guard. Its signature matches the render callback
 // handed to contextual modifiers (e.g. `template`).
@@ -476,7 +490,7 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 			out, err := ctxFn(r.renderNested, vars, varValue, args)
 			if err != nil {
 				if !usesDefaultFunction || !errors.Is(err, functions.ErrAllowsDefaultFunc) {
-					return nil, fmt.Errorf("%w: %w", ErrFunctionApplyFailed, err)
+					return nil, modifierFailure(fn.Name, token.Name(), err)
 				}
 			}
 			varValue = out
@@ -486,10 +500,10 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 		newVarValueAfterFunctions, err := function(varValue, args)
 		if err != nil {
 			if !usesDefaultFunction {
-				return nil, fmt.Errorf("%w: %w", ErrFunctionApplyFailed, err)
+				return nil, modifierFailure(fn.Name, token.Name(), err)
 			}
 			if !errors.Is(err, functions.ErrAllowsDefaultFunc) {
-				return nil, fmt.Errorf("%w: %w", ErrFunctionApplyFailed, err)
+				return nil, modifierFailure(fn.Name, token.Name(), err)
 			}
 		}
 

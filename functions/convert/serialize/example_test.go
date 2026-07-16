@@ -157,7 +157,7 @@ func ExampleYAML_notInjected() {
 	fmt.Println(render(`{{ config | yaml }}`, map[string]any{
 		"config": map[string]any{"host": "localhost"},
 	}))
-	// Output: error: failed to render template: failed to render variable token 'config': function failed to apply: yaml function needs to be injected
+	// Output: error: failed to render template: failed to render variable token 'config': modifier "yaml": function failed to apply: yaml function needs to be injected
 }
 
 // ExampleMarkdown converts HTML to Markdown once a converter is injected, so a
