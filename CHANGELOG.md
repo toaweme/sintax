@@ -5,6 +5,54 @@ All notable changes to this project are documented here, newest first.
 Entries are generated from [Conventional Commits](https://www.conventionalcommits.org)
 and grouped by change type. This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-07-17
+
+### Features
+
+- Report missing data as a catchable miss by [@iberflow](https://github.com/iberflow) in [5818318](https://github.com/toaweme/sintax/commit/58183181590ce769a76bf965666cd090ed4e99b6).
+- Name the failing modifier with a typed ModifierError by [@iberflow](https://github.com/iberflow) in [22d4601](https://github.com/toaweme/sintax/commit/22d460147fd486bd7b7a8f7800d2ae76659759c7).
+- **[breaking]** Functional options for engine construction by [@iberflow](https://github.com/iberflow) in [9c194c8](https://github.com/toaweme/sintax/commit/9c194c89eac299dc4296887ea9330f393f5863bd).
+- Allow scalars in text modifiers by [@iberflow](https://github.com/iberflow) in [3a2298a](https://github.com/toaweme/sintax/commit/3a2298a3a543cfec81659292b3cd5a1d4e0a2673).
+- **[breaking]** Typed modifier clauses via Wrap/Overload adapters by [@iberflow](https://github.com/iberflow) in [9a59a86](https://github.com/toaweme/sintax/commit/9a59a8693cb36fd485a86d61d9a8ab490b2436a3).
+- **[breaking]** Replace BuiltinFunctions with defaults.New and per-group Modifiers() by [@iberflow](https://github.com/iberflow) in [e1a4cd8](https://github.com/toaweme/sintax/commit/e1a4cd81bfacb4721171d67322d96dc5f8a60431).
+- Html,js,url escape modifiers and - to _ modifier naming unification by [@iberflow](https://github.com/iberflow) in [d8f1217](https://github.com/toaweme/sintax/commit/d8f1217eceb465ea9cce15381d4be806e8240423).
+
+### Fixes
+
+- Let default catch empty-collection misses by [@iberflow](https://github.com/iberflow) in [e1e6599](https://github.com/toaweme/sintax/commit/e1e6599cf2099bd68c50a696f0bad7086ee8951d).
+- Pin care action by commit sha, not tag object by [@iberflow](https://github.com/iberflow) in [1c2f9d1](https://github.com/toaweme/sintax/commit/1c2f9d103e2eddbf3596ca66973f8b8308c265a6).
+
+### Documentation
+
+- Expand runnable examples and clean modifier doc comments by [@iberflow](https://github.com/iberflow) in [770d271](https://github.com/toaweme/sintax/commit/770d271c87a2f389cc36211417b9ee2423f44800).
+- Add runnable Go Example functions for all modifiers by [@iberflow](https://github.com/iberflow) in [1c10f81](https://github.com/toaweme/sintax/commit/1c10f81c64048d37750b60f14bac85185c5d29e3).
+- Add Contributing section to README by [@iberflow](https://github.com/iberflow) in [ff2f5ed](https://github.com/toaweme/sintax/commit/ff2f5ed250b42fc70a437799f4aab233ff2094a6).
+
+### Refactors
+
+- Drop the unused Type constants by [@iberflow](https://github.com/iberflow) in [9fbfcf2](https://github.com/toaweme/sintax/commit/9fbfcf2f1e3e2d7f13a9ea299f3e2d8094a30574).
+- Move every modifier onto the example-func doc convention by [@iberflow](https://github.com/iberflow) in [7da8dca](https://github.com/toaweme/sintax/commit/7da8dca735b014d9cfd4145abe93ebc3bfb75c25).
+- Reorganise modifiers into subdirs by [@iberflow](https://github.com/iberflow) in [86d18c0](https://github.com/toaweme/sintax/commit/86d18c0ec76909f408d3a5db0632aeb911bb0d10).
+- Reorganise modifiers a bit by [@iberflow](https://github.com/iberflow) in [b1836d0](https://github.com/toaweme/sintax/commit/b1836d05ef439107a21973733aa27729382b155c).
+
+### Tests
+
+- Name the e2e root test files consistently by [@iberflow](https://github.com/iberflow) in [7bc91c4](https://github.com/toaweme/sintax/commit/7bc91c49b5b4b20592d8c5850c2d2fb9eb0019a0).
+- Compare baseline and adapter benchmarks fairly by [@iberflow](https://github.com/iberflow) in [bbf6aff](https://github.com/toaweme/sintax/commit/bbf6aff0e3f6427555269b70ae0b9585794543ca).
+- Benchmark AsText and engine construction by [@iberflow](https://github.com/iberflow) in [25d80ee](https://github.com/toaweme/sintax/commit/25d80ee575cfc15a55e90696e5fea61ffc381cdb).
+
+### CI & Build
+
+- Bump care action to v0.9.3 by [@iberflow](https://github.com/iberflow) in [4f0853f](https://github.com/toaweme/sintax/commit/4f0853fdc4165368ea3bc5635bfb8b34b5c65522).
+- Move action version to inline comment so dependabot maintains it by [@iberflow](https://github.com/iberflow) in [a326bae](https://github.com/toaweme/sintax/commit/a326bae21f01624e8f3be578f86d3e4c689cf3d2).
+- Drop gomod dependabot block from dependency-free module by [@iberflow](https://github.com/iberflow) in [0e7e0a0](https://github.com/toaweme/sintax/commit/0e7e0a00d41afea2d507fbfd7203835aa5a1df41).
+- Add governance workflows and contributor docs by [@iberflow](https://github.com/iberflow) in [1b08610](https://github.com/toaweme/sintax/commit/1b08610f509955425810df7c449be2fd9728b73a).
+
+### Chores & Other
+
+- Care lint fixes by [@iberflow](https://github.com/iberflow) in [0eafaba](https://github.com/toaweme/sintax/commit/0eafaba400224f91a286d46be2e040a73c32852b).
+- Wip by [@iberflow](https://github.com/iberflow) in [cc4cb9b](https://github.com/toaweme/sintax/commit/cc4cb9b095f78a515e7feb86c2767ebdd1b91528).
+
 ## [0.3.0] - 2026-07-03
 
 ### Features
@@ -65,6 +113,7 @@ and grouped by change type. This project adheres to [Semantic Versioning](https:
 - Fix linter issues by [@iberflow](https://github.com/iberflow) in [79c2a53](https://github.com/toaweme/sintax/commit/79c2a53df09c87782bc16832572312826bd2985e).
 - Rollback go.mod to 1.22 by [@iberflow](https://github.com/iberflow) in [4be0329](https://github.com/toaweme/sintax/commit/4be0329a7a690ebcc5a80b9c4aa0689ea0f0c5d5).
 
+[0.4.0]: https://github.com/toaweme/sintax/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/toaweme/sintax/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/toaweme/sintax/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/toaweme/sintax/releases/tag/v0.1.0
