@@ -16,9 +16,12 @@ const ModifierNameDefault functions.ModifierName = "default"
 // and the boolean false are all real values and are kept as-is. `default` guards
 // against "nothing there", not against "a value that happens to be empty".
 //
-// The second situation is a soft failure earlier in the same pipe: when a
-// preceding modifier gives up without a hard error (for example find not
-// matching any row) the engine turns that into nil, which default then catches.
+// The second situation is a miss earlier in the same pipe, such as find matching
+// no row or key not holding the requested field. A miss travels down the
+// pipeline as nil, and default answers it simply by accepting that nil and
+// returning the fallback. The engine gives this modifier no special standing.
+// Any modifier that makes sense of nil answers a miss the same way, which is why
+// `not` reads a missing flag as false rather than failing.
 func Default(value any, fallback any) (any, error) {
 	if value == nil || value == "" {
 		return fallback, nil

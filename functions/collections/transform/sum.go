@@ -25,8 +25,10 @@ func SumElements(v []any) (float64, error) {
 }
 
 // SumField totals the named field across a slice of maps, the way you sum one
-// column of a list of records. A missing field or a non-numeric value is an
-// error.
+// column of a list of records. A field absent from a record is a miss, so
+// `| sum:'amount' | default:0` falls back rather than failing, while a
+// non-numeric value in the column is a terminal error, since silently treating
+// "abc" as zero would understate a total that someone is going to act on.
 func SumField(v []any, field string) (float64, error) {
 	var total float64
 	for i, elem := range v {
@@ -39,6 +41,12 @@ func SumField(v []any, field string) (float64, error) {
 	return total, nil
 }
 
+// numberFromField reads one numeric column out of a record. A nil record
+// contributes zero rather than reporting a miss, unlike pluck, which reports one
+// for the same input. The operations differ in what absence means. Addition has
+// an identity to fall back on, so a nil record can be counted as contributing
+// nothing without inventing anything, while pluck would have to fabricate an
+// element to keep its result aligned with its input.
 func numberFromField(elem any, field string) (float64, error) {
 	rv := reflect.ValueOf(elem)
 	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {
@@ -47,13 +55,16 @@ func numberFromField(elem any, field string) (float64, error) {
 		}
 		rv = rv.Elem()
 	}
+	if elem == nil {
+		return 0, nil
+	}
 	if rv.Kind() != reflect.Map {
-		return 0, fmt.Errorf("expected a map for field %q, got %T", field, elem)
+		return 0, fmt.Errorf("sum expected a map to read field %q from, got %T: %w", field, elem, functions.ErrInvalidValueType)
 	}
 	for _, k := range rv.MapKeys() {
 		if fmt.Sprint(k.Interface()) == field {
 			return functions.ParseNumber(rv.MapIndex(k).Interface())
 		}
 	}
-	return 0, fmt.Errorf("field %q not found", field)
+	return 0, functions.Miss("sum found no field %q to total", field)
 }

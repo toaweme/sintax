@@ -194,13 +194,33 @@ func ExampleKey() {
 	// Output: db.local
 }
 
-// ExampleKey_default shows the forgiving lookup paired with default, so a key
-// that is absent falls back to a supplied value instead of rendering nothing.
+// ExampleKey_default pairs an absent key with default, which supplies a value in
+// its place.
 func ExampleKey_default() {
 	fmt.Println(render(`{{ user | key:'phone' | default:'no phone on file' }}`, map[string]any{
 		"user": map[string]any{"name": "Alice"},
 	}))
 	// Output: no phone on file
+}
+
+// ExampleKey_defaultFurtherDown shows that the default answering a miss need not
+// follow it immediately. An absent key sends nothing down the pipe, and first
+// declines to take an element from nothing, leaving the miss for default to
+// answer.
+func ExampleKey_defaultFurtherDown() {
+	fmt.Println(render(`{{ user | key:'phones' | first | default:'no phone on file' }}`, map[string]any{
+		"user": map[string]any{"name": "Alice"},
+	}))
+	// Output: no phone on file
+}
+
+// ExampleKey_condition shows an absent key read as false. An if already asks
+// whether something is there, so it needs no default to say what absence means.
+func ExampleKey_condition() {
+	fmt.Println(render(`{{ if user | key:'phone' }}call them{{ else }}write instead{{ endif }}`, map[string]any{
+		"user": map[string]any{"name": "Alice"},
+	}))
+	// Output: write instead
 }
 
 // ExampleKey_index reads one element out of a list by passing its position as a
@@ -221,6 +241,27 @@ func ExampleKey_nestedNumber() {
 		},
 	}))
 	// Output: 5432
+}
+
+// ExampleKey_missingKey shows an absent key with nothing to answer it. Rendering
+// empty here would read the same as a host that was genuinely blank, and a
+// misspelled key would go unnoticed, so the render fails instead.
+func ExampleKey_missingKey() {
+	fmt.Println(render(`{{ config | key:'database.hsot' }}`, map[string]any{
+		"config": map[string]any{
+			"database": map[string]any{"host": "db.local"},
+		},
+	}))
+	// Output: error: failed to render template: failed to render variable token 'config': modifier "key": function failed to apply: key "hsot" not found
+}
+
+// ExampleKey_notAMap shows a value that cannot be looked up at all. That is the
+// template being wrong rather than data being absent, so no default rescues it.
+func ExampleKey_notAMap() {
+	fmt.Println(render(`{{ name | key:'first' | default:'unknown' }}`, map[string]any{
+		"name": "Alice",
+	}))
+	// Output: error: failed to render template: failed to render variable token 'name': modifier "key": function failed to apply: key expected a map or slice, got string: invalid value type
 }
 
 // ExampleFindSlice returns the first map in a slice whose key field equals the

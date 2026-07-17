@@ -131,15 +131,16 @@ func (r *TokenRenderer) renderRange(tokens []Token, start, end int, vars map[str
 				i++
 				continue
 			}
-			if val, ok := variable.(bool); ok {
-				str.WriteString(strconv.FormatBool(val))
-				i++
-				continue
-			}
-			// pass a single non-string variable straight through, returning the value directly
+			// pass a single non-string variable straight through, returning the value
+			// directly. this must stay ahead of any type-specific stringifying, since a
+			// branch that writes to str above it makes the passthrough unreachable for
+			// that type. a bool `{{ flag }}` would render "true" rather than answering
+			// with the bool a caller asked a boolean modifier for.
 			if allowDirect && start == i && i+1 == end && str.Len() == 0 {
 				return variable, i + 1, nil
 			}
+			// fmt.Fprint renders a bool as "true"/"false" and an int in base 10, so a
+			// variable interpolated among text needs no special case to read naturally.
 			fmt.Fprint(&str, variable)
 			i++
 		case IfToken:
@@ -391,6 +392,13 @@ func (r *TokenRenderer) evalCondition(expr string, vars map[string]any) (bool, e
 // delimiters, allocate a token slice, and run the block-trim post-pass). This
 // path is hot: every if-condition and for-iterable runs through it, including
 // once per iteration for conditions inside a loop body.
+//
+// An if condition and a for iterable are the two positions that answer a miss
+// on their own. Asking whether absent data is true is answerable (it is not),
+// and iterating absent data is answerable (there is nothing to iterate). Writing
+// `| default:false` inside a condition to say so would be noise, since the
+// question already carries its own answer. So a miss evaluates to nil here
+// rather than failing the render, and ConditionIsTrue reads nil as false.
 func (r *TokenRenderer) evalExpr(expr string, vars map[string]any) (any, error) {
 	expr = strings.TrimSpace(expr)
 	if expr == "" {
@@ -400,10 +408,25 @@ func (r *TokenRenderer) evalExpr(expr string, vars map[string]any) (any, error) 
 	if tt != VariableToken && tt != FilteredVariableToken {
 		return nil, fmt.Errorf("expression %q did not parse to a variable", expr)
 	}
-	return r.renderVariable(r.parser.createToken(tt, expr), vars)
+	value, err := r.renderVariable(r.parser.createToken(tt, expr), vars)
+	if err != nil {
+		if errors.Is(err, functions.ErrAllowsDefaultFunc) {
+			return nil, nil //nolint:nilnil // deliberate, absent data is nil here, which reads as false and iterates nothing
+		}
+		return nil, err
+	}
+	return value, nil
 }
 
-// renderVariable renders a single variable token
+// renderVariable renders a single variable token. A miss that nothing in the
+// pipeline answered comes back as an error like any other, since a miss is an
+// error that happens to be catchable. Callers that can answer one themselves
+// (evalExpr, for if conditions and for iterables) test it with errors.Is against
+// functions.ErrAllowsDefaultFunc, and callers that cannot just return it.
+//
+// Rendering an uncaught miss as empty instead would be worse than failing. A
+// bank field left blank because its key was misspelled reads exactly like a
+// field that was legitimately absent.
 func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, error) {
 	if token.Type() == TextToken {
 		return token.Raw(), nil
@@ -419,18 +442,9 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 			return nil, fmt.Errorf("simple %w: %s", ErrVariableNotFound, token.Name())
 		}
 
-		switch val := varValue.(type) {
-		case string:
-			return val, nil
-		case bool:
-			if val {
-				return "true", nil
-			}
-			return "false", nil
-		case int:
-			return strconv.Itoa(val), nil
-		}
-
+		// a bare `{{ x }}` answers with x's own value. stringifying by type here
+		// would contradict renderRange's passthrough and does not even reach the
+		// text path, which formats the value itself when it sits among other tokens.
 		return varValue, nil
 	}
 
@@ -449,19 +463,29 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 	} else {
 		varValue, varExists = vars[varName]
 	}
-	if !varExists {
-		// only return an error if there are no functions to apply
-		// if there are functions to apply, we can assume that the variable can be optional e.g. using "default" function
-		if !hasFunctionsToApply {
+	if !hasFunctionsToApply {
+		if !varExists {
 			return nil, fmt.Errorf("complex %w: %s", ErrVariableNotFound, varName)
 		}
-	}
-
-	if !hasFunctionsToApply {
 		return varValue, nil
 	}
 
-	usesDefaultFunction := hasDefaultFunction(funcs)
+	// an absent variable is a miss like any other, so `{{ maybe | upper |
+	// default:'x' }}` falls back rather than handing nil to upper. A pipeline is
+	// what makes it catchable. A bare `{{ maybe }}` above has nowhere to put a
+	// default and stays a hard error.
+	//
+	// No modifier failed here, so this miss carries no ModifierError. It wraps
+	// ErrVariableNotFound instead, keeping an absent variable identifiable by the
+	// same sentinel whether or not a pipeline followed it.
+	// missed holds the miss traveling down the pipeline, nil when nothing is
+	// missing. It is a plain error, so an unanswered one is simply what this
+	// function returns.
+	var missed error
+	if !varExists {
+		missed = functions.Miss("complex %w: %s", ErrVariableNotFound, varName)
+	}
+
 	for _, fn := range funcs {
 		ctxFn, isCtx := r.ctxFuncs[fn.Name]
 		function, ok := r.funcs[fn.Name]
@@ -486,40 +510,45 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 			}
 		}
 
+		var out any
+		var applyErr error
 		if isCtx {
-			out, err := ctxFn(r.renderNested, vars, varValue, args)
-			if err != nil {
-				if !usesDefaultFunction || !errors.Is(err, functions.ErrAllowsDefaultFunc) {
-					return nil, modifierFailure(fn.Name, token.Name(), err)
+			out, applyErr = ctxFn(r.renderNested, vars, varValue, args)
+		} else {
+			out, applyErr = function(varValue, args)
+		}
+		if applyErr != nil {
+			// a miss already in flight means this modifier was handed the nil standing
+			// in for absent data, so rejecting that value describes the absence rather
+			// than the template, and the original miss keeps traveling for something
+			// downstream to answer. A rejected param is the exception. Params are
+			// written in the template and do not depend on the data, so the mistake is
+			// real either way and must not hide behind a default until the data
+			// happens to arrive.
+			if missed != nil {
+				if functions.IsParamError(applyErr) {
+					return nil, modifierFailure(fn.Name, token.Name(), applyErr)
 				}
+				continue
 			}
-			varValue = out
+			// nothing is missing, so a rejection means the template itself is wrong.
+			// That stays terminal no matter what sits downstream. A default answers
+			// absent data, it does not make a broken template render.
+			if !errors.Is(applyErr, functions.ErrAllowsDefaultFunc) {
+				return nil, modifierFailure(fn.Name, token.Name(), applyErr)
+			}
+			missed, varValue = modifierFailure(fn.Name, token.Name(), applyErr), nil
 			continue
 		}
 
-		newVarValueAfterFunctions, err := function(varValue, args)
-		if err != nil {
-			if !usesDefaultFunction {
-				return nil, modifierFailure(fn.Name, token.Name(), err)
-			}
-			if !errors.Is(err, functions.ErrAllowsDefaultFunc) {
-				return nil, modifierFailure(fn.Name, token.Name(), err)
-			}
-		}
-
-		varValue = newVarValueAfterFunctions
+		// a modifier that made sense of nothing has answered the miss, which is why
+		// the engine needs no list of which modifiers those are. `default` supplies
+		// a value, `not` reads absence as false and inverts it, and each one decides
+		// for itself by accepting nil or rejecting it.
+		missed, varValue = nil, out
 	}
 
-	return varValue, nil
-}
-
-func hasDefaultFunction(funcs []Func) bool {
-	for _, fn := range funcs {
-		if fn.Name == "default" {
-			return true
-		}
-	}
-	return false
+	return varValue, missed
 }
 
 // varAndFuncs returns the parsed variable name and modifier pipeline for a

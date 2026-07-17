@@ -46,16 +46,18 @@ func File(safeDirs []string) func(path string) (string, error) {
 			return string(data), nil
 		}
 
-		return "", fmt.Errorf("failed to read file %q: %w", path, os.ErrNotExist)
+		return "", functions.Miss("failed to read file %q: %w", path, os.ErrNotExist)
 	}
 }
 
 // resolveSafePaths validates path against the configured safe dirs, returning
 // the cleaned candidate paths to read (one per safe dir the path stays inside).
 // It performs no I/O. Paths that escape their safe dir via ".." are dropped, and
-// if none remain it returns os.ErrNotExist so a traversal attempt is
-// indistinguishable from a genuine miss.
+// if none remain it reports a miss carrying os.ErrNotExist so a traversal
+// attempt is indistinguishable from a genuine miss.
 func resolveSafePaths(path string, safeDirs []string) (paths []string, err error) {
+	// an empty allowlist is the application declining to wire file reads at all,
+	// not a file that happens to be absent, so a default must not paper over it.
 	if len(safeDirs) == 0 {
 		return nil, fmt.Errorf("failed to read file %q: no safe directories configured", path)
 	}
@@ -72,7 +74,7 @@ func resolveSafePaths(path string, safeDirs []string) (paths []string, err error
 	}
 
 	if len(paths) == 0 {
-		return nil, fmt.Errorf("failed to read file %q: %w", path, os.ErrNotExist)
+		return nil, functions.Miss("failed to read file %q: %w", path, os.ErrNotExist)
 	}
 	return paths, nil
 }

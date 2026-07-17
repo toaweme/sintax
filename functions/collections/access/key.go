@@ -1,7 +1,6 @@
 package access
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -13,47 +12,44 @@ import (
 // ModifierNameKey is the template name for the Key modifier.
 const ModifierNameKey functions.ModifierName = "key"
 
-// Key reads one value out of a map by key or out of a slice by index.
-// Pass a string to look up a map key, and use dot notation in that string to
-// walk into nested maps (for example 'database.host'). Pass a number to index
-// into a slice. Key is forgiving by design so templates stay simple: a missing
-// key, an out-of-range index, a nil value, or a type it cannot descend into all
-// render as nothing (nil) instead of raising a template error. Pair it with the
-// default modifier to supply a fallback when the lookup comes back empty.
+// Key reads one value out of a map by key or out of a slice by index. Pass a
+// string to look up a map key, and use dot notation in that string to walk into
+// nested maps (for example 'database.host'). Pass a number to index into a
+// slice.
+//
+// A lookup that finds nothing is a miss rather than a failure. A missing key, a
+// path that runs out partway, an out-of-range index, and a nil value all report
+// one. That is catchable, so `| default:'x'` supplies a fallback, an if reads it
+// as false, and a for iterates nothing. Uncaught, it fails the render rather
+// than quietly rendering empty, since a misspelled key that renders nothing is
+// indistinguishable from data that was genuinely absent.
+//
+// Being handed something that cannot be looked up at all is a different thing
+// and stays terminal. No key parameter, a non-string key, or a value that is
+// neither map nor slice means the template is wrong, and no default rescues it.
 func Key(value any, params []any) (any, error) {
-	val, err := key(value, params)
-	if err != nil {
-		// we don't fail the function, we just return nil
-		// easier to handle logic in templates
-		return nil, nil //nolint:nilerr,nilnil // deliberate, lookup failures render as nil, not a template error
-	}
-	return val, nil
-}
-
-func key(value any, params []any) (any, error) {
 	if len(params) == 0 {
-		return nil, errors.New("key function requires a key parameter")
+		return nil, fmt.Errorf("key requires a key parameter: %w", functions.ErrMissingParam)
 	}
 
 	if value == nil {
-		return nil, errors.New("key function: value is nil")
+		return nil, functions.Miss("key found no value to look in")
 	}
 
 	rv := reflect.ValueOf(value)
-	rt := rv.Type()
 
-	switch rt.Kind() {
+	switch rv.Type().Kind() {
 	case reflect.Map:
 		return handleMap(rv, params)
 	case reflect.Slice, reflect.Array:
 		return handleSlice(rv, params)
 	case reflect.Pointer:
 		if rv.IsNil() {
-			return nil, errors.New("key function: pointer is nil")
+			return nil, functions.Miss("key found no value to look in")
 		}
-		return key(rv.Elem().Interface(), params)
+		return Key(rv.Elem().Interface(), params)
 	default:
-		return nil, fmt.Errorf("key function expected map or slice, got %T", value)
+		return nil, fmt.Errorf("key expected a map or slice, got %T: %w", value, functions.ErrInvalidValueType)
 	}
 }
 
@@ -68,23 +64,26 @@ func handleMap(rv reflect.Value, params []any) (any, error) {
 		// Dereference pointers and unwrap interfaces
 		for current.Kind() == reflect.Pointer || current.Kind() == reflect.Interface {
 			if current.IsNil() {
-				return nil, fmt.Errorf("key function: nil pointer/interface encountered at path segment %q", part)
+				return nil, functions.Miss("key path stops at %q, which holds nothing", part)
 			}
 			current = current.Elem()
 		}
 
+		// the path runs out rather than the template being wrong. this data simply
+		// does not nest that deep, which is the same shape of absence as a key that
+		// is not there.
 		if current.Kind() != reflect.Map {
-			return nil, fmt.Errorf("key function: path segment %q is not a map; cannot continue nested lookup", part)
+			return nil, functions.Miss("key path segment %q is not a map, cannot look deeper", part)
 		}
 
 		keyValue, err := convertToMapKeyType(part, current.Type().Key())
 		if err != nil {
-			return nil, fmt.Errorf("key function: cannot convert key %q to map key type %v: %w", part, current.Type().Key(), err)
+			return nil, functions.Miss("key %q cannot exist in a map keyed by %v", part, current.Type().Key())
 		}
 
 		nextVal := current.MapIndex(keyValue)
 		if !nextVal.IsValid() {
-			return nil, fmt.Errorf("key function: path segment %q not found in map", part)
+			return nil, functions.Miss("key %q not found", part)
 		}
 
 		if i == len(parts)-1 {
@@ -94,22 +93,18 @@ func handleMap(rv reflect.Value, params []any) (any, error) {
 		current = nextVal
 	}
 
-	return nil, fmt.Errorf("key function: no value found for key path %v", parts)
+	return nil, functions.Miss("key found no value for path %v", parts)
 }
 
 func handleSlice(rv reflect.Value, params []any) (any, error) {
-	if len(params) == 0 {
-		return nil, errors.New("key function: slice access requires an index parameter")
-	}
-
 	index, err := convertToInt(params[0])
 	if err != nil {
-		return nil, fmt.Errorf("key function: index for slice must be convertible to int: %w", err)
+		return nil, fmt.Errorf("key expected an index for a slice, got %T: %w", params[0], functions.ErrInvalidParamType)
 	}
 
 	length := rv.Len()
 	if index < 0 || index >= length {
-		return nil, fmt.Errorf("key function: index %d out of range [0:%d)", index, length)
+		return nil, functions.Miss("key index %d is outside the slice's %d element(s)", index, length)
 	}
 
 	return rv.Index(index).Interface(), nil
@@ -165,7 +160,7 @@ func convertToInt(value any) (int, error) {
 func keyParts(params []any) ([]string, error) {
 	keyPath, ok := params[0].(string)
 	if !ok {
-		return nil, errors.New("key function requires a string key parameter")
+		return nil, fmt.Errorf("key expected a string key, got %T: %w", params[0], functions.ErrInvalidParamType)
 	}
 
 	parts := strings.Split(keyPath, ".")

@@ -24,17 +24,15 @@ type Token interface {
 	Raw() string
 	Name() string
 	Params() []string
-	WithDefault() bool
 	LoopExpr() string
 }
 
 // BaseToken is the concrete Token implementation shared by every token kind.
 type BaseToken struct {
-	TokenType  TokenType
-	RawValue   string
-	Var        string
-	ParamVars  []string
-	HasDefault bool
+	TokenType TokenType
+	RawValue  string
+	Var       string
+	ParamVars []string
 	// LoopExprValue holds the iteration expression for ForToken (e.g. "groups",
 	// "items | filter:'a','b'"). For ForToken, Var holds the loop variable name
 	// (e.g. "tx") and LoopExprValue holds the right-hand-side expression.
@@ -59,9 +57,6 @@ func (bt BaseToken) Name() string { return bt.Var }
 
 // Params returns the token's raw parameter strings, if any.
 func (bt BaseToken) Params() []string { return bt.ParamVars }
-
-// WithDefault reports whether the token has a default-value fallback.
-func (bt BaseToken) WithDefault() bool { return bt.HasDefault }
 
 // LoopExpr returns the iteration expression for a ForToken.
 func (bt BaseToken) LoopExpr() string { return bt.LoopExprValue }
