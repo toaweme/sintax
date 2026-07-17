@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -34,6 +35,8 @@ func ValueNumber(v any) (float64, error) {
 	switch vv := v.(type) {
 	case float64:
 		return vv, nil
+	case float32:
+		return float64(vv), nil
 	case int:
 		return float64(vv), nil
 	case int8:
@@ -59,6 +62,60 @@ func ValueNumber(v any) (float64, error) {
 	default:
 		return 0, fmt.Errorf("%w: expected number, got %T", ErrInvalidValueType, v)
 	}
+}
+
+// ValueInt coerces v to an int across the numeric kinds, reporting false for a
+// non-numeric value or for a float carrying a fractional part, since silently
+// truncating would hide a caller mistake. It backs Wrap's int slot, where a
+// string must not satisfy an int param, so unlike the lenient index coercion in
+// collections/access it neither parses strings nor truncates.
+func ValueInt(v any) (int, bool) {
+	switch n := v.(type) {
+	case int:
+		return n, true
+	case int8:
+		return int(n), true
+	case int16:
+		return int(n), true
+	case int32:
+		return int(n), true
+	case int64:
+		return int(n), true
+	case uint:
+		return int(n), true
+	case uint8:
+		return int(n), true
+	case uint16:
+		return int(n), true
+	case uint32:
+		return int(n), true
+	case uint64:
+		return int(n), true
+	case float32:
+		if float32(int(n)) == n {
+			return int(n), true
+		}
+	case float64:
+		if float64(int(n)) == n {
+			return int(n), true
+		}
+	}
+	return 0, false
+}
+
+// ParseNumber coerces v to a float64 across the numeric kinds, additionally
+// parsing a numeric string and treating nil as zero. It is the lenient companion
+// to ValueNumber (which rejects strings), for modifiers such as decimal and sum
+// whose value may legitimately arrive as text.
+func ParseNumber(v any) (float64, error) {
+	if s, ok := v.(string); ok {
+		f, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			return 0, fmt.Errorf("failed to parse %q as a number: %w", s, ErrInvalidValueType)
+		}
+		return f, nil
+	}
+	return ValueNumber(v)
 }
 
 // ParamStringList asserts every element of params is a string, returning

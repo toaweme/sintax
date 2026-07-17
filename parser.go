@@ -31,7 +31,7 @@ func (p *StringParser) Parse(template string) ([]Token, error) {
 		// find the next occurrence of `opener`
 		openerIndex := strings.Index(template[i:], p.opener)
 		if openerIndex == -1 {
-			// no more `opener` in the substring; treat the rest as text
+			// no more `opener` in the substring, so treat the rest as text
 			if i < len(template) {
 				tokens = append(tokens, BaseToken{
 					TokenType: TextToken,
@@ -56,7 +56,7 @@ func (p *StringParser) Parse(template string) ([]Token, error) {
 		startOfInner := openerIndex + len(p.opener)
 		closerIndex := strings.Index(template[startOfInner:], p.closer)
 		if closerIndex == -1 {
-			// no matching closer found: might treat the rest of the string as text
+			// no matching closer found, so the rest of the string is treated as text
 			tokens = append(tokens, BaseToken{
 				TokenType: TextToken,
 				RawValue:  template[openerIndex:], // everything from opener
@@ -106,7 +106,7 @@ func (p *StringParser) Parse(template string) ([]Token, error) {
 		}
 	}
 
-	// post-pass: auto-trim whitespace around control tags that sit alone on a line.
+	// post-pass that auto-trims whitespace around control tags sitting alone on a line.
 	tokens = autoTrimBlockLines(tokens)
 
 	return tokens, nil
@@ -170,7 +170,7 @@ func autoTrimBlockLines(tokens []Token) []Token {
 			continue
 		}
 
-		// previous text tail check: at start-of-template (i==0), or the prev text
+		// previous-text tail check, met at start-of-template (i==0), or when the prev text
 		// contains a '\n' followed only by whitespace until the end.
 		prevOK := i == 0
 		var prevBt BaseToken
@@ -232,7 +232,7 @@ func autoTrimBlockLines(tokens []Token) []Token {
 			continue
 		}
 
-		// apply: strip trailing whitespace from prev (back to last newline kept)
+		// strip trailing whitespace from prev, back to the last newline kept
 		if i > 0 && out[i-1].Type() == TextToken {
 			tail := prevBt.RawValue
 			nl := strings.LastIndexByte(tail, '\n')
@@ -314,16 +314,12 @@ func (p *StringParser) createToken(tokenType TokenType, value string) Token {
 			Var:       strings.TrimSpace(splitAndGetFirst(value)),
 		}
 
-		hasDefault := false
-		// extract the modifier variables; cache the parse so renderVariable can
+		// extract the modifier variables and cache the parse so renderVariable can
 		// skip re-splitting RawValue on every render.
 		varName, funcs := getVarAndFunctions(token)
 		token.parsedVar = varName
 		token.parsedFuncs = funcs
 		for _, f := range funcs {
-			if f.Name == "default" {
-				hasDefault = true
-			}
 			for _, p := range f.Args {
 				if p.Var {
 					if varName, ok := p.Value.(string); ok {
@@ -335,7 +331,6 @@ func (p *StringParser) createToken(tokenType TokenType, value string) Token {
 				}
 			}
 		}
-		token.HasDefault = hasDefault
 		return token
 	case IfToken:
 		return BaseToken{TokenType: IfToken, RawValue: trimPrefix(value, "if")}
@@ -369,7 +364,7 @@ func parseForExpr(s string) (string, string) {
 	}
 	lhs := strings.TrimSpace(s[:idx])
 	expr := strings.TrimSpace(s[idx+len(" in "):])
-	// normalise pair form: collapse internal whitespace so "k, v" → "k,v"
+	// normalise pair form by collapsing internal whitespace so "k, v" becomes "k,v"
 	if strings.Contains(lhs, ",") {
 		parts := strings.Split(lhs, ",")
 		for i := range parts {

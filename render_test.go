@@ -109,12 +109,12 @@ func Test_StringRenderer_RenderVariable(t *testing.T) {
 			vars:     map[string]any{"items": []any{"a"}},
 			expected: []any{"a"},
 		},
-		// "{{ provider.body | from:'json' | key:'meta.pagination.total' | gt:0 }}",
+		// "{{ provider.body | from_json | key:'meta.pagination.total' | gt:0 }}",
 		{
 			name: "from json with key and gt",
 			token: BaseToken{
 				TokenType: FilteredVariableToken,
-				RawValue:  "provider.body | from:'json' | key:'meta.pagination.total' | gt:0",
+				RawValue:  "provider.body | from_json | key:'meta.pagination.total' | gt:0",
 			},
 			vars: map[string]any{
 				"provider.body": `{"meta": {"pagination": {"total": 1}}}`,
@@ -123,7 +123,7 @@ func Test_StringRenderer_RenderVariable(t *testing.T) {
 		},
 	}
 
-	r := NewStringRenderer(BuiltinFunctions(nil, nil))
+	r := NewTokenRenderer(builtins())
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {

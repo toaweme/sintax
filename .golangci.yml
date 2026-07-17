@@ -235,6 +235,11 @@ linters:
         linters:
           - revive
         text: "should have comment|comment on exported|package comment"
+      # allow modifiers to stutter
+      - path: functions/(text/trim|format)/
+        linters:
+          - revive
+        text: stutters
       # examples are illustrative - skip security and the full revive style pass
       - path: examples/
         linters:

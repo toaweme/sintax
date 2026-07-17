@@ -33,8 +33,11 @@ type Func struct {
 	Args []Arg
 }
 
-// StringRenderer handles rendering templates with a given context.
-type StringRenderer struct {
+// TokenRenderer renders a token stream against a variable set. It is named for
+// what it consumes rather than what it produces: StringParser turns a string
+// into tokens, and TokenRenderer turns those tokens into a value, which is not
+// necessarily a string.
+type TokenRenderer struct {
 	funcs    map[string]GlobalModifier
 	ctxFuncs map[string]ContextualModifier
 	parser   *StringParser
@@ -42,15 +45,22 @@ type StringRenderer struct {
 	depth    int
 }
 
-var _ Renderer = (*StringRenderer)(nil)
+var _ Renderer = (*TokenRenderer)(nil)
 
-// NewStringRenderer creates a new instance of StringRenderer with the provided context.
-func NewStringRenderer(funcs map[string]GlobalModifier) *StringRenderer {
-	return &StringRenderer{
-		funcs:    funcs,
-		ctxFuncs: builtinContextualModifiers(),
+// NewTokenRenderer creates a TokenRenderer configured by opts, which are the
+// same options New takes.
+func NewTokenRenderer(opts ...Option) *TokenRenderer {
+	return newTokenRenderer(newConfig(opts))
+}
+
+// newTokenRenderer builds a renderer from an already-resolved config, so New
+// does not resolve the same options twice.
+func newTokenRenderer(cfg *config) *TokenRenderer {
+	return &TokenRenderer{
+		funcs:    cfg.funcs,
+		ctxFuncs: cfg.ctxFuncs,
 		parser:   NewStringParser(),
-		maxDepth: defaultMaxTemplateDepth,
+		maxDepth: cfg.maxDepth,
 	}
 }
 
@@ -59,10 +69,24 @@ func NewStringRenderer(funcs map[string]GlobalModifier) *StringRenderer {
 // self-referential templates that would otherwise recurse forever.
 const defaultMaxTemplateDepth = 10
 
+// modifierFailure reports a modifier's failure with the modifier and variable it
+// came from. The name is only known here, at the call site, since a modifier is
+// a bare function that has no idea what it was registered as, and Wrap keeps its
+// rejections bare on purpose because Overload reads them to fall through
+// clauses. This is the one place that has both the name and the certainty that
+// the failure is terminal.
+func modifierFailure(name, variable string, err error) error {
+	return &ModifierError{
+		Modifier: name,
+		Variable: variable,
+		Err:      fmt.Errorf("%w: %w", ErrFunctionApplyFailed, err),
+	}
+}
+
 // renderNested renders a string template against vars through the same engine,
 // enforcing the recursion guard. Its signature matches the render callback
 // handed to contextual modifiers (e.g. `template`).
-func (r *StringRenderer) renderNested(template string, vars map[string]any) (any, error) {
+func (r *TokenRenderer) renderNested(template string, vars map[string]any) (any, error) {
 	if r.depth+1 > r.maxDepth {
 		return nil, fmt.Errorf("failed to render nested template: %w", ErrMaxDepthExceeded)
 	}
@@ -70,12 +94,12 @@ func (r *StringRenderer) renderNested(template string, vars map[string]any) (any
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse nested template: %w", err)
 	}
-	child := &StringRenderer{funcs: r.funcs, ctxFuncs: r.ctxFuncs, parser: r.parser, maxDepth: r.maxDepth, depth: r.depth + 1}
+	child := &TokenRenderer{funcs: r.funcs, ctxFuncs: r.ctxFuncs, parser: r.parser, maxDepth: r.maxDepth, depth: r.depth + 1}
 	return child.Render(tokens, vars)
 }
 
 // Render processes the provided tokens and variables, returning a rendered string or any value
-func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error) {
+func (r *TokenRenderer) Render(tokens []Token, vars map[string]any) (any, error) {
 	out, _, err := r.renderRange(tokens, 0, len(tokens), vars, true)
 	return out, err
 }
@@ -85,9 +109,10 @@ func (r *StringRenderer) Render(tokens []Token, vars map[string]any) (any, error
 // and any error.
 //
 // if allowDirect is true and the only meaningful token in the range is a single
-// non-string variable, the value is returned directly (legacy passthrough
-// behavior). otherwise everything is stringified.
-func (r *StringRenderer) renderRange(tokens []Token, start, end int, vars map[string]any, allowDirect bool) (any, int, error) {
+// non-string variable, the value is returned directly rather than stringified,
+// so a template that is nothing but `{{ x }}` yields x's own type. otherwise
+// everything is stringified.
+func (r *TokenRenderer) renderRange(tokens []Token, start, end int, vars map[string]any, allowDirect bool) (any, int, error) {
 	var str strings.Builder
 	i := start
 	for i < end {
@@ -106,15 +131,16 @@ func (r *StringRenderer) renderRange(tokens []Token, start, end int, vars map[st
 				i++
 				continue
 			}
-			if val, ok := variable.(bool); ok {
-				str.WriteString(strconv.FormatBool(val))
-				i++
-				continue
-			}
-			// passthrough: a single non-string variable returns the value directly
+			// pass a single non-string variable straight through, returning the value
+			// directly. this must stay ahead of any type-specific stringifying, since a
+			// branch that writes to str above it makes the passthrough unreachable for
+			// that type. a bool `{{ flag }}` would render "true" rather than answering
+			// with the bool a caller asked a boolean modifier for.
 			if allowDirect && start == i && i+1 == end && str.Len() == 0 {
 				return variable, i + 1, nil
 			}
+			// fmt.Fprint renders a bool as "true"/"false" and an int in base 10, so a
+			// variable interpolated among text needs no special case to read naturally.
 			fmt.Fprint(&str, variable)
 			i++
 		case IfToken:
@@ -132,7 +158,7 @@ func (r *StringRenderer) renderRange(tokens []Token, start, end int, vars map[st
 			str.WriteString(out)
 			i = next
 		case ElseToken, IfEndToken, ForEndToken:
-			// caller should have stopped before this; reaching here means a stray closer
+			// caller should have stopped before this, so reaching here means a stray closer
 			return nil, i, fmt.Errorf("unexpected control token: %s", controlName(token.Type()))
 		default:
 			i++
@@ -201,7 +227,7 @@ func findForEnd(tokens []Token, start, end int) (int, error) {
 	return -1, errors.New("unterminated for block (missing endfor)")
 }
 
-func (r *StringRenderer) renderIf(tokens []Token, start, end int, vars map[string]any) (string, int, error) {
+func (r *TokenRenderer) renderIf(tokens []Token, start, end int, vars map[string]any) (string, int, error) {
 	elseIdx, endIdx, err := findIfEnd(tokens, start, end)
 	if err != nil {
 		return "", start, err
@@ -232,7 +258,7 @@ func (r *StringRenderer) renderIf(tokens []Token, start, end int, vars map[strin
 	return s, endIdx + 1, nil
 }
 
-func (r *StringRenderer) renderFor(tokens []Token, start, end int, vars map[string]any) (string, int, error) {
+func (r *TokenRenderer) renderFor(tokens []Token, start, end int, vars map[string]any) (string, int, error) {
 	endIdx, err := findForEnd(tokens, start, end)
 	if err != nil {
 		return "", start, err
@@ -266,13 +292,13 @@ func (r *StringRenderer) renderFor(tokens []Token, start, end int, vars map[stri
 		rv = rv.Elem()
 	}
 
-	// the loop-binding key names are constant across iterations; build them once
+	// the loop-binding key names are constant across iterations, so build them once
 	// rather than re-concatenating loopVar+"_index" etc. on every pass.
 	idxKey := loopVar + "_index"
 	firstKey := loopVar + "_first"
 	lastKey := loopVar + "_last"
 
-	// one child scope, reused across every iteration: the bindings below are
+	// one child scope, reused across every iteration. The bindings below are
 	// overwritten each pass, so a fresh copy per iteration is unnecessary. this
 	// is sound only because nothing retains the map beyond the synchronous body
 	// render - global modifiers never receive vars, and contextual modifiers
@@ -285,7 +311,7 @@ func (r *StringRenderer) renderFor(tokens []Token, start, end int, vars map[stri
 		for i := range n {
 			child[loopVar] = rv.Index(i).Interface()
 			if keyName != "" {
-				// "for i, v in xs" — bind index under the user-chosen name
+				// "for i, v in xs" binds the index under the user-chosen name
 				child[keyName] = i
 			}
 			child[idxKey] = i
@@ -351,7 +377,7 @@ func childScope(parent map[string]any) map[string]any {
 
 // evalCondition renders a single expression and returns its truthiness via
 // functions.ConditionIsTrue.
-func (r *StringRenderer) evalCondition(expr string, vars map[string]any) (bool, error) {
+func (r *TokenRenderer) evalCondition(expr string, vars map[string]any) (bool, error) {
 	val, err := r.evalExpr(expr, vars)
 	if err != nil {
 		return false, err
@@ -366,20 +392,42 @@ func (r *StringRenderer) evalCondition(expr string, vars map[string]any) (bool, 
 // delimiters, allocate a token slice, and run the block-trim post-pass). This
 // path is hot: every if-condition and for-iterable runs through it, including
 // once per iteration for conditions inside a loop body.
-func (r *StringRenderer) evalExpr(expr string, vars map[string]any) (any, error) {
+//
+// An if condition and a for iterable are the two positions that answer a miss
+// on their own. Asking whether absent data is true is answerable (it is not),
+// and iterating absent data is answerable (there is nothing to iterate). Writing
+// `| default:false` inside a condition to say so would be noise, since the
+// question already carries its own answer. So a miss evaluates to nil here
+// rather than failing the render, and ConditionIsTrue reads nil as false.
+func (r *TokenRenderer) evalExpr(expr string, vars map[string]any) (any, error) {
 	expr = strings.TrimSpace(expr)
 	if expr == "" {
-		return nil, nil //nolint:nilnil // deliberate: an empty expression evaluates to nil, not an error
+		return nil, nil //nolint:nilnil // deliberate, an empty expression evaluates to nil, not an error
 	}
 	tt := r.parser.detectTokenType(expr)
 	if tt != VariableToken && tt != FilteredVariableToken {
 		return nil, fmt.Errorf("expression %q did not parse to a variable", expr)
 	}
-	return r.renderVariable(r.parser.createToken(tt, expr), vars)
+	value, err := r.renderVariable(r.parser.createToken(tt, expr), vars)
+	if err != nil {
+		if errors.Is(err, functions.ErrAllowsDefaultFunc) {
+			return nil, nil //nolint:nilnil // deliberate, absent data is nil here, which reads as false and iterates nothing
+		}
+		return nil, err
+	}
+	return value, nil
 }
 
-// renderVariable renders a single variable token
-func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, error) {
+// renderVariable renders a single variable token. A miss that nothing in the
+// pipeline answered comes back as an error like any other, since a miss is an
+// error that happens to be catchable. Callers that can answer one themselves
+// (evalExpr, for if conditions and for iterables) test it with errors.Is against
+// functions.ErrAllowsDefaultFunc, and callers that cannot just return it.
+//
+// Rendering an uncaught miss as empty instead would be worse than failing. A
+// bank field left blank because its key was misspelled reads exactly like a
+// field that was legitimately absent.
+func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, error) {
 	if token.Type() == TextToken {
 		return token.Raw(), nil
 	}
@@ -394,18 +442,9 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 			return nil, fmt.Errorf("simple %w: %s", ErrVariableNotFound, token.Name())
 		}
 
-		switch val := varValue.(type) {
-		case string:
-			return val, nil
-		case bool:
-			if val {
-				return "true", nil
-			}
-			return "false", nil
-		case int:
-			return strconv.Itoa(val), nil
-		}
-
+		// a bare `{{ x }}` answers with x's own value. stringifying by type here
+		// would contradict renderRange's passthrough and does not even reach the
+		// text path, which formats the value itself when it sits among other tokens.
 		return varValue, nil
 	}
 
@@ -424,19 +463,29 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 	} else {
 		varValue, varExists = vars[varName]
 	}
-	if !varExists {
-		// only return an error if there are no functions to apply
-		// if there are functions to apply, we can assume that the variable can be optional e.g. using "default" function
-		if !hasFunctionsToApply {
+	if !hasFunctionsToApply {
+		if !varExists {
 			return nil, fmt.Errorf("complex %w: %s", ErrVariableNotFound, varName)
 		}
-	}
-
-	if !hasFunctionsToApply {
 		return varValue, nil
 	}
 
-	usesDefaultFunction := hasDefaultFunction(funcs)
+	// an absent variable is a miss like any other, so `{{ maybe | upper |
+	// default:'x' }}` falls back rather than handing nil to upper. A pipeline is
+	// what makes it catchable. A bare `{{ maybe }}` above has nowhere to put a
+	// default and stays a hard error.
+	//
+	// No modifier failed here, so this miss carries no ModifierError. It wraps
+	// ErrVariableNotFound instead, keeping an absent variable identifiable by the
+	// same sentinel whether or not a pipeline followed it.
+	// missed holds the miss traveling down the pipeline, nil when nothing is
+	// missing. It is a plain error, so an unanswered one is simply what this
+	// function returns.
+	var missed error
+	if !varExists {
+		missed = functions.Miss("complex %w: %s", ErrVariableNotFound, varName)
+	}
+
 	for _, fn := range funcs {
 		ctxFn, isCtx := r.ctxFuncs[fn.Name]
 		function, ok := r.funcs[fn.Name]
@@ -461,40 +510,45 @@ func (r *StringRenderer) renderVariable(token Token, vars map[string]any) (any, 
 			}
 		}
 
+		var out any
+		var applyErr error
 		if isCtx {
-			out, err := ctxFn(r.renderNested, vars, varValue, args)
-			if err != nil {
-				if !usesDefaultFunction || !errors.Is(err, functions.ErrAllowsDefaultFunc) {
-					return nil, fmt.Errorf("%w: %w", ErrFunctionApplyFailed, err)
+			out, applyErr = ctxFn(r.renderNested, vars, varValue, args)
+		} else {
+			out, applyErr = function(varValue, args)
+		}
+		if applyErr != nil {
+			// a miss already in flight means this modifier was handed the nil standing
+			// in for absent data, so rejecting that value describes the absence rather
+			// than the template, and the original miss keeps traveling for something
+			// downstream to answer. A rejected param is the exception. Params are
+			// written in the template and do not depend on the data, so the mistake is
+			// real either way and must not hide behind a default until the data
+			// happens to arrive.
+			if missed != nil {
+				if functions.IsParamError(applyErr) {
+					return nil, modifierFailure(fn.Name, token.Name(), applyErr)
 				}
+				continue
 			}
-			varValue = out
+			// nothing is missing, so a rejection means the template itself is wrong.
+			// That stays terminal no matter what sits downstream. A default answers
+			// absent data, it does not make a broken template render.
+			if !errors.Is(applyErr, functions.ErrAllowsDefaultFunc) {
+				return nil, modifierFailure(fn.Name, token.Name(), applyErr)
+			}
+			missed, varValue = modifierFailure(fn.Name, token.Name(), applyErr), nil
 			continue
 		}
 
-		newVarValueAfterFunctions, err := function(varValue, args)
-		if err != nil {
-			if !usesDefaultFunction {
-				return nil, fmt.Errorf("%w: %w", ErrFunctionApplyFailed, err)
-			}
-			if !errors.Is(err, functions.ErrAllowsDefaultFunc) {
-				return nil, fmt.Errorf("%w: %w", ErrFunctionApplyFailed, err)
-			}
-		}
-
-		varValue = newVarValueAfterFunctions
+		// a modifier that made sense of nothing has answered the miss, which is why
+		// the engine needs no list of which modifiers those are. `default` supplies
+		// a value, `not` reads absence as false and inverts it, and each one decides
+		// for itself by accepting nil or rejecting it.
+		missed, varValue = nil, out
 	}
 
-	return varValue, nil
-}
-
-func hasDefaultFunction(funcs []Func) bool {
-	for _, fn := range funcs {
-		if fn.Name == "default" {
-			return true
-		}
-	}
-	return false
+	return varValue, missed
 }
 
 // varAndFuncs returns the parsed variable name and modifier pipeline for a

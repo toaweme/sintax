@@ -18,7 +18,7 @@
 Zero dependency templating engine built for workflows, document generation, and data transformations.
 
 ```
-{{ response | from:'json' | key:'orders' | filter:'status','paid' | pluck:'total' | sum | decimal:2 }}
+{{ response | from_json | key:'orders' | filter:'status','paid' | pluck:'total' | sum | decimal:2 }}
 ```
 
 ---
@@ -53,20 +53,61 @@ package main
 import (
     "fmt"
     "github.com/toaweme/sintax"
+    "github.com/toaweme/sintax/defaults"
 )
 
 func main() {
-    s := sintax.New(sintax.BuiltinFunctions(nil, nil))
+    s := sintax.New(defaults.All())
 
     out, _ := s.Render("Hello, {{ name | title }}!", map[string]any{"name": "alice-cooper"})
     fmt.Println(out) // Hello, Alice Cooper!
 }
 ```
 
-`sintax.New(funcs)` takes the exact set of modifiers the engine can call - it does not merge in any
-built-ins on its own. `sintax.BuiltinFunctions(overrides, safeDirs)` builds that set: pass `nil` for both
-to get every built-in with no overrides, or a `map[string]sintax.GlobalModifier` to add or replace
-modifiers by name, and a list of directories the `file` modifier is allowed to read from.
+`sintax.New(opts...)` starts from nothing and knows only the modifiers you pass it, so an engine can never
+call something you did not wire. `defaults.All(safeDirs...)` is the batteries-included shortcut, bundling
+every built-in into one option - pass one or more directories to enable the `file` modifier against that
+allowlist; with none, file reads stay disabled.
+
+Because the engine imports no modifiers itself, a size-conscious program can skip `defaults` entirely and
+compose only the groups it uses. Each group under `functions/*` exposes a `Modifiers()` constructor, and
+`WithModifiers` merges rather than replaces, so groups stack in a single call:
+
+```go
+import (
+    "github.com/toaweme/sintax"
+    casing "github.com/toaweme/sintax/functions/text/case"
+    "github.com/toaweme/sintax/functions/boolean"
+)
+
+s := sintax.New( // links only these groups, not the whole battery
+    sintax.WithModifiers(casing.Modifiers()),
+    sintax.WithModifiers(boolean.Modifiers()),
+)
+```
+
+Options apply in order, so layering one on top of `defaults.All()` replaces any built-in of the same name:
+
+```go
+s := sintax.New(defaults.All(), sintax.WithModifiers(overrides))
+```
+
+### Contextual modifiers
+
+`template` is not a global modifier. It renders its input as a nested template, so it needs live render
+state rather than only its piped value, and it is wired through `WithContextualModifiers` instead.
+`defaults.All()` includes it. If you compose groups by hand, ask for it explicitly:
+
+```go
+s := sintax.New(
+    sintax.WithModifiers(fs.Modifiers([]string{"partials"})),
+    sintax.WithContextualModifiers(render.ContextualModifiers()),
+)
+// `{{ p | file | template }}` now reads a partial and expands it
+```
+
+`WithMaxDepth(n)` bounds how deeply `template` may re-enter the engine before `ErrMaxDepthExceeded`,
+guarding against a template that renders itself. It defaults to 10.
 
 ---
 
@@ -78,7 +119,7 @@ modifiers by name, and a list of directories the `file` modifier is allowed to r
 | Nested field access | `{{ user \| key:'name' }}` |
 | Modifier chain | `{{ text \| trim \| upper }}` |
 | Modifier with args | `{{ items \| join:',' }}` |
-| Variable as argument | `{{ text \| trim-prefix:prefix_var }}` |
+| Variable as argument | `{{ text \| trim_prefix:prefix_var }}` |
 | Fallback to literal | `{{ value \| default:'n/a' }}` |
 | Fallback to empty array | `{{ items \| default:[] }}` |
 | Fallback to empty object | `{{ user \| default:{} }}` |
@@ -162,8 +203,8 @@ Trim, case-shift, slugify, split, and reshape strings.
 | `title` | Title converts a hyphen-separated slug into a title-cased string. | `{{ slug \| title }}` |
 | `title_model` | ModelTitle formats an AI model identifier into a human-readable title. | `{{ model_id \| title_model }}` |
 | `trim` | Trim removes leading and trailing whitespace, or the given character set. | `{{ name \| trim }}` |
-| `trim-prefix` | TrimPrefix removes a leading prefix string or leading whitespace from the value. | `{{ path \| trim-prefix:'/' }}` |
-| `trim-suffix` | TrimSuffix removes a trailing suffix string or trailing whitespace from the value. | `{{ url \| trim-suffix:'/' }}` |
+| `trim_prefix` | TrimPrefix removes a leading prefix string or leading whitespace from the value. | `{{ path \| trim_prefix:'/' }}` |
+| `trim_suffix` | TrimSuffix removes a trailing suffix string or trailing whitespace from the value. | `{{ url \| trim_suffix:'/' }}` |
 | `upper` | ToUpper converts a string to uppercase. | `{{ name \| upper }}` |
 
 ### Collections
@@ -204,7 +245,9 @@ Move between Go values, JSON, YAML, and other serialized formats.
 
 | Item | Description | Example |
 | --- | --- | --- |
-| `from` | From parses the string value as the given format and returns the parsed result. | `{{ body \| from:'json' }}` |
+| `from_csv` | Parses a CSV string into a list of rows keyed by the header row. | `{{ body \| from_csv }}` |
+| `from_json` | Parses a JSON object string into a map. | `{{ body \| from_json }}` |
+| `from_yaml` | Parses a YAML document into a map. Ships as a stub until you inject a codec. | `{{ body \| from_yaml }}` |
 | `json` | JSON serializes the value to a JSON string. | `{{ user \| json }}` |
 | `markdown` | Markdown converts an HTML string to Markdown. | `{{ html_content \| markdown }}` |
 | `yaml` | YAML serializes or parses a value as YAML. | `{{ config \| yaml }}` |
@@ -219,7 +262,7 @@ Defaults, lengths, line numbers, and date formatting.
 | `default` | Default returns the fallback value if the input is nil or an empty string. | `{{ name \| default:'anonymous' }}` |
 | `format` | Format formats a time.Time value using a date format string. | `{{ created_at \| format:'YYYY-MM-DD' }}` |
 | `length` | Length returns the number of characters in a string, bytes in a byte slice, or elements in a slice/array/map. | `{{ name \| length }}` |
-| `line-numbers` | LineNumbers prepends each line of the string with its zero-based line number. | `{{ note \| line-numbers }}` |
+| `line_numbers` | LineNumbers prepends each line of the string with its zero-based line number. | `{{ note \| line_numbers }}` |
 
 ### File System
 
@@ -229,10 +272,10 @@ Pull pieces out of file paths - directory, name, and extension - and read files 
 | --- | --- | --- |
 | `dirname` | Dirname returns the directory portion of a file path. | `{{ file_path \| dirname }}` |
 | `ext` | FilenameExt returns the file extension without the leading dot. | `{{ file_path \| ext }}` |
-| `ext-dot` | FilenameExtDot returns the file extension including the leading dot. | `{{ file_path \| ext-dot }}` |
-| `ext-prepend` | FilenamePrependExt inserts an additional extension before the existing file extension. | `{{ file_path \| ext-prepend:'min' }}` |
-| `ext-trim` | FilenameTrimExt returns the file path without its extension. | `{{ file_path \| ext-trim }}` |
-| `file` | File reads a file's contents as a string. The path is resolved against the `safeDirs` passed to `BuiltinFunctions`, and `..` traversal outside them is rejected. | `{{ "greeting.tpl" \| file }}` |
+| `ext_dot` | FilenameExtDot returns the file extension including the leading dot. | `{{ file_path \| ext_dot }}` |
+| `ext_prepend` | FilenamePrependExt inserts an additional extension before the existing file extension. | `{{ file_path \| ext_prepend:'min' }}` |
+| `ext_trim` | FilenameTrimExt returns the file path without its extension. | `{{ file_path \| ext_trim }}` |
+| `file` | File reads a file's contents as a string. The path is resolved against the `safeDirs` passed to `defaults.New` (or `fs.Modifiers`), and `..` traversal outside them is rejected. | `{{ "greeting.tpl" \| file }}` |
 | `filename` | Filename returns the base file name from a path, including the extension. | `{{ file_path \| filename }}` |
 
 ### Money
@@ -251,7 +294,7 @@ custom modifiers, and surfacing typed errors. The template syntax itself is docu
 ## Public API
 
 The engine speaks through a small, stable set of interfaces. Everything else (`StringParser`,
-`StringRenderer`, `BaseToken`) is an implementation detail.
+`TokenRenderer`, `BaseToken`) is an implementation detail.
 
 ### `Sintax`
 
@@ -318,20 +361,20 @@ case err != nil:
 
 ## Custom modifiers
 
-Pass a map of overrides to `sintax.BuiltinFunctions`. Overrides also replace built-ins of the same name,
-useful for sandboxing or instrumenting a modifier.
+Pass your own modifiers with `WithModifiers`. A later option wins, so registering a built-in's name
+replaces it, which is useful for sandboxing or instrumenting a modifier.
 
 ```go
-overrides := map[string]sintax.GlobalModifier{
+overrides := map[string]functions.GlobalModifier{
     "redact": func(value any, params []any) (any, error) {
         return "***", nil
     },
 }
-s := sintax.New(sintax.BuiltinFunctions(overrides, nil))
+s := sintax.New(defaults.All(), sintax.WithModifiers(overrides))
 // {{ secret | redact }} → ***
 ```
 
-`GlobalModifier` is `func(value any, params []any) (any, error)`. The first positional argument from the
+`functions.GlobalModifier` (aliased as `sintax.GlobalModifier`) is `func(value any, params []any) (any, error)`. The first positional argument from the
 template flows in as `value`; everything after the modifier name (separated by `,`) shows up in `params`.
 
 ---
@@ -344,26 +387,26 @@ core stays dependency-light. Wire in whatever library you prefer; the examples b
 **YAML serialization**: the example uses `gopkg.in/yaml.v3`, but any YAML library works
 
 ```go
-overrides := map[string]sintax.GlobalModifier{
+overrides := map[string]functions.GlobalModifier{
     "yaml": func(value any, params []any) (any, error) {
         b, err := yaml.Marshal(value)
         return string(b), err
     },
 }
-s := sintax.New(sintax.BuiltinFunctions(overrides, nil))
+s := sintax.New(defaults.All(), sintax.WithModifiers(overrides))
 ```
 
 **HTML to Markdown**: the example uses `github.com/JohannesKaufmann/html-to-markdown/v2`, but any converter works
 
 ```go
-overrides := map[string]sintax.GlobalModifier{
+overrides := map[string]functions.GlobalModifier{
     "markdown": func(value any, params []any) (any, error) {
         html, _ := functions.ValueString(value)
         conv := converter.NewConverter(converter.WithPlugins(base.NewBasePlugin()))
         return conv.ConvertString(html)
     },
 }
-s := sintax.New(sintax.BuiltinFunctions(overrides, nil))
+s := sintax.New(defaults.All(), sintax.WithModifiers(overrides))
 ```
 
 ---
@@ -388,4 +431,3 @@ Reports for this repo are hosted by our <a href="https://code.toawe.me">code vie
 ---
 
 Made with ❤️ in Lithuania 🇱🇹.
-</content>

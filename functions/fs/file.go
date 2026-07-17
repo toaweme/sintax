@@ -1,3 +1,4 @@
+// Package fs provides a modifier that reads file contents from an allowlist.
 package fs
 
 import (
@@ -12,23 +13,26 @@ import (
 // ModifierNameFile is the template name for the File modifier.
 const ModifierNameFile functions.ModifierName = "file"
 
-// File builds a modifier that reads a file's contents as a string. The path is
-// resolved against safeDirs (in order) and may only point inside one of them:
-// any path that escapes a safe dir via ".." is rejected. This is the closure a
-// caller wires into the engine to control which directories templates can read.
+// File builds the `file` modifier, which reads a file's contents as a string so
+// a template can embed on-disk content (for example piping the result into the
+// template modifier as a partial). Unlike the plain global modifiers, `file` is
+// a security boundary. The application that wires it in supplies an allowlist of
+// safe directories that controls exactly which directories a template may read
+// from, and an empty allowlist disables file reads entirely.
 //
-// value: string (a path, relative to a safe dir or absolute inside one)
-// returns: string (the file contents)
-//
-// example: load a template file from an allowlisted dir
-// in:  safeDirs = ["./templates"]
-// tpl: {{ "greeting.tpl.mdx" | file }}
-// out: <contents of ./templates/greeting.tpl.mdx>
-func File(safeDirs []string) func(value any, params []any) (any, error) {
-	return func(value any, params []any) (any, error) {
-		rel, paths, err := resolveSafePaths(value, safeDirs)
+// The path is resolved against each safe dir in order and the first dir that
+// contains a readable file wins. A path may only point inside a safe dir.
+// Anything that escapes via ".." is dropped, so a template author cannot read
+// siblings or parents of a safe dir. Absolute paths are not an escape hatch
+// either. They are joined onto the safe dir (so "/etc/passwd" against safe dir
+// "tpl" resolves to "tpl/etc/passwd"), never to the real root. When no safe dir
+// yields the file it returns a not-found error that deliberately does not reveal
+// whether the file existed outside the allowlist.
+func File(safeDirs []string) func(path string) (string, error) {
+	return func(path string) (string, error) {
+		paths, err := resolveSafePaths(path, safeDirs)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 
 		for _, full := range paths {
@@ -37,31 +41,30 @@ func File(safeDirs []string) func(value any, params []any) (any, error) {
 				if os.IsNotExist(err) {
 					continue
 				}
-				return nil, fmt.Errorf("failed to read file %q: %w", rel, err)
+				return "", fmt.Errorf("failed to read file %q: %w", path, err)
 			}
 			return string(data), nil
 		}
 
-		return nil, fmt.Errorf("failed to read file %q: %w", rel, os.ErrNotExist)
+		return "", functions.Miss("failed to read file %q: %w", path, os.ErrNotExist)
 	}
 }
 
-// resolveSafePaths validates the file argument and the configured safe dirs,
-// returning the requested path and the cleaned candidate paths to read (one per
-// safe dir the path stays inside). It performs no I/O. Paths that escape their
-// safe dir via ".." are dropped; if none remain it returns os.ErrNotExist.
-func resolveSafePaths(value any, safeDirs []string) (rel string, paths []string, err error) {
-	rel, err = functions.ValueString(value)
-	if err != nil {
-		return "", nil, fmt.Errorf("failed to read file path: %w", err)
-	}
+// resolveSafePaths validates path against the configured safe dirs, returning
+// the cleaned candidate paths to read (one per safe dir the path stays inside).
+// It performs no I/O. Paths that escape their safe dir via ".." are dropped, and
+// if none remain it reports a miss carrying os.ErrNotExist so a traversal
+// attempt is indistinguishable from a genuine miss.
+func resolveSafePaths(path string, safeDirs []string) (paths []string, err error) {
+	// an empty allowlist is the application declining to wire file reads at all,
+	// not a file that happens to be absent, so a default must not paper over it.
 	if len(safeDirs) == 0 {
-		return rel, nil, fmt.Errorf("failed to read file %q: no safe directories configured", rel)
+		return nil, fmt.Errorf("failed to read file %q: no safe directories configured", path)
 	}
 
 	for _, dir := range safeDirs {
 		cleanDir := filepath.Clean(dir)
-		full := filepath.Clean(filepath.Join(cleanDir, rel))
+		full := filepath.Clean(filepath.Join(cleanDir, path))
 
 		// reject anything that escapes the safe dir via ".."
 		if full != cleanDir && !strings.HasPrefix(full, cleanDir+string(os.PathSeparator)) {
@@ -71,7 +74,7 @@ func resolveSafePaths(value any, safeDirs []string) (rel string, paths []string,
 	}
 
 	if len(paths) == 0 {
-		return rel, nil, fmt.Errorf("failed to read file %q: %w", rel, os.ErrNotExist)
+		return nil, functions.Miss("failed to read file %q: %w", path, os.ErrNotExist)
 	}
-	return rel, paths, nil
+	return paths, nil
 }

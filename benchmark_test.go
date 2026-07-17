@@ -13,7 +13,7 @@ import (
 // measures an error path.
 func benchRender(b *testing.B, tmpl string, vars map[string]any) {
 	b.Helper()
-	s := New(BuiltinFunctions(nil, nil))
+	s := New(builtins())
 	if _, err := s.Render(tmpl, vars); err != nil {
 		b.Fatalf("setup render failed: %v", err)
 	}
@@ -42,7 +42,7 @@ func Benchmark_Render_ModifierChain(b *testing.B) {
 func Benchmark_Render_JSONPipeline(b *testing.B) {
 	resp := `{"orders":[{"status":"paid","total":10.5},{"status":"pending","total":5},{"status":"paid","total":20.25}]}`
 	benchRender(b,
-		`{{ response | from:'json' | key:'orders' | filter:'status','paid' | pluck:'total' | sum | decimal:2 }}`,
+		`{{ response | from_json | key:'orders' | filter:'status','paid' | pluck:'total' | sum | decimal:2 }}`,
 		map[string]any{"response": resp},
 	)
 }
@@ -132,7 +132,7 @@ func Benchmark_RenderTokens_Complex(b *testing.B) {
 	if err != nil {
 		b.Fatalf("parse failed: %v", err)
 	}
-	r := NewStringRenderer(BuiltinFunctions(nil, nil))
+	r := NewTokenRenderer(builtins())
 	vars := benchComplexVars()
 	if _, err := r.Render(tokens, vars); err != nil {
 		b.Fatalf("setup render failed: %v", err)

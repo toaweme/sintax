@@ -12,77 +12,77 @@ import (
 func Test_resolveSafePaths(t *testing.T) {
 	tests := []struct {
 		name      string
-		value     any
+		path      string
 		safeDirs  []string
-		wantRel   string
 		wantPaths []string
 		wantErr   bool
 		wantErrIs error
 	}{
 		{
-			name:      "non-string arg is rejected",
-			value:     123,
-			safeDirs:  []string{"tpl"},
-			wantErr:   true,
-			wantErrIs: functions.ErrInvalidValueType,
-		},
-		{
 			name:     "empty safe dirs errors",
-			value:    "greeting.txt",
+			path:     "greeting.txt",
 			safeDirs: nil,
-			wantRel:  "greeting.txt",
 			wantErr:  true,
 		},
 		{
 			name:      "single safe dir resolves",
-			value:     "greeting.txt",
+			path:      "greeting.txt",
 			safeDirs:  []string{"tpl"},
-			wantRel:   "greeting.txt",
 			wantPaths: []string{filepath.Join("tpl", "greeting.txt")},
 		},
 		{
 			name:      "nested relative path resolves",
-			value:     "a/b/doc.md",
+			path:      "a/b/doc.md",
 			safeDirs:  []string{"tpl"},
-			wantRel:   "a/b/doc.md",
 			wantPaths: []string{filepath.Join("tpl", "a", "b", "doc.md")},
 		},
 		{
 			name:      "candidate per safe dir",
-			value:     "doc.md",
+			path:      "doc.md",
 			safeDirs:  []string{"a", "b"},
-			wantRel:   "doc.md",
 			wantPaths: []string{filepath.Join("a", "doc.md"), filepath.Join("b", "doc.md")},
 		},
 		{
 			name:      "parent traversal is dropped",
-			value:     "../secret.txt",
+			path:      "../secret.txt",
 			safeDirs:  []string{"safe"},
-			wantRel:   "../secret.txt",
 			wantErr:   true,
 			wantErrIs: os.ErrNotExist,
 		},
 		{
 			name:      "traversal that stays inside is kept",
-			value:     "sub/../doc.md",
+			path:      "sub/../doc.md",
 			safeDirs:  []string{"tpl"},
-			wantRel:   "sub/../doc.md",
 			wantPaths: []string{filepath.Join("tpl", "doc.md")},
 		},
 		{
 			name:      "escape in one dir is dropped but kept in another",
-			value:     "../b/doc.md",
+			path:      "../b/doc.md",
 			safeDirs:  []string{"a", filepath.Join("a", "b")},
-			wantRel:   "../b/doc.md",
 			wantPaths: []string{filepath.Join("a", "b", "doc.md")},
+		},
+		{
+			// an absolute-looking path is joined onto the safe dir, never the
+			// real filesystem root, so it stays sandboxed
+			name:      "absolute path is contained inside the safe dir",
+			path:      "/etc/passwd",
+			safeDirs:  []string{"tpl"},
+			wantPaths: []string{filepath.Join("tpl", "etc", "passwd")},
+		},
+		{
+			// a deep traversal that only partway escapes is still dropped
+			name:      "deep parent traversal is dropped",
+			path:      "../../../../etc/passwd",
+			safeDirs:  []string{"tpl"},
+			wantErr:   true,
+			wantErrIs: os.ErrNotExist,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rel, paths, err := resolveSafePaths(tt.value, tt.safeDirs)
+			paths, err := resolveSafePaths(tt.path, tt.safeDirs)
 
-			assert.Equal(t, tt.wantRel, rel)
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.wantErrIs != nil {
@@ -103,7 +103,7 @@ func Test_File_ReadsFromSafeDir(t *testing.T) {
 		t.Fatalf("failed to write fixture: %v", err)
 	}
 
-	out, err := File([]string{dir})("greeting.txt", nil)
+	out, err := File([]string{dir})("greeting.txt")
 	assert.NoError(t, err)
 	assert.Equal(t, want, out)
 }
@@ -116,15 +116,39 @@ func Test_File_ResolvesFromFirstMatchingDir(t *testing.T) {
 		t.Fatalf("failed to write fixture: %v", err)
 	}
 
-	out, err := File([]string{missing, present})("doc.md", nil)
+	out, err := File([]string{missing, present})("doc.md")
 	assert.NoError(t, err)
 	assert.Equal(t, want, out)
+}
+
+func Test_File_ReadsNestedPath(t *testing.T) {
+	dir := t.TempDir()
+	nested := filepath.Join(dir, "emails")
+	if err := os.Mkdir(nested, 0o700); err != nil {
+		t.Fatalf("failed to create nested dir: %v", err)
+	}
+	want := "welcome aboard"
+	if err := os.WriteFile(filepath.Join(nested, "welcome.txt"), []byte(want), 0o600); err != nil {
+		t.Fatalf("failed to write fixture: %v", err)
+	}
+
+	out, err := File([]string{dir})("emails/welcome.txt")
+	assert.NoError(t, err)
+	assert.Equal(t, want, out)
+}
+
+func Test_File_AbsolutePathIsSandboxed(t *testing.T) {
+	dir := t.TempDir()
+	// "/etc/passwd" must resolve under the safe dir, not the real root, so
+	// reading it fails with not-exist rather than leaking the host file
+	_, err := File([]string{dir})("/etc/passwd")
+	assert.ErrorIs(t, err, os.ErrNotExist)
 }
 
 func Test_File_MissingFileErrors(t *testing.T) {
 	dir := t.TempDir()
 
-	_, err := File([]string{dir})("nope.txt", nil)
+	_, err := File([]string{dir})("nope.txt")
 	assert.ErrorIs(t, err, os.ErrNotExist)
 }
 
@@ -139,11 +163,43 @@ func Test_File_TraversalEscapeIsRejected(t *testing.T) {
 	}
 
 	// the file exists, but only reachable by escaping the safe dir
-	_, err := File([]string{safe})("../secret.txt", nil)
+	_, err := File([]string{safe})("../secret.txt")
 	assert.ErrorIs(t, err, os.ErrNotExist)
 }
 
 func Test_File_NoSafeDirsErrors(t *testing.T) {
-	_, err := File(nil)("greeting.txt", nil)
+	_, err := File(nil)("greeting.txt")
 	assert.Error(t, err)
+}
+
+// Test_File_Modifier_ReadsThroughWrap exercises the registered modifier so the
+// Wrap adapter's value coercion is covered alongside the typed body.
+func Test_File_Modifier_ReadsThroughWrap(t *testing.T) {
+	dir := t.TempDir()
+	want := "hello from disk"
+	if err := os.WriteFile(filepath.Join(dir, "greeting.txt"), []byte(want), 0o600); err != nil {
+		t.Fatalf("failed to write fixture: %v", err)
+	}
+
+	file := Modifiers([]string{dir})[string(ModifierNameFile)]
+	out, err := file("greeting.txt", nil)
+	assert.NoError(t, err)
+	assert.Equal(t, want, out)
+}
+
+func Test_File_Modifier_NonStringValueIsRejected(t *testing.T) {
+	dir := t.TempDir()
+
+	file := Modifiers([]string{dir})[string(ModifierNameFile)]
+	_, err := file(42, nil)
+	assert.ErrorIs(t, err, functions.ErrInvalidValueType)
+}
+
+func Test_File_Modifier_ParamsAreRejected(t *testing.T) {
+	dir := t.TempDir()
+
+	// the file modifier takes zero params, so Wrap rejects any argument
+	file := Modifiers([]string{dir})[string(ModifierNameFile)]
+	_, err := file("greeting.txt", []any{"extra"})
+	assert.ErrorIs(t, err, functions.ErrInvalidParamType)
 }
