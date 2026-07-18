@@ -19,11 +19,22 @@ func lineNumbersNilEmpty(value any, _ []any) (any, error) {
 	return nil, functions.ErrInvalidValueType
 }
 
-// LineNumbers prepends each line of s with its zero-based line number.
+// LineNumbers prepends each line of s with its one-based line number.
 func LineNumbers(s string) (string, error) {
+	return numberLines(s, 1), nil
+}
+
+// LineNumbersFrom prepends each line of s with a line number counting up from
+// start, so `line_numbers:6` renders a block as if it began at line six.
+func LineNumbersFrom(s string, start int) (string, error) {
+	return numberLines(s, start), nil
+}
+
+// numberLines prefixes every line of s with a running number beginning at start.
+func numberLines(s string, start int) string {
 	lines := strings.Split(s, "\n")
 	for i, line := range lines {
-		lines[i] = fmt.Sprintf("%d. %s", i, line)
+		lines[i] = fmt.Sprintf("%d. %s", start+i, line)
 	}
-	return strings.Join(lines, "\n"), nil
+	return strings.Join(lines, "\n")
 }

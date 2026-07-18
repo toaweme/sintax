@@ -144,34 +144,44 @@ func ExampleDecimalPlaces_zero() {
 	// Output: 43
 }
 
-// ExampleLineNumbers prepends each line of a string with its zero-based line
+// ExampleLineNumbers prepends each line of a string with its one-based line
 // number.
 func ExampleLineNumbers() {
 	fmt.Println(render(`{{ body | line_numbers }}`, map[string]any{
 		"body": "first\nsecond\nthird",
 	}))
-	// Output: 0. first
-	// 1. second
-	// 2. third
+	// Output: 1. first
+	// 2. second
+	// 3. third
 }
 
-// ExampleLineNumbers_single numbers a single line, which becomes line zero.
+// ExampleLineNumbers_single numbers a single line, which becomes line one.
 func ExampleLineNumbers_single() {
 	fmt.Println(render(`{{ body | line_numbers }}`, map[string]any{
 		"body": "only one line",
 	}))
-	// Output: 0. only one line
+	// Output: 1. only one line
 }
 
-// ExampleLineNumbers_steps numbers each line of a block from zero, handy for
+// ExampleLineNumbers_steps numbers each line of a block from one, handy for
 // turning a list of steps or a code snippet into a numbered listing.
 func ExampleLineNumbers_steps() {
 	fmt.Println(render(`{{ body | line_numbers }}`, map[string]any{
 		"body": "clone the repo\nrun the build\nrun the tests",
 	}))
-	// Output: 0. clone the repo
-	// 1. run the build
-	// 2. run the tests
+	// Output: 1. clone the repo
+	// 2. run the build
+	// 3. run the tests
+}
+
+// ExampleLineNumbersFrom starts the numbering at a given line, so a snippet
+// lifted from the middle of a file lines up with its real position.
+func ExampleLineNumbersFrom() {
+	fmt.Println(render(`{{ body | line_numbers:6 }}`, map[string]any{
+		"body": "return nil\n}",
+	}))
+	// Output: 6. return nil
+	// 7. }
 }
 
 // ExampleCurrency converts a numeric value between currency units by scaling it
