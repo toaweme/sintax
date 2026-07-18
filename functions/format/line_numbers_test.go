@@ -11,26 +11,39 @@ func Test_LineNumbers(t *testing.T) {
 	tests := []struct {
 		name     string
 		value    any
+		params   []any
 		expected any
 	}{
-		{"single line", "hello", "0. hello"},
+		{name: "single line", value: "hello", expected: "1. hello"},
 		{
 			name:     "multiple lines",
 			value:    "Buy milk\nWalk the dog\nPay rent",
-			expected: "0. Buy milk\n1. Walk the dog\n2. Pay rent",
+			expected: "1. Buy milk\n2. Walk the dog\n3. Pay rent",
 		},
 		{
 			name:     "trailing newline yields an empty numbered line",
 			value:    "a\n",
-			expected: "0. a\n1. ",
+			expected: "1. a\n2. ",
 		},
-		{"nil passes through as nil", nil, nil},
-		{"empty string passes through as nil", "", nil},
+		{
+			name:     "custom start",
+			value:    "Buy milk\nWalk the dog\nPay rent",
+			params:   []any{6},
+			expected: "6. Buy milk\n7. Walk the dog\n8. Pay rent",
+		},
+		{
+			name:     "zero start",
+			value:    "first\nsecond",
+			params:   []any{0},
+			expected: "0. first\n1. second",
+		},
+		{name: "nil passes through as nil", value: nil, expected: nil},
+		{name: "empty string passes through as nil", value: "", expected: nil},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := lineNumbers(tt.value, nil)
+			actual, err := lineNumbers(tt.value, tt.params)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, actual)
 		})

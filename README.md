@@ -262,7 +262,7 @@ Defaults, lengths, line numbers, and date formatting.
 | `default` | Default returns the fallback value if the input is nil or an empty string. | `{{ name \| default:'anonymous' }}` |
 | `format` | Format formats a time.Time value using a date format string. | `{{ created_at \| format:'YYYY-MM-DD' }}` |
 | `length` | Length returns the number of characters in a string, bytes in a byte slice, or elements in a slice/array/map. | `{{ name \| length }}` |
-| `line_numbers` | LineNumbers prepends each line of the string with its zero-based line number. | `{{ note \| line_numbers }}` |
+| `line_numbers` | LineNumbers prepends each line of the string with its one-based line number, or a number counting up from a given start with `line_numbers:6`. | `{{ note \| line_numbers }}` |
 
 ### File System
 

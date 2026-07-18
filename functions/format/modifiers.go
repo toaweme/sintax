@@ -20,6 +20,7 @@ var (
 	)
 	lineNumbersModifier = functions.Overload(
 		lineNumbersNilEmpty,
+		functions.WrapOne(LineNumbersFrom),
 		functions.Wrap(LineNumbers),
 	)
 	decimalModifier = functions.Overload(
