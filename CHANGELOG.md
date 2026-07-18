@@ -5,6 +5,17 @@ All notable changes to this project are documented here, newest first.
 Entries are generated from [Conventional Commits](https://www.conventionalcommits.org)
 and grouped by change type. This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-07-19
+
+### Features
+
+- Add RenderString for text output by [@iberflow](https://github.com/iberflow) in [5cb9f2e](https://github.com/toaweme/sintax/commit/5cb9f2e7047bbcff3fcc18bf0f9764d869763651).
+- Line_numbers starts from 1 and accepts start as param by [@iberflow](https://github.com/iberflow) in [#3](https://github.com/toaweme/sintax/pull/3).
+
+### Documentation
+
+- Word modifier comments to read without the signature by [@iberflow](https://github.com/iberflow) in [111c846](https://github.com/toaweme/sintax/commit/111c846ddfa990cc3108fc0638cd3b87cbd8112a).
+
 ## [0.4.0] - 2026-07-17
 
 ### Features
@@ -113,6 +124,7 @@ and grouped by change type. This project adheres to [Semantic Versioning](https:
 - Fix linter issues by [@iberflow](https://github.com/iberflow) in [79c2a53](https://github.com/toaweme/sintax/commit/79c2a53df09c87782bc16832572312826bd2985e).
 - Rollback go.mod to 1.22 by [@iberflow](https://github.com/iberflow) in [4be0329](https://github.com/toaweme/sintax/commit/4be0329a7a690ebcc5a80b9c4aa0689ea0f0c5d5).
 
+[0.5.0]: https://github.com/toaweme/sintax/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/toaweme/sintax/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/toaweme/sintax/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/toaweme/sintax/compare/v0.1.0...v0.2.0
