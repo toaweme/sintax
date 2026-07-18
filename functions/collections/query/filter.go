@@ -10,9 +10,9 @@ import (
 // ModifierNameFilter is the template name for the Filter modifier.
 const ModifierNameFilter functions.ModifierName = "filter"
 
-// Filter returns the items of a slice whose named field equals search. Each item
-// is looked up by key, with dot notation reaching into a nested map (for example
-// "meta.published"). Numbers compare by value across the int and float kinds, so
+// Filter returns the items of a slice whose named field equals the search value.
+// Each item is looked up by key, with dot notation reaching into a nested map
+// (for example "meta.published"). Numbers compare by value across the int and float kinds, so
 // 10 matches 10.0. An item is dropped when the field is missing or the values
 // differ, and a slice where nothing matches comes back empty rather than as an
 // error.

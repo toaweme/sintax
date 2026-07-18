@@ -51,8 +51,8 @@ func TrimPrefixString(s string) (string, error) {
 	return strings.TrimLeft(s, affixCutset), nil
 }
 
-// TrimPrefixStringArg removes prefix once from the start of a string, returning
-// it unchanged when it does not start with prefix.
+// TrimPrefixStringArg removes the given prefix once from the start of a string,
+// returning it unchanged when it does not start with that prefix.
 func TrimPrefixStringArg(s, prefix string) (string, error) {
 	return strings.TrimPrefix(s, prefix), nil
 }
@@ -62,7 +62,7 @@ func TrimPrefixBytes(b []byte) ([]byte, error) {
 	return []byte(strings.TrimLeft(string(b), affixCutset)), nil
 }
 
-// TrimPrefixBytesArg removes prefix once from the start of a []byte.
+// TrimPrefixBytesArg removes the given prefix once from the start of a []byte.
 func TrimPrefixBytesArg(b []byte, prefix string) ([]byte, error) {
 	return []byte(strings.TrimPrefix(string(b), prefix)), nil
 }
@@ -72,8 +72,8 @@ func TrimSuffixString(s string) (string, error) {
 	return strings.TrimRight(s, affixCutset), nil
 }
 
-// TrimSuffixStringArg removes suffix once from the end of a string, returning it
-// unchanged when it does not end with suffix.
+// TrimSuffixStringArg removes the given suffix once from the end of a string,
+// returning it unchanged when it does not end with that suffix.
 func TrimSuffixStringArg(s, suffix string) (string, error) {
 	return strings.TrimSuffix(s, suffix), nil
 }
@@ -83,7 +83,7 @@ func TrimSuffixBytes(b []byte) ([]byte, error) {
 	return []byte(strings.TrimRight(string(b), affixCutset)), nil
 }
 
-// TrimSuffixBytesArg removes suffix once from the end of a []byte.
+// TrimSuffixBytesArg removes the given suffix once from the end of a []byte.
 func TrimSuffixBytesArg(b []byte, suffix string) ([]byte, error) {
 	return []byte(strings.TrimSuffix(string(b), suffix)), nil
 }
