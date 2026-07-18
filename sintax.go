@@ -110,3 +110,36 @@ func (s *sintax) Render(template string, vars map[string]any) (any, error) {
 func Render(template string, vars map[string]any, opts ...Option) (any, error) {
 	return New(opts...).Render(template, vars)
 }
+
+// RenderString renders template against vars and returns the result as text. It
+// is the ergonomic path for document generation, where the output is always a
+// string rather than the Go value Render hands back for a lone expression. The
+// result is stringified with the same rule the engine applies to a value
+// interpolated among surrounding text, so RenderString of a bare `{{ x }}`
+// matches what `{{ x }}` produces embedded in a larger template.
+func (s *sintax) RenderString(template string, vars map[string]any) (string, error) {
+	result, err := s.Render(template, vars)
+	if err != nil {
+		return "", err
+	}
+	return stringify(result), nil
+}
+
+// stringify renders a value as text the way the engine does when interpolating
+// it into surrounding template text: a string passes through untouched, and
+// anything else is formatted with fmt.Sprint (a bool as "true"/"false", an int
+// in base 10). Keeping this identical to renderRange's interpolation path is
+// what lets RenderString and inline interpolation never diverge.
+func stringify(v any) string {
+	if str, ok := v.(string); ok {
+		return str
+	}
+	return fmt.Sprint(v)
+}
+
+// RenderString parses and renders template against vars in one call and returns
+// the result as text, using an engine configured by opts. Prefer New when
+// rendering more than once, so the engine is built once rather than per call.
+func RenderString(template string, vars map[string]any, opts ...Option) (string, error) {
+	return New(opts...).RenderString(template, vars)
+}

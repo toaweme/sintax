@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// ValueString asserts v is a string, returning ErrInvalidValueType otherwise.
+// ValueString asserts the value is a string, returning ErrInvalidValueType otherwise.
 func ValueString(v any) (string, error) {
 	if vv, ok := v.(string); ok {
 		return vv, nil
@@ -16,7 +16,7 @@ func ValueString(v any) (string, error) {
 	return "", fmt.Errorf("%w: expected string, got %T", ErrInvalidValueType, v)
 }
 
-// ValueSlice asserts v is a slice or array, returning ErrInvalidValueType otherwise.
+// ValueSlice asserts the value is a slice or array, returning ErrInvalidValueType otherwise.
 func ValueSlice(v any) ([]any, error) {
 	rv := reflect.ValueOf(v)
 	if rv.Kind() == reflect.Slice || rv.Kind() == reflect.Array {
@@ -29,8 +29,8 @@ func ValueSlice(v any) ([]any, error) {
 	return nil, fmt.Errorf("%w: expected slice or array, got %T", ErrInvalidValueType, v)
 }
 
-// ValueNumber coerces v to a float64 across the numeric kinds, returning
-// ErrInvalidValueType if v is not numeric (nil is treated as zero).
+// ValueNumber coerces the value to a float64 across the numeric kinds, returning
+// ErrInvalidValueType if it is not numeric (nil is treated as zero).
 func ValueNumber(v any) (float64, error) {
 	switch vv := v.(type) {
 	case float64:
@@ -64,7 +64,7 @@ func ValueNumber(v any) (float64, error) {
 	}
 }
 
-// ValueInt coerces v to an int across the numeric kinds, reporting false for a
+// ValueInt coerces the value to an int across the numeric kinds, reporting false for a
 // non-numeric value or for a float carrying a fractional part, since silently
 // truncating would hide a caller mistake. It backs Wrap's int slot, where a
 // string must not satisfy an int param, so unlike the lenient index coercion in
@@ -103,7 +103,7 @@ func ValueInt(v any) (int, bool) {
 	return 0, false
 }
 
-// ParseNumber coerces v to a float64 across the numeric kinds, additionally
+// ParseNumber coerces the value to a float64 across the numeric kinds, additionally
 // parsing a numeric string and treating nil as zero. It is the lenient companion
 // to ValueNumber (which rejects strings), for modifiers such as decimal and sum
 // whose value may legitimately arrive as text.
@@ -238,8 +238,8 @@ func ConditionIsTrue(condition any) bool {
 	}
 }
 
-// ConvertNumbersJSON recursively replaces json.Number values in v (as produced
-// by a decoder configured with UseNumber) with float64 or int64, so template
+// ConvertNumbersJSON recursively replaces json.Number values in the input (as
+// produced by a decoder configured with UseNumber) with float64 or int64, so template
 // modifiers see native numeric types instead of json.Number.
 func ConvertNumbersJSON(v any) any {
 	switch vv := v.(type) {

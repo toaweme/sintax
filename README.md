@@ -52,6 +52,8 @@ package main
 
 import (
     "fmt"
+    "log"
+
     "github.com/toaweme/sintax"
     "github.com/toaweme/sintax/defaults"
 )
@@ -59,7 +61,10 @@ import (
 func main() {
     s := sintax.New(defaults.All())
 
-    out, _ := s.Render("Hello, {{ name | title }}!", map[string]any{"name": "alice-cooper"})
+    out, err := s.Render("Hello, {{ name | title }}!", map[string]any{"name": "alice-cooper"})
+    if err != nil {
+        log.Fatal(err)
+    }
     fmt.Println(out) // Hello, Alice Cooper!
 }
 ```
@@ -68,6 +73,19 @@ func main() {
 call something you did not wire. `defaults.All(safeDirs...)` is the batteries-included shortcut, bundling
 every built-in into one option - pass one or more directories to enable the `file` modifier against that
 allowlist; with none, file reads stay disabled.
+
+`Render` returns `any` because a template that is a single expression yields that value's own Go type (a
+`{{ items | filter:... }}` hands back a real slice you can keep using). When you want text, which is the
+usual case for document generation, `RenderString` runs the same render and returns a `string`, stringifying
+a lone `{{ x }}` exactly as it would render embedded in surrounding text:
+
+```go
+out, err := s.RenderString("Hello, {{ name | title }}!", map[string]any{"name": "alice-cooper"})
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(out) // Hello, Alice Cooper!
+```
 
 Because the engine imports no modifiers itself, a size-conscious program can skip `defaults` entirely and
 compose only the groups it uses. Each group under `functions/*` exposes a `Modifiers()` constructor, and
@@ -401,7 +419,10 @@ s := sintax.New(defaults.All(), sintax.WithModifiers(overrides))
 ```go
 overrides := map[string]functions.GlobalModifier{
     "markdown": func(value any, params []any) (any, error) {
-        html, _ := functions.ValueString(value)
+        html, err := functions.ValueString(value)
+        if err != nil {
+            return nil, err
+        }
         conv := converter.NewConverter(converter.WithPlugins(base.NewBasePlugin()))
         return conv.ConvertString(html)
     },

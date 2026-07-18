@@ -45,6 +45,7 @@ func (e *ModifierError) Unwrap() error { return e.Err }
 // Sintax renders a template string against a variable set.
 type Sintax interface {
 	Render(template string, vars map[string]any) (any, error)
+	RenderString(template string, vars map[string]any) (string, error)
 }
 
 // Parser tokenizes a template string.

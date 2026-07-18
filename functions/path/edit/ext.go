@@ -29,7 +29,7 @@ func FilenameTrimExt(s string) (string, error) {
 }
 
 // FilenamePrependExt inserts an extra extension segment just before the existing
-// file extension, so "styles.css" with ext "min" becomes "styles.min.css". The
+// file extension, so "styles.css" with "min" becomes "styles.min.css". The
 // inserted segment is taken literally and should not include a leading dot, since
 // the dots are added for you. When the path has no extension, the segment is
 // appended as a new extension ("noext" becomes "noext.min"). Only the final

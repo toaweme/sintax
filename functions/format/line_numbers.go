@@ -19,13 +19,14 @@ func lineNumbersNilEmpty(value any, _ []any) (any, error) {
 	return nil, functions.ErrInvalidValueType
 }
 
-// LineNumbers prepends each line of s with its one-based line number.
+// LineNumbers prepends each line of the input with its one-based line number.
 func LineNumbers(s string) (string, error) {
 	return numberLines(s, 1), nil
 }
 
-// LineNumbersFrom prepends each line of s with a line number counting up from
-// start, so `line_numbers:6` renders a block as if it began at line six.
+// LineNumbersFrom prepends each line of the input with a line number counting up
+// from a given start line, so `line_numbers:6` renders a block as if it began at
+// line six.
 func LineNumbersFrom(s string, start int) (string, error) {
 	return numberLines(s, start), nil
 }
