@@ -159,7 +159,7 @@ func (r *TokenRenderer) renderRange(tokens []Token, start, end int, vars map[str
 			i = next
 		case ElseToken, IfEndToken, ForEndToken:
 			// caller should have stopped before this, so reaching here means a stray closer
-			return nil, i, fmt.Errorf("unexpected control token: %s", controlName(token.Type()))
+			return nil, i, fmt.Errorf("stray %q tag: %w", controlName(token.Type()), ErrUnexpectedToken)
 		default:
 			i++
 		}
@@ -206,7 +206,7 @@ func findIfEnd(tokens []Token, start, end int) (elseIdx, endIdx int, err error) 
 		default:
 		}
 	}
-	return -1, -1, errors.New("unterminated if block (missing endif)")
+	return -1, -1, fmt.Errorf("unterminated if block: %w", ErrUnterminatedIf)
 }
 
 // findForEnd locates the matching `endfor` for the ForToken at index `start`.
@@ -224,7 +224,7 @@ func findForEnd(tokens []Token, start, end int) (int, error) {
 		default:
 		}
 	}
-	return -1, errors.New("unterminated for block (missing endfor)")
+	return -1, fmt.Errorf("unterminated for block: %w", ErrUnterminatedFor)
 }
 
 func (r *TokenRenderer) renderIf(tokens []Token, start, end int, vars map[string]any) (string, int, error) {
@@ -267,7 +267,7 @@ func (r *TokenRenderer) renderFor(tokens []Token, start, end int, vars map[strin
 	spec := tok.Name()
 	expr := tok.LoopExpr()
 	if spec == "" || expr == "" {
-		return "", start, fmt.Errorf("invalid for expression: %q", tok.Raw())
+		return "", start, fmt.Errorf("for expression %q is incomplete: %w", tok.Raw(), ErrInvalidForExpr)
 	}
 	keyName, loopVar := "", spec
 	if idx := strings.IndexByte(spec, ','); idx >= 0 {
@@ -358,7 +358,7 @@ func (r *TokenRenderer) renderFor(tokens []Token, start, end int, vars map[strin
 			sb.WriteString(s)
 		}
 	default:
-		return "", start, fmt.Errorf("for: %q is not iterable (got %s)", expr, rv.Kind())
+		return "", start, fmt.Errorf("for expression %q evaluated to %s: %w", expr, rv.Kind(), ErrNotIterable)
 	}
 
 	return sb.String(), endIdx + 1, nil

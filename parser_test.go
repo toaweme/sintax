@@ -131,3 +131,54 @@ func Benchmark_Parser_Parse(b *testing.B) {
 		p.Parse(tmpl)
 	}
 }
+
+// Control tags are recognized on a word boundary, so this pins both the tags
+// themselves and the ordinary names that merely start with one. A name like
+// `elsewhere` must stay a variable, since a token classified as a block tag
+// never resolves and leaves nothing in the output to explain the gap.
+func Test_DetectTokenType_Classification(t *testing.T) {
+	type testCase struct {
+		name     string
+		input    string
+		expected TokenType
+	}
+
+	testCases := []testCase{
+		{name: "if tag", input: "if active", expected: IfToken},
+		{name: "if tag with a dotted condition", input: "if user.active", expected: IfToken},
+		{name: "bare if", input: "if", expected: IfToken},
+		{name: "endif tag", input: "endif", expected: IfEndToken},
+		{name: "else tag", input: "else", expected: ElseToken},
+		{name: "for tag", input: "for item in items", expected: ForToken},
+		{name: "endfor tag", input: "endfor", expected: ForEndToken},
+
+		{name: "variable starting with else", input: "elsewhere", expected: VariableToken},
+		{name: "variable starting with else and underscore", input: "else_branch", expected: VariableToken},
+		{name: "variable elsewise", input: "elsewise", expected: VariableToken},
+		{name: "variable starting with endif", input: "endifx", expected: VariableToken},
+		{name: "variable starting with endfor", input: "endforall", expected: VariableToken},
+		{name: "variable starting with for", input: "format", expected: VariableToken},
+		{name: "variable forward", input: "forward", expected: VariableToken},
+		{name: "variable starting with if", input: "iffy", expected: VariableToken},
+		{name: "bare for", input: "for", expected: VariableToken},
+		{name: "bare else nested in a name", input: "config.elsewhere", expected: VariableToken},
+
+		{name: "filtered else-prefixed variable", input: "elsewhere | upper", expected: FilteredVariableToken},
+		{name: "filtered variable", input: "name | upper", expected: FilteredVariableToken},
+		// a quoted argument holding " ? " and " : " is an ordinary pipeline, the
+		// engine has no ternary form that could claim it.
+		{name: "filtered variable with ternary-looking literal", input: `msg | default:'yes ? no : maybe'`, expected: FilteredVariableToken},
+
+		{name: "unrecognized expression", input: "1 + 2", expected: UndefinedToken},
+		{name: "else with a trailing condition", input: "else if active", expected: UndefinedToken},
+	}
+
+	p := NewStringParser()
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			got := p.detectTokenType(tt.input)
+			assert.Equal(t, tt.expected, got)
+		})
+	}
+}

@@ -12,6 +12,11 @@ var (
 	ErrFunctionNotFound    = errors.New("function not found")
 	ErrFunctionApplyFailed = errors.New("function failed to apply")
 	ErrMaxDepthExceeded    = errors.New("max template nesting depth exceeded")
+	ErrUnterminatedIf      = errors.New("missing endif")
+	ErrUnterminatedFor     = errors.New("missing endfor")
+	ErrUnexpectedToken     = errors.New("unexpected control token")
+	ErrInvalidForExpr      = errors.New("invalid for expression")
+	ErrNotIterable         = errors.New("value is not iterable")
 )
 
 // ModifierError reports a modifier that failed while rendering a variable's

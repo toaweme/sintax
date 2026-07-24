@@ -12,7 +12,6 @@ const (
 	IfToken
 	ElseToken
 	IfEndToken
-	ShorthandIfToken
 	ForToken
 	ForEndToken
 )
