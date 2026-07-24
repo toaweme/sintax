@@ -5,6 +5,21 @@ All notable changes to this project are documented here, newest first.
 Entries are generated from [Conventional Commits](https://www.conventionalcommits.org)
 and grouped by change type. This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-07-24
+
+### Fixes
+
+- Prevent tag detection swallowing valid variables by [@iberflow](https://github.com/iberflow) in [#7](https://github.com/toaweme/sintax/pull/7).
+
+### Documentation
+
+- Link to docs site from README by [@iberflow](https://github.com/iberflow) in [a721698](https://github.com/toaweme/sintax/commit/a7216988ec7d56462d17f10437616f62928c9b98).
+
+### Chores & Other
+
+- **Deps:** Bump actions/setup-go in the actions-major group by [@dependabot[bot]](https://github.com/dependabot[bot]) in [4f12765](https://github.com/toaweme/sintax/commit/4f12765adbb4e4aec1dc78f411a1c69344746b5d).
+- **Deps:** Bump the actions group with 2 updates by [@dependabot[bot]](https://github.com/dependabot[bot]) in [a75b8d1](https://github.com/toaweme/sintax/commit/a75b8d1fde78fd470fc0a9086537d7217ba13d62).
+
 ## [0.5.0] - 2026-07-19
 
 ### Features
@@ -124,6 +139,7 @@ and grouped by change type. This project adheres to [Semantic Versioning](https:
 - Fix linter issues by [@iberflow](https://github.com/iberflow) in [79c2a53](https://github.com/toaweme/sintax/commit/79c2a53df09c87782bc16832572312826bd2985e).
 - Rollback go.mod to 1.22 by [@iberflow](https://github.com/iberflow) in [4be0329](https://github.com/toaweme/sintax/commit/4be0329a7a690ebcc5a80b9c4aa0689ea0f0c5d5).
 
+[0.6.0]: https://github.com/toaweme/sintax/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/toaweme/sintax/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/toaweme/sintax/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/toaweme/sintax/compare/v0.2.0...v0.3.0
