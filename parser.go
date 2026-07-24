@@ -263,24 +263,26 @@ func (p *StringParser) isVariable(s string) bool {
 	return variableNameRe.MatchString(s)
 }
 
+// detectTokenType classifies the text between "{{" and "}}". Control tags match
+// on a word boundary, so an ordinary name like "elsewhere" stays a variable.
 func (p *StringParser) detectTokenType(s string) TokenType {
 	s = strings.TrimSpace(s)
 
-	if s == "endif" {
+	switch {
+	case s == "endif":
 		return IfEndToken
-	} else if s == "endfor" {
+	case s == "endfor":
 		return ForEndToken
-	} else if strings.HasPrefix(s, "for ") {
+	case strings.HasPrefix(s, "for "):
 		return ForToken
-	} else if strings.HasPrefix(s, "if ") || s == "if" {
+	case strings.HasPrefix(s, "if ") || s == "if":
 		return IfToken
-	} else if strings.HasPrefix(s, "else") {
+	case s == "else":
+		// bare tag only, an ElseToken carries no expression so "else if" cannot work
 		return ElseToken
-	} else if strings.Contains(s, " ? ") && strings.Contains(s, " : ") {
-		return ShorthandIfToken
-	} else if p.isVariable(s) {
+	case p.isVariable(s):
 		return VariableToken
-	} else if strings.Contains(s, "|") {
+	case strings.Contains(s, "|"):
 		return FilteredVariableToken
 	}
 
@@ -338,8 +340,6 @@ func (p *StringParser) createToken(tokenType TokenType, value string) Token {
 		return BaseToken{TokenType: ElseToken}
 	case IfEndToken:
 		return BaseToken{TokenType: IfEndToken}
-	case ShorthandIfToken:
-		return BaseToken{TokenType: ShorthandIfToken, RawValue: value}
 	case ForToken:
 		loopVar, expr := parseForExpr(value)
 		return BaseToken{TokenType: ForToken, RawValue: strings.TrimSpace(value), Var: loopVar, LoopExprValue: expr}
