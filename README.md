@@ -210,6 +210,7 @@ Trim, case-shift, slugify, split, and reshape strings.
 | Item | Description | Example |
 | --- | --- | --- |
 | `concat` | Concat appends one or more strings to the value. | `{{ greeting \| concat:'!' }}` |
+| `hash` | Hash returns the lowercase hex digest of the value under the named algorithm, one of `sha256`, `sha512`, `sha1`, or `md5`. The algorithm is required and the input is hashed exactly as it arrives. | `{{ token \| hash:'sha256' }}` |
 | `join` | Join combines an array of strings into a single string with a separator. | `{{ tags \| join:',' }}` |
 | `lines` | Lines splits a string or byte slice into an array of lines. | `{{ note \| lines }}` |
 | `lower` | ToLower converts a string to lowercase. | `{{ email \| lower }}` |

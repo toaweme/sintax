@@ -193,6 +193,33 @@ func ExampleReverse_number() {
 	// Output: 321
 }
 
+// ExampleHash digests the value with the named algorithm and returns lowercase
+// hex.
+func ExampleHash() {
+	fmt.Println(render(`{{ token | hash:'sha256' }}`, map[string]any{
+		"token": "hello",
+	}))
+	// Output: 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+}
+
+// ExampleHash_md5 names md5 to reproduce a digest another system published, such
+// as a Gravatar URL.
+func ExampleHash_md5() {
+	fmt.Println(render(`{{ email | hash:'md5' }}`, map[string]any{
+		"email": "hello",
+	}))
+	// Output: 5d41402abc4b2a76b9719d911017c592
+}
+
+// ExampleHash_scalarValue takes a number value as its string form, so the digest
+// is the one of "42".
+func ExampleHash_scalarValue() {
+	fmt.Println(render(`{{ id | hash:'sha256' }}`, map[string]any{
+		"id": 42,
+	}))
+	// Output: 73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049
+}
+
 // ExampleShorten truncates the value to at most the given number of bytes.
 func ExampleShorten() {
 	fmt.Println(render(`{{ text | shorten:5 }}`, map[string]any{

@@ -18,6 +18,7 @@ var (
 	replaceModifier        = functions.AsText(functions.WrapTwo(Replace))
 	replacePatternModifier = functions.AsText(functions.WrapTwo(ReplacePattern))
 	reverseModifier        = functions.AsText(functions.Wrap(Reverse))
+	hashModifier           = functions.AsText(functions.WrapOne(Hash))
 	wrapModifier           = functions.WrapOne(Wrap)
 )
 
@@ -29,6 +30,7 @@ func Modifiers() map[string]functions.GlobalModifier {
 		string(ModifierNameReplace):        replaceModifier,
 		string(ModifierNameReplacePattern): replacePatternModifier,
 		string(ModifierNameReverse):        reverseModifier,
+		string(ModifierNameHash):           hashModifier,
 		string(ModifierNameWrap):           wrapModifier,
 	}
 }
