@@ -48,3 +48,29 @@ func ExampleDefault_keepsZero() {
 	}))
 	// Output: 0
 }
+
+// ExampleWhen renders a flag as the word it means, so a template says what a
+// boolean stands for in one expression.
+func ExampleWhen() {
+	fmt.Println(render(`{{ published | when:'live','draft' }}`, map[string]any{
+		"published": true,
+	}))
+	// Output: live
+}
+
+// ExampleWhen_falsy takes the second branch for a value a template `if` would
+// read as false, an empty string included.
+func ExampleWhen_falsy() {
+	fmt.Println(render(`{{ title | when:'named','untitled' }}`, map[string]any{
+		"title": "",
+	}))
+	// Output: untitled
+}
+
+// ExampleWhen_missing shows a miss reaching when as falsey and answered there,
+// so the falsy branch stands in for absent data and nothing downstream sees the
+// miss.
+func ExampleWhen_missing() {
+	fmt.Println(render(`{{ enabled | when:'on','off' }}`, map[string]any{}))
+	// Output: off
+}

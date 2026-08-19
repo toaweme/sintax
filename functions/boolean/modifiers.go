@@ -9,11 +9,19 @@ var (
 	notModifier = functions.Wrap(Not)
 	gtModifier  = functions.WrapOne(Gt)
 	gteModifier = functions.WrapOne(Gte)
+	andModifier = functions.WrapOne(And)
+	orModifier  = functions.WrapOne(Or)
 	eqModifier  = functions.Overload(
 		eqNilGuard,
 		functions.WrapOne(EqNumber),
 		functions.WrapOne(EqString),
 		functions.WrapOne(EqAny),
+	)
+	neqModifier = functions.Overload(
+		neqNilGuard,
+		functions.WrapOne(NeqNumber),
+		functions.WrapOne(NeqString),
+		functions.WrapOne(NeqAny),
 	)
 )
 
@@ -25,5 +33,8 @@ func Modifiers() map[string]functions.GlobalModifier {
 		string(ModifierNameGt):  gtModifier,
 		string(ModifierNameGte): gteModifier,
 		string(ModifierNameEq):  eqModifier,
+		string(ModifierNameNeq): neqModifier,
+		string(ModifierNameAnd): andModifier,
+		string(ModifierNameOr):  orModifier,
 	}
 }

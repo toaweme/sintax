@@ -357,3 +357,44 @@ func ExampleSumField_negative() {
 	}))
 	// Output: 7
 }
+
+// ExampleClean drops the elements that hold nothing, so a list can be appended
+// to unconditionally and tidied once at the end.
+func ExampleClean() {
+	fmt.Println(render(`{{ parts | clean }}`, map[string]any{
+		"parts": []any{"one", "", nil, "two"},
+	}))
+	// Output:
+	// [
+	//   "one",
+	//   "two"
+	// ]
+}
+
+// ExampleClean_keepsZero keeps zero and false, which are real values, and drops
+// only the elements that hold nothing.
+func ExampleClean_keepsZero() {
+	fmt.Println(render(`{{ counts | clean }}`, map[string]any{
+		"counts": []any{0, nil, false, ""},
+	}))
+	// Output:
+	// [
+	//   0,
+	//   false
+	// ]
+}
+
+// ExampleClean_emptyCollections treats an empty list or object as an element
+// holding nothing, so a build-up of optional groups comes out with only the
+// groups that were filled.
+func ExampleClean_emptyCollections() {
+	fmt.Println(render(`{{ groups | clean }}`, map[string]any{
+		"groups": []any{[]any{"a"}, []any{}, map[string]any{}},
+	}))
+	// Output:
+	// [
+	//   [
+	//     "a"
+	//   ]
+	// ]
+}

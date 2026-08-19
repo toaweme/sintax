@@ -176,3 +176,66 @@ func ExampleEqAny_bool() {
 	}))
 	// Output: true
 }
+
+// ExampleNeqString reports inequality, the negation of eq, so a status that differs
+// from the one named is true.
+func ExampleNeqString() {
+	fmt.Println(render(`{{ status | neq:'archived' }}`, map[string]any{
+		"status": "active",
+	}))
+	// Output: true
+}
+
+// ExampleNeqNumber compares numerically across the int and float
+// kinds, so 5 and 5.0 are equal and neq reports false.
+func ExampleNeqNumber() {
+	fmt.Println(render(`{{ count | neq:5.0 }}`, map[string]any{
+		"count": 5,
+	}))
+	// Output: false
+}
+
+// ExampleNeqAny_nil treats nil as equal only to nil, so an absent value differs
+// from zero rather than reading as it.
+func ExampleNeqAny_nil() {
+	fmt.Println(render(`{{ missing | neq:0 }}`, map[string]any{}))
+	// Output: true
+}
+
+// ExampleAnd combines two conditions into one expression, so a template needs no
+// nested if blocks to ask whether both hold.
+func ExampleAnd() {
+	fmt.Println(render(`{{ enabled | and:has_rows }}`, map[string]any{
+		"enabled":  true,
+		"has_rows": true,
+	}))
+	// Output: true
+}
+
+// ExampleAnd_absent reads a value that was never set as false, so the condition
+// answers rather than failing the render.
+func ExampleAnd_absent() {
+	fmt.Println(render(`{{ enabled | and:has_rows }}`, map[string]any{
+		"has_rows": true,
+	}))
+	// Output: false
+}
+
+// ExampleOr answers whether either side is set, and composes with not.
+func ExampleOr() {
+	fmt.Println(render(`{{ draft | not | or:published }}`, map[string]any{
+		"draft":     true,
+		"published": true,
+	}))
+	// Output: true
+}
+
+// ExampleOr_bool answers with a bool rather than with the truthy operand, so it
+// reads as a condition and not as a fallback value.
+func ExampleOr_bool() {
+	fmt.Println(render(`{{ name | or:fallback }}`, map[string]any{
+		"name":     "",
+		"fallback": "anonymous",
+	}))
+	// Output: true
+}

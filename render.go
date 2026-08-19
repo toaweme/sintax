@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/toaweme/sintax/functions"
+	"github.com/toaweme/sintax/functions/collections/access"
 )
 
 // Empty collection literals recognized in modifier arguments. They let a chain
@@ -437,8 +438,11 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 	}
 
 	if token.Type() == VariableToken {
-		varValue, ok := vars[token.Name()]
-		if !ok {
+		varValue, found, err := resolveVarName(vars, token.Name())
+		if err != nil {
+			return nil, err
+		}
+		if !found {
 			return nil, fmt.Errorf("simple %w: %s", ErrVariableNotFound, token.Name())
 		}
 
@@ -456,14 +460,23 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 	// literal string (e.g. {{ "path.tpl" | file }}) rather than a variable name.
 	var varValue any
 	var varExists bool
+	var walkErr error
 	if isQuotedWith(varName, `"`) {
 		varValue, varExists = unquote(varName, `"`), true
 	} else if isQuotedWith(varName, `'`) {
 		varValue, varExists = unquote(varName, `'`), true
 	} else {
-		varValue, varExists = vars[varName]
+		varValue, varExists, walkErr = resolveVarName(vars, varName)
+	}
+	// a terminal walk failure says the template asked for a path into something
+	// that has no paths, which no downstream default answers.
+	if walkErr != nil && !errors.Is(walkErr, functions.ErrAllowsDefaultFunc) {
+		return nil, walkErr
 	}
 	if !hasFunctionsToApply {
+		if walkErr != nil {
+			return nil, walkErr
+		}
 		if !varExists {
 			return nil, fmt.Errorf("complex %w: %s", ErrVariableNotFound, varName)
 		}
@@ -481,8 +494,13 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 	// missed holds the miss traveling down the pipeline, nil when nothing is
 	// missing. It is a plain error, so an unanswered one is simply what this
 	// function returns.
+	// a walk that ran out already describes the absence in terms of the path, so
+	// it travels rather than being restated as a plain missing variable.
 	var missed error
-	if !varExists {
+	switch {
+	case walkErr != nil:
+		missed = walkErr
+	case !varExists:
 		missed = functions.Miss("complex %w: %s", ErrVariableNotFound, varName)
 	}
 
@@ -500,8 +518,11 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 				if !ok {
 					return nil, fmt.Errorf("function arg: %w: %s", ErrVariableNotFound, arg.Value)
 				}
-				argValue, ok := vars[varName]
-				if !ok {
+				argValue, argFound, argErr := resolveVarName(vars, varName)
+				if argErr != nil {
+					return nil, fmt.Errorf("failed to resolve argument %q of %q: %w", varName, fn.Name, argErr)
+				}
+				if !argFound {
 					return nil, fmt.Errorf("function arg: %w: %s", ErrVariableNotFound, arg.Value)
 				}
 				args[i] = argValue
@@ -549,6 +570,61 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 	}
 
 	return varValue, missed
+}
+
+// resolveVarName reads name out of the flat variable map, and only when nothing
+// is stored under the whole name does it read the name as a dotted path.
+//
+// The flat hit always wins because a producer is free to store a value under a
+// key that contains dots. A pipeline publishes a step's outputs as "step.field",
+// so that name has to keep meaning the value it was stored under rather than
+// suddenly meaning "field inside step". Only when no such key exists is the name
+// split, trying successively shorter dot-prefixes, longest first, and walking
+// whatever is left into the value the prefix found. So file_row.record.project_id
+// reaches the flat key file_row.record and reads project_id out of it.
+//
+// The first prefix that hits owns the answer. A walk that runs out from there is
+// a miss rather than a retry with a shorter prefix, so one name resolves through
+// one path no matter what else the map happens to hold.
+//
+// found reports whether any key answered at all, which is the plain
+// missing-variable case the callers already handle. A non-nil error means a walk
+// started and failed, either a miss the pipeline can still answer or a terminal
+// failure it cannot.
+func resolveVarName(vars map[string]any, name string) (any, bool, error) {
+	if value, ok := vars[name]; ok {
+		return value, true, nil
+	}
+
+	for cut := strings.LastIndex(name, "."); cut > 0; cut = strings.LastIndex(name[:cut], ".") {
+		head, ok := vars[name[:cut]]
+		if !ok {
+			continue
+		}
+		value, err := walkVarPath(head, name[cut+1:])
+		if err != nil {
+			return nil, false, err
+		}
+		return value, true, nil
+	}
+
+	return nil, false, nil
+}
+
+// walkVarPath reads the dotted remainder out of value one segment at a time,
+// going through access.Key so a path walked by naming it behaves exactly as the
+// same path walked by `| key:`, down to which failures are catchable and which
+// are terminal.
+func walkVarPath(value any, path string) (any, error) {
+	current := value
+	for _, segment := range strings.Split(path, ".") {
+		next, err := access.Key(current, []any{segment})
+		if err != nil {
+			return nil, fmt.Errorf("failed to read %q out of %q: %w", segment, path, err)
+		}
+		current = next
+	}
+	return current, nil
 }
 
 // varAndFuncs returns the parsed variable name and modifier pipeline for a

@@ -137,3 +137,59 @@ func ExampleNew_loop() {
 	// 1. second
 	// 2. third
 }
+
+// ExampleNew_dottedPath reads a dotted name as a path into the value a shorter
+// key holds, so a nested field needs no key modifier to reach it.
+func ExampleNew_dottedPath() {
+	engine := sintax.New(defaults.All())
+
+	out, err := engine.Render(
+		`{{ file_row.record.project_id }}`,
+		map[string]any{
+			"file_row.record": map[string]any{"project_id": "proj-1"},
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(out)
+	// Output: proj-1
+}
+
+// ExampleNew_dottedPathFlatKeyWins shows the flat key answering ahead of the
+// walk, so a producer that publishes names containing dots keeps deciding what
+// they mean.
+func ExampleNew_dottedPathFlatKeyWins() {
+	engine := sintax.New(defaults.All())
+
+	out, err := engine.Render(
+		`{{ report.total }}`,
+		map[string]any{
+			"report.total": 42,
+			"report":       map[string]any{"total": 7},
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(out)
+	// Output: 42
+}
+
+// ExampleNew_dottedPathMissing shows a walk that runs out arriving as a miss, so
+// a default answers it exactly as it answers an absent variable.
+func ExampleNew_dottedPathMissing() {
+	engine := sintax.New(defaults.All())
+
+	out, err := engine.Render(
+		`{{ file_row.record.language | default:'en' }}`,
+		map[string]any{
+			"file_row.record": map[string]any{"project_id": "proj-1"},
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(out)
+	// Output: en
+}

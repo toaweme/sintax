@@ -152,10 +152,13 @@ guarding against a template that renders itself. It defaults to 10.
 String literals use single or double quotes; `[]` and `{}` are empty-collection literals; other unquoted
 tokens resolve as variables, numbers, or booleans.
 
-**Variable names are literal keys, not paths.** A variable is looked up by its exact name in the vars map -
-there is no `obj.field` dot-notation. `{{ user.name }}` looks for a variable literally named `user.name`; it does
-**not** descend into a `user` map. To read a nested field, pipe the value through the `key` modifier:
-`{{ user | key:'name' }}`. `key` also accepts a dotted path to reach deeper, e.g. `{{ order | key:'meta.total' }}`.
+**A flat key always wins over a dotted path.** A variable is looked up by its exact name first, so
+`{{ user.name }}` answers with a variable literally named `user.name` when one exists. That matters when
+the values come from a producer whose own names contain dots. Only when no such key exists is the name read
+as a path: successively shorter dot-prefixes are tried, longest first, and whatever is left is walked into the
+value the prefix found, so `{{ user.name }}` then descends into a `user` map. A walk that runs out is a miss,
+catchable by `default:` and read as false by an `if`, and walking into a value that holds no paths at all fails
+the render. The `key` modifier reaches the same places explicitly, e.g. `{{ order | key:'meta.total' }}`.
 
 **Block tags use `endif` and `endfor`** to close.
 
@@ -234,6 +237,7 @@ Sort, filter, find, and reshape arrays and maps.
 
 | Item | Description | Example |
 | --- | --- | --- |
+| `clean` | Clean drops the elements of a slice that hold nothing, keeping zero and false. | `{{ parts \| clean }}` |
 | `filter` | Filter returns a subset of a slice where a nested field matches a value. | `{{ items \| filter:'status','active' }}` |
 | `find` | Find returns the first element in a slice or map where a field equals the given value. | `{{ users \| find:'id',42 }}` |
 | `first` | First returns the first character of a string or the first element of a slice. | `{{ items \| first }}` |
@@ -255,10 +259,13 @@ Compare values for use inside if/else blocks and conditional expressions.
 
 | Item | Description | Example |
 | --- | --- | --- |
+| `and` | And returns true if both the value and the given parameter are truthy. | `{{ enabled \| and:has_rows }}` |
 | `eq` | Eq returns true if the value equals the given parameter. | `{{ status \| eq:'active' }}` |
 | `gt` | Gt returns true if the numeric value is greater than the threshold. | `{{ items_in_cart \| gt:0 }}` |
 | `gte` | Gte returns true if the numeric value is greater than or equal to the threshold. | `{{ qty \| gte:1 }}` |
+| `neq` | Neq returns true if the value differs from the given parameter. | `{{ status \| neq:'archived' }}` |
 | `not` | Not inverts the truthiness of the value. | `{{ is_active \| not }}` |
+| `or` | Or returns true if either the value or the given parameter is truthy. | `{{ draft \| not \| or:published }}` |
 
 ### Convert
 
@@ -284,6 +291,7 @@ Defaults, lengths, line numbers, and date formatting.
 | `format` | Format formats a time.Time value using a date format string. | `{{ created_at \| format:'YYYY-MM-DD' }}` |
 | `length` | Length returns the number of characters in a string, bytes in a byte slice, or elements in a slice/array/map. | `{{ name \| length }}` |
 | `line_numbers` | LineNumbers prepends each line of the string with its one-based line number, or a number counting up from a given start with `line_numbers:6`. | `{{ note \| line_numbers }}` |
+| `when` | When picks the first value when the input is truthy and the second when it is not. | `{{ published \| when:'live','draft' }}` |
 
 ### File System
 
