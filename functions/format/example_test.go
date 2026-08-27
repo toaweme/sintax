@@ -19,50 +19,41 @@ func render(tpl string, vars map[string]any) string {
 // moment is a fixed timestamp so the date examples never depend on the wall clock.
 var moment = time.Date(2024, 3, 14, 9, 30, 5, 0, time.UTC)
 
-// ExampleFormatTime renders a time.Time using a PHP-style date layout, where Y is
+// ExampleDate renders a time.Time using a PHP-style date layout, where Y is
 // the 4-digit year, m the zero-padded month, and d the day.
-func ExampleFormatTime() {
-	fmt.Println(render(`{{ at | format:'Y-m-d' }}`, map[string]any{
+func ExampleDate() {
+	fmt.Println(render(`{{ at | date:'Y-m-d' }}`, map[string]any{
 		"at": moment,
 	}))
 	// Output: 2024-03-14
 }
 
-// ExampleFormatTimeDefault renders a time.Time with the default "Y-m-d H:i:s"
+// ExampleDateDefault renders a time.Time with the default "Y-m-d H:i:s"
 // layout, the clause reached when no layout is given.
-func ExampleFormatTimeDefault() {
-	fmt.Println(render(`{{ at | format }}`, map[string]any{
+func ExampleDateDefault() {
+	fmt.Println(render(`{{ at | date }}`, map[string]any{
 		"at": moment,
 	}))
 	// Output: 2024-03-14 09:30:05
 }
 
-// ExampleFormatTime_dateName renders a time.Time with named day and month
-// parts, where l is the full weekday, F the full month, and j the day without a
+// ExampleDate_dateName renders a time.Time with named day and month parts,
+// where l is the full weekday, F the full month, and j the day without a
 // leading zero.
-func ExampleFormatTime_dateName() {
-	fmt.Println(render(`{{ at | format:'l, F j, Y' }}`, map[string]any{
+func ExampleDate_dateName() {
+	fmt.Println(render(`{{ at | date:'l, F j, Y' }}`, map[string]any{
 		"at": moment,
 	}))
 	// Output: Thursday, March 14, 2024
 }
 
-// ExampleFormatTime_timeOnly renders just the hour and minute, where H is the
+// ExampleDate_timeOnly renders just the hour and minute, where H is the
 // zero-padded 24-hour hour and i the zero-padded minute.
-func ExampleFormatTime_timeOnly() {
-	fmt.Println(render(`{{ at | format:'H:i' }}`, map[string]any{
+func ExampleDate_timeOnly() {
+	fmt.Println(render(`{{ at | date:'H:i' }}`, map[string]any{
 		"at": moment,
 	}))
 	// Output: 09:30
-}
-
-// ExampleFormatTime_passthrough returns a string value unchanged, so format is
-// safe to apply to a field that is already text.
-func ExampleFormatTime_passthrough() {
-	fmt.Println(render(`{{ label | format }}`, map[string]any{
-		"label": "Q1 2024",
-	}))
-	// Output: Q1 2024
 }
 
 // ExampleLengthString returns the number of UTF-8 bytes in a string, so a
@@ -218,4 +209,55 @@ func ExampleCurrency_truncates() {
 		"price": 1.99,
 	}))
 	// Output: 1
+}
+
+// ExampleFromDate reads a date out of the string a store printed, using the
+// same layout language date writes with, so a month name becomes a real date
+// rather than a chain of replacements.
+func ExampleFromDate() {
+	fmt.Println(render(`{{ printed | from_date:'F j, Y' | date:'Y-m-d' }}`, map[string]any{
+		"printed": "June 26, 2026",
+	}))
+	// Output: 2026-06-26
+}
+
+// ExampleFromDate_dateAndTime reads a date and a time together, where d is the
+// zero-padded day, m the zero-padded month, H the 24-hour hour, and i the minute.
+func ExampleFromDate_dateAndTime() {
+	fmt.Println(render(`{{ printed | from_date:'d/m/Y H:i' | date }}`, map[string]any{
+		"printed": "14/03/2024 09:30",
+	}))
+	// Output: 2024-03-14 09:30:00
+}
+
+// ExampleFromDateGuess reads a date with no layout given, working through the
+// forms a printed date usually arrives in.
+func ExampleFromDateGuess() {
+	fmt.Println(render(`{{ printed | from_date | date:'Y-m-d' }}`, map[string]any{
+		"printed": "26 June 2026",
+	}))
+	// Output: 2026-06-26
+}
+
+// ExampleFromDateGuess_dayBeyondTwelve reads a numeric date that only one
+// reading fits, since 25 can only be the day.
+func ExampleFromDateGuess_dayBeyondTwelve() {
+	fmt.Println(render(`{{ printed | from_date | date:'l, F j, Y' }}`, map[string]any{
+		"printed": "25/12/2026",
+	}))
+	// Output: Friday, December 25, 2026
+}
+
+// ExampleFromDateGuess_ambiguous refuses a numeric date that reads as a real
+// date either way round, since a layout says which one it is.
+func ExampleFromDateGuess_ambiguous() {
+	fmt.Println(render(`{{ printed | from_date | date:'Y-m-d' }}`, map[string]any{
+		"printed": "03/04/2026",
+	}))
+	fmt.Println(render(`{{ printed | from_date:'d/m/Y' | date:'Y-m-d' }}`, map[string]any{
+		"printed": "03/04/2026",
+	}))
+	// Output:
+	// error: failed to render template: failed to render variable token 'printed': modifier "from_date": function failed to apply: failed to read date "03/04/2026" without a layout (pass one such as 'd/m/Y'): day and month could be either way round
+	// 2026-04-03
 }

@@ -282,16 +282,40 @@ Move between Go values, JSON, YAML, and other serialized formats.
 
 ### Utilities
 
-Defaults, lengths, line numbers, and date formatting.
+Defaults, lengths, line numbers, and dates written out or read back in.
 
 | Item | Description | Example |
 | --- | --- | --- |
+| `date` | Date writes a time.Time out through a PHP-style date layout, where Y is the year, m the month, and d the day. Without a layout it writes `Y-m-d H:i:s`. | `{{ created_at \| date:'Y-m-d' }}` |
 | `decimal` | Decimal formats a number with a fixed number of decimal places. | `{{ amount \| decimal:2 }}` |
 | `default` | Default returns the fallback value if the input is nil or an empty string. | `{{ name \| default:'anonymous' }}` |
-| `format` | Format formats a time.Time value using a date format string. | `{{ created_at \| format:'YYYY-MM-DD' }}` |
+| `from_date` | FromDate reads a date out of a string through the same layout `date` writes with, so a printed month name becomes a real date. Without a layout it works out how the value is written. | `{{ printed \| from_date:'F j, Y' }}` |
 | `length` | Length returns the number of characters in a string, bytes in a byte slice, or elements in a slice/array/map. | `{{ name \| length }}` |
 | `line_numbers` | LineNumbers prepends each line of the string with its one-based line number, or a number counting up from a given start with `line_numbers:6`. | `{{ note \| line_numbers }}` |
 | `when` | When picks the first value when the input is truthy and the second when it is not. | `{{ published \| when:'live','draft' }}` |
+
+#### Reading a date with no layout
+
+`from_date` takes the layout as its first argument, and works the value out for itself when
+none is given. It tries these forms in order, and the first one that reads the value whole wins.
+
+1. RFC 3339 and ISO 8601, with or without a zone, such as `2026-06-26T14:30:00Z` and `2026-06-26`.
+2. The space-separated form `date` itself writes, `2026-06-26 14:30:00`, so a value survives the
+   round trip with nothing given either way.
+3. RFC 1123, such as `Fri, 26 Jun 2026 14:30:00 +0200`.
+4. The forms a month name spells out, such as `June 26, 2026`, `26 June 2026`, `Jun 26, 2026` and
+   `Friday, June 26, 2026`, each with an optional time.
+5. Year-first numeric forms, such as `2026/06/26`.
+6. Day-and-month numeric forms separated by `/`, `.` or `-`, such as `25/12/2026`, each with an
+   optional time.
+
+A numeric value whose day and month could be either way round is refused rather than guessed.
+`25/12/2026` is December 25th because nothing else reads, and `12/25/2026` is the same date for the
+same reason, but `03/04/2026` is a real date both ways round and comes back as an error naming the
+value. Pass the layout to settle it, `from_date:'d/m/Y'` or `from_date:'m/d/Y'`.
+
+A value carrying its own offset keeps it. Anything else is read as UTC, so a date-only value lands
+on midnight UTC rather than on whatever zone the process happens to run in.
 
 ### File System
 

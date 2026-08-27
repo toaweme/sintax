@@ -1,5 +1,6 @@
-// Package date renders time.Time values using PHP-style date format strings,
-// mapping each recognized character to its Go reference time layout token.
+// Package date renders time.Time values as strings, and reads them back, using
+// PHP-style date format strings that map each recognized character to its Go
+// reference time layout token.
 package date
 
 import (
@@ -21,15 +22,22 @@ func NewFormatter(mapping map[string]string) *Formatter {
 // Format renders t according to format. Characters without a mapping entry
 // are copied through to the output unchanged.
 func (f *Formatter) Format(t time.Time, format string) string {
+	return t.Format(translate(f.mapping, format))
+}
+
+// translate rewrites a PHP-style format into a Go reference time layout,
+// copying through any character the mapping does not name. Formatting and
+// parsing share it, so the two always read the same layout language.
+func translate(mapping map[string]string, format string) string {
 	var goLayout strings.Builder
 	for i := range len(format) {
 		char := string(format[i])
-		layout, ok := f.mapping[char]
+		layout, ok := mapping[char]
 		if !ok {
 			goLayout.WriteString(char)
 			continue
 		}
 		goLayout.WriteString(layout)
 	}
-	return t.Format(goLayout.String())
+	return goLayout.String()
 }
