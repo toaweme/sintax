@@ -86,9 +86,10 @@ func (p *StringParser) Parse(template string) ([]Token, error) {
 			stripPrevTextRight(tokens, true)
 		}
 
-		// create the appropriate token
+		// create the appropriate token, remembering where it was written so a
+		// failure inside it can name a line rather than only a modifier
 		tokenType := detectTokenType(contents)
-		tokens = append(tokens, createToken(tokenType, contents))
+		tokens = append(tokens, writtenAt(createToken(tokenType, contents), template, openerIndex))
 
 		// move `i` beyond the closer
 		i = closerIndex + len(p.closer)
@@ -388,4 +389,17 @@ func parseExpr(expr string) (Token, error) {
 	}
 
 	return createToken(tt, expr), nil
+}
+
+// writtenAt records where token was written in the template it was parsed from.
+// A Token from outside this package carries no position and is left alone.
+func writtenAt(token Token, source string, offset int) Token {
+	base, ok := token.(BaseToken)
+	if !ok {
+		return token
+	}
+	base.SourceValue = source
+	base.OffsetValue = offset
+
+	return base
 }

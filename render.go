@@ -74,12 +74,27 @@ const defaultMaxTemplateDepth = 10
 // rejections bare on purpose because Overload reads them to fall through
 // clauses. This is the one place that has both the name and the certainty that
 // the failure is terminal.
-func modifierFailure(name, variable string, err error) error {
-	return &ModifierError{
+func modifierFailure(name string, token Token, err error) error {
+	// a modifier that failed only because a render it delegated to failed did
+	// not fail here. Restating it would move the report onto the document that
+	// named the template rather than the one carrying the fault, which is the
+	// whole reason the position travels on the token.
+	var nested *ModifierError
+	if errors.As(err, &nested) {
+		return err
+	}
+
+	failure := &ModifierError{
 		Modifier: name,
-		Variable: variable,
+		Variable: token.Name(),
 		Err:      fmt.Errorf("%w: %w", ErrFunctionApplyFailed, err),
 	}
+
+	if base, ok := token.(BaseToken); ok {
+		failure.Source, failure.Position = base.SourceValue, base.position()
+	}
+
+	return failure
 }
 
 // renderNested renders a string template against vars through the same engine,
@@ -520,7 +535,7 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 			// happens to arrive.
 			if missed != nil {
 				if functions.IsParamError(applyErr) {
-					return nil, modifierFailure(fn.Name, token.Name(), applyErr)
+					return nil, modifierFailure(fn.Name, token, applyErr)
 				}
 				continue
 			}
@@ -528,9 +543,9 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 			// That stays terminal no matter what sits downstream. A default answers
 			// absent data, it does not make a broken template render.
 			if !errors.Is(applyErr, functions.ErrAllowsDefaultFunc) {
-				return nil, modifierFailure(fn.Name, token.Name(), applyErr)
+				return nil, modifierFailure(fn.Name, token, applyErr)
 			}
-			missed, varValue = modifierFailure(fn.Name, token.Name(), applyErr), nil
+			missed, varValue = modifierFailure(fn.Name, token, applyErr), nil
 			continue
 		}
 

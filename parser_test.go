@@ -71,7 +71,7 @@ func Test_Parser_Parse(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := p.Parse(tc.input)
 			assert.Equal(t, tc.err, err)
-			assert.Equal(t, tc.expected, result)
+			assert.Equal(t, tc.expected, unpositioned(result))
 		})
 	}
 }
@@ -118,7 +118,7 @@ func Test_Parser_ParseVariable(t *testing.T) {
 				return
 			}
 			assert.NoError(t, err)
-			assert.Equal(t, tt.expected, tokens)
+			assert.Equal(t, tt.expected, unpositioned(tokens))
 		})
 	}
 }
@@ -179,4 +179,22 @@ func Test_DetectTokenType_Classification(t *testing.T) {
 			assert.Equal(t, tt.expected, got)
 		})
 	}
+}
+
+// unpositioned drops where each token was written, so a table pinning what the
+// parser classifies does not restate an offset in every row.
+func unpositioned(tokens []Token) []Token {
+	out := make([]Token, 0, len(tokens))
+	for _, token := range tokens {
+		base, ok := token.(BaseToken)
+		if !ok {
+			out = append(out, token)
+
+			continue
+		}
+		base.SourceValue, base.OffsetValue = "", 0
+		out = append(out, base)
+	}
+
+	return out
 }
