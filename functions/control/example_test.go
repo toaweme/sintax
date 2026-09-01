@@ -71,6 +71,6 @@ func ExampleWhen_falsy() {
 // so the falsy branch stands in for absent data and nothing downstream sees the
 // miss.
 func ExampleWhen_missing() {
-	fmt.Println(render(`{{ enabled | when:'on','off' }}`, map[string]any{}))
+	fmt.Println(render(`{{ enabled | default:false | when:'on','off' }}`, map[string]any{}))
 	// Output: off
 }

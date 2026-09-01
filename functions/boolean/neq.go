@@ -44,17 +44,26 @@ func NeqAny(value, other any) (bool, error) {
 	return !equal, nil
 }
 
-// neqNilGuard enforces neq's nil rule ahead of the typed clauses, so nil is
-// unequal to everything except nil. Without it NeqNumber would coerce nil to
-// zero and report nil and 0 as equal. When neither operand is nil it declines
-// with ErrInvalidValueType so Overload falls through.
+// neqNilGuard runs ahead of the typed clauses, because NeqNumber would otherwise
+// coerce nil to zero and report nil and 0 as equal.
+//
+// A nil piped value is refused for the same reason eq refuses one. Absent data
+// compares unequal to everything, which is a verdict a misspelled path should not
+// be able to produce. A nil argument came from data the template did name, and a
+// non-nil value is unequal to it.
+//
+// When neither operand is nil the guard declines with ErrInvalidValueType so
+// Overload falls through.
 func neqNilGuard(value any, params []any) (any, error) {
 	other, err := functions.ParamAny(params, 0)
 	if err != nil {
 		return nil, err
 	}
-	if value == nil || other == nil {
-		return value != other, nil
+	if value == nil {
+		return nil, functions.RefuseNil(ModifierNameNeq)
+	}
+	if other == nil {
+		return true, nil
 	}
 	return nil, functions.ErrInvalidValueType
 }

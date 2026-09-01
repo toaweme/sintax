@@ -29,7 +29,6 @@ func Test_And(t *testing.T) {
 		{"a positive number is truthy", 2, []any{"yes"}, true},
 		{"an empty slice is falsey", []any{}, []any{true}, false},
 		{"a filled slice is truthy", []any{1}, []any{true}, true},
-		{"nil value is falsey", nil, []any{true}, false},
 		{"nil param is falsey", true, []any{nil}, false},
 	}
 	for _, tt := range tests {

@@ -80,7 +80,10 @@ func Test_Render_Miss_ReachesADistantDefault(t *testing.T) {
 
 // An if condition and a for iterable answer a miss on their own, so neither
 // needs a default to say what absent data means. Writing `| default:false`
-// inside a condition to make it work would be noise.
+// inside a condition to make it work would be noise. What they answer is the
+// bare miss. A decision written into the condition, such as `| not`, still
+// refuses nil there, because the position a decision is written in does not
+// change what it was handed.
 func Test_Render_Miss_AnsweredByIfAndFor(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -101,11 +104,6 @@ func Test_Render_Miss_AnsweredByIfAndFor(t *testing.T) {
 			name:     "first of an empty slice is false",
 			template: `{{ if empty | first }}yes{{ else }}no{{ endif }}`,
 			want:     "no",
-		},
-		{
-			name:     "a negated miss is true",
-			template: `{{ if cfg | key:'nope' | not }}yes{{ else }}no{{ endif }}`,
-			want:     "yes",
 		},
 		{
 			name:     "a missing iterable yields no iterations",

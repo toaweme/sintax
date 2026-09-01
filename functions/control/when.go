@@ -15,12 +15,14 @@ const ModifierNameWhen functions.ModifierName = "when"
 // empty string, since a choice with one branch is a choice somebody forgot to
 // finish.
 //
-// A miss arriving down the pipe is falsey and When answers it, because absent
-// data is one of the two cases the template already named. The falsy branch is
-// the result and the miss stops traveling, which means a default written after a
-// when never fires. Put the default first when the fallback belongs to the value
-// rather than to the choice.
+// A nil value is refused rather than taken as the falsy branch. Absent data is
+// not one of the two cases the template named, and picking a branch for it hides
+// a misspelled path behind an answer that looks deliberate. Put a default ahead
+// of the when to say which branch absence belongs to.
 func When(value any, truthy any, falsy any) (any, error) {
+	if value == nil {
+		return nil, functions.RefuseNil(ModifierNameWhen)
+	}
 	if functions.ConditionIsTrue(value) {
 		return truthy, nil
 	}

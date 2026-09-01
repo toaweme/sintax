@@ -65,6 +65,12 @@ var (
 	// marker stays out of the message.
 	ErrAllowsDefaultFunc = errors.New("non-fatal error")
 
+	// ErrNilDecision marks a modifier refusing to turn nothing into a decision.
+	// A missing key and a key holding an explicit null both arrive as nil, so a
+	// template that reads either one as a verdict is reading its own absence of
+	// data, not the data. Report it with RefuseNil.
+	ErrNilDecision = errors.New("no value to decide on")
+
 	// ErrInvalidValueType is returned when a modifier receives an unsupported value type.
 	ErrInvalidValueType = errors.New("invalid value type")
 
@@ -94,4 +100,18 @@ func IsParamError(err error) bool {
 	return errors.Is(err, ErrInvalidParamType) ||
 		errors.Is(err, ErrMissingParam) ||
 		errors.Is(err, ErrInvalidParamValue)
+}
+
+// RefuseNil reports that a modifier whose whole job is to answer a question
+// about its value was handed nil, which is what absent data looks like by the
+// time it reaches a modifier. Inverting nothing, choosing a branch on nothing
+// and comparing nothing to a value all produce a confident answer out of a
+// misspelled path, so these modifiers refuse instead and the template says what
+// absence means with an earlier default.
+//
+// The refusal is terminal. Unlike a value rejection, it is not answerable by
+// something further down the pipe, because a default written after the decision
+// would be answering the verdict rather than the missing value.
+func RefuseNil(name ModifierName) error {
+	return fmt.Errorf("%s was handed nothing: %w", name, ErrNilDecision)
 }

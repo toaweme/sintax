@@ -5,10 +5,17 @@ import (
 
 	"github.com/toaweme/sintax"
 	"github.com/toaweme/sintax/functions/boolean"
+	"github.com/toaweme/sintax/functions/control"
 )
 
+// render registers the control modifiers alongside the boolean ones, since a
+// boolean modifier refuses absent data and default is how a template answers it.
 func render(tpl string, vars map[string]any) string {
-	out, err := sintax.New(sintax.WithModifiers(boolean.Modifiers())).Render(tpl, vars)
+	mods := boolean.Modifiers()
+	for name, mod := range control.Modifiers() {
+		mods[name] = mod
+	}
+	out, err := sintax.New(sintax.WithModifiers(mods)).Render(tpl, vars)
 	if err != nil {
 		return fmt.Sprintf("error: %v", err)
 	}
@@ -198,8 +205,8 @@ func ExampleNeqNumber() {
 // ExampleNeqAny_nil treats nil as equal only to nil, so an absent value differs
 // from zero rather than reading as it.
 func ExampleNeqAny_nil() {
-	fmt.Println(render(`{{ missing | neq:0 }}`, map[string]any{}))
-	// Output: true
+	fmt.Println(render(`{{ missing | default:0 | neq:0 }}`, map[string]any{}))
+	// Output: false
 }
 
 // ExampleAnd combines two conditions into one expression, so a template needs no
@@ -215,7 +222,7 @@ func ExampleAnd() {
 // ExampleAnd_absent reads a value that was never set as false, so the condition
 // answers rather than failing the render.
 func ExampleAnd_absent() {
-	fmt.Println(render(`{{ enabled | and:has_rows }}`, map[string]any{
+	fmt.Println(render(`{{ enabled | default:false | and:has_rows }}`, map[string]any{
 		"has_rows": true,
 	}))
 	// Output: false

@@ -526,6 +526,15 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 			out, applyErr = function(varValue, args)
 		}
 		if applyErr != nil {
+			// a modifier that refuses to decide on nothing is terminal wherever it
+			// sits, whether the nil came from an absent key, an explicit null or a
+			// miss traveling down the pipe. Those three are the same value by the
+			// time a modifier sees them, so they get the same answer. A default
+			// after the decision cannot save it either, since it would be answering
+			// the verdict rather than the value that was never there.
+			if errors.Is(applyErr, functions.ErrNilDecision) {
+				return nil, modifierFailure(fn.Name, token, fmt.Errorf("failed to decide on %q, which is missing or null with no earlier default: %w", varName, applyErr))
+			}
 			// a miss already in flight means this modifier was handed the nil standing
 			// in for absent data, so rejecting that value describes the absence rather
 			// than the template, and the original miss keeps traveling for something
@@ -551,8 +560,8 @@ func (r *TokenRenderer) renderVariable(token Token, vars map[string]any) (any, e
 
 		// a modifier that made sense of nothing has answered the miss, which is why
 		// the engine needs no list of which modifiers those are. `default` supplies
-		// a value, `not` reads absence as false and inverts it, and each one decides
-		// for itself by accepting nil or rejecting it.
+		// a value, `json` renders it as null, and each one decides for itself by
+		// accepting nil, declining it, or refusing outright with ErrNilDecision.
 		missed, varValue = nil, out
 	}
 

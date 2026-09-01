@@ -28,9 +28,17 @@ const ModifierNameIs functions.ModifierName = "is"
 //
 // Matching is exact on type, so an integer element is not found by a string
 // parameter of the same digits.
+//
+// A nil collection is refused rather than reported as containing nothing, since
+// a list that was never published and a path that was misspelled arrive the same
+// way, and "it is not in there" is a verdict either way. Put a default ahead of
+// it, as in `{{ ids | default:[] | has:id }}`.
 func Has(value any, params []any) (any, error) {
 	if len(params) == 0 {
 		return false, errors.New("`has` requires at least one parameter")
+	}
+	if value == nil {
+		return nil, functions.RefuseNil(ModifierNameHas)
 	}
 
 	v := reflect.ValueOf(value)
@@ -48,9 +56,16 @@ func Has(value any, params []any) (any, error) {
 // Is reports whether the value equals any one of the given candidates, a compact
 // way to write an "is this one of these" test in a template. Comparison is exact
 // on type, so the number 5 does not match the string "5".
+//
+// A nil value is refused rather than answered as "none of these", for the reason
+// eq refuses one. Absence is not membership, and a template that means it should
+// say so with a default ahead of the test.
 func Is(value any, candidates ...any) (bool, error) {
 	if len(candidates) == 0 {
 		return false, errors.New("is requires at least one candidate")
+	}
+	if value == nil {
+		return false, functions.RefuseNil(ModifierNameIs)
 	}
 
 	for _, candidate := range candidates {

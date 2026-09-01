@@ -32,17 +32,28 @@ func EqAny(value, other any) (bool, error) {
 	return value == other, nil
 }
 
-// eqNilGuard enforces eq's nil rule ahead of the typed clauses: nil is equal
-// only to nil, so nil against 0 is false. It runs first because EqNumber would
-// otherwise coerce nil to zero and compare it numerically. When neither operand
-// is nil it declines with ErrInvalidValueType so Overload falls through.
+// eqNilGuard runs ahead of the typed clauses, because EqNumber would otherwise
+// coerce nil to zero and compare it numerically.
+//
+// A nil piped value is refused. `{{ row.status | eq:'published' }}` over a column
+// nobody spelled right answers "not published" with the same confidence as a real
+// row, and the answer is usually inverted straight afterwards, so the refusal is
+// what keeps a typo from reading as a verdict. A nil argument is a different
+// thing, since it came from data the template did name, and a non-nil value is
+// simply unequal to it.
+//
+// When neither operand is nil the guard declines with ErrInvalidValueType so
+// Overload falls through.
 func eqNilGuard(value any, params []any) (any, error) {
 	other, err := functions.ParamAny(params, 0)
 	if err != nil {
 		return nil, err
 	}
-	if value == nil || other == nil {
-		return value == other, nil
+	if value == nil {
+		return nil, functions.RefuseNil(ModifierNameEq)
+	}
+	if other == nil {
+		return false, nil
 	}
 	return nil, functions.ErrInvalidValueType
 }

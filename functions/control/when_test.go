@@ -28,7 +28,6 @@ func Test_When(t *testing.T) {
 		{"a positive number is truthy", 3, []any{"live", "draft"}, "live"},
 		{"an empty slice is falsey", []any{}, []any{"live", "draft"}, "draft"},
 		{"a filled slice is truthy", []any{1}, []any{"live", "draft"}, "live"},
-		{"a miss arrives as nil and is falsey", nil, []any{"live", "draft"}, "draft"},
 		{"branches keep their own types", true, []any{1, 0}, 1},
 	}
 	for _, tt := range tests {
@@ -38,6 +37,15 @@ func Test_When(t *testing.T) {
 			assert.Equal(t, tt.expected, out)
 		})
 	}
+}
+
+// Absent data is not one of the two cases a when names, so it refuses nil rather
+// than picking the falsy branch for a path nobody spelled right.
+func Test_When_RefusesNil(t *testing.T) {
+	when := whenModifier
+
+	_, err := when(nil, []any{"live", "draft"})
+	assert.ErrorIs(t, err, functions.ErrNilDecision)
 }
 
 // A choice with one branch is a choice somebody forgot to finish, so when

@@ -26,7 +26,6 @@ func Test_Not(t *testing.T) {
 		{"empty slice is falsey", []any{}, true},
 		{"non-empty map is truthy", map[string]any{"k": 1}, false},
 		{"empty map is falsey", map[string]any{}, true},
-		{"nil is falsey", nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

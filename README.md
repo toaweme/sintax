@@ -160,6 +160,12 @@ value the prefix found, so `{{ user.name }}` then descends into a `user` map. A 
 catchable by `default:` and read as false by an `if`, and walking into a value that holds no paths at all fails
 the render. The `key` modifier reaches the same places explicitly, e.g. `{{ order | key:'meta.total' }}`.
 
+**A decision on nothing fails.** Reading a value stays soft, but `not`, `when`, `and`, `or`, `eq`, `neq`, `has`
+and `is` refuse a nil value rather than answer on it, since a missing key and a key holding an explicit null are
+the same nothing and inverting either one turns a misspelled path into a confident `true`. Say what absence means
+with a `default:` ahead of the decision, as in `{{ flag | default:false | not }}`. A default written after the
+decision is too late.
+
 **Block tags use `endif` and `endfor`** to close.
 
 ### Whitespace control

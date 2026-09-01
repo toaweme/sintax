@@ -10,10 +10,15 @@ const ModifierNameOr functions.ModifierName = "or"
 // without a chain of if blocks, and it composes with not, as in
 // `{{ draft | not | or:published }}`.
 //
-// A miss arriving down the pipe is falsey and answered here rather than failing,
-// so the argument decides the result on its own. Or returns a bool rather than
-// the truthy operand, which makes it a condition rather than a fallback. Use
+// A nil value is refused rather than read as false, because a missing key and an
+// explicit null are indistinguishable from a path nobody ever spelled right, and
+// answering one of those turns the argument into the whole condition by accident.
+// Put a default ahead of it to say what absence means. Or returns a bool rather
+// than the truthy operand, which makes it a condition rather than a fallback. Use
 // default when what you want is a value.
 func Or(value any, other any) (bool, error) {
+	if value == nil {
+		return false, functions.RefuseNil(ModifierNameOr)
+	}
 	return functions.ConditionIsTrue(value) || functions.ConditionIsTrue(other), nil
 }

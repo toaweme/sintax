@@ -27,7 +27,6 @@ func Test_Or(t *testing.T) {
 		{"the literal false string is falsey", "false", []any{""}, false},
 		{"zero and an empty slice", 0, []any{[]any{}}, false},
 		{"a filled slice is truthy", []any{1}, []any{0}, true},
-		{"nil value is falsey", nil, []any{false}, false},
 		{"nil param is falsey", false, []any{nil}, false},
 	}
 	for _, tt := range tests {

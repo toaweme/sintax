@@ -30,8 +30,6 @@ func Test_Neq(t *testing.T) {
 		{"equal bools", true, []any{true}, false},
 		{"unequal bools", true, []any{false}, true},
 		{"number and its string form differ", 5, []any{"5"}, true},
-		{"nil equals nil", nil, []any{nil}, false},
-		{"nil differs from zero", nil, []any{0}, true},
 		{"value differs from nil param", 0, []any{nil}, true},
 		{"unicode strings equal", "café", []any{"café"}, false},
 	}

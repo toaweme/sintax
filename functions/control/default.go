@@ -20,8 +20,13 @@ const ModifierNameDefault functions.ModifierName = "default"
 // no row or key not holding the requested field. A miss travels down the
 // pipeline as nil, and default answers it simply by accepting that nil and
 // returning the fallback. The engine gives this modifier no special standing.
-// Any modifier that makes sense of nil answers a miss the same way, which is why
-// `not` reads a missing flag as false rather than failing.
+// Any modifier that makes sense of nil answers a miss the same way.
+//
+// Where it does earn its place is ahead of a modifier that turns a value into a
+// decision. `not`, `when`, `and`, `or`, `eq`, `neq`, `has` and `is` refuse nil
+// rather than answer on it, so a default in front of one is how a template says
+// what absence means, as in `{{ flag | default:false | not }}`. Written after the
+// decision it is too late, because the decision already failed.
 func Default(value any, fallback any) (any, error) {
 	if value == nil || value == "" {
 		return fallback, nil
