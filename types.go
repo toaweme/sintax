@@ -17,6 +17,7 @@ var (
 	ErrUnexpectedToken     = errors.New("unexpected control token")
 	ErrInvalidForExpr      = errors.New("invalid for expression")
 	ErrNotIterable         = errors.New("value is not iterable")
+	ErrNotAnExpression     = errors.New("not a variable expression")
 )
 
 // ModifierError reports a modifier that failed while rendering a variable's

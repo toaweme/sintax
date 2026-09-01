@@ -1,6 +1,7 @@
 package sintax
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -86,8 +87,8 @@ func (p *StringParser) Parse(template string) ([]Token, error) {
 		}
 
 		// create the appropriate token
-		tokenType := p.detectTokenType(contents)
-		tokens = append(tokens, p.createToken(tokenType, contents))
+		tokenType := detectTokenType(contents)
+		tokens = append(tokens, createToken(tokenType, contents))
 
 		// move `i` beyond the closer
 		i = closerIndex + len(p.closer)
@@ -259,13 +260,13 @@ var variableNameRe = regexp.MustCompile(`^([a-zA-Z_.][a-zA-Z0-9_.]*)$`)
 
 // isVariable reports whether s is a bare variable name
 // (as opposed to a quoted string, number, boolean, or filtered expression).
-func (p *StringParser) isVariable(s string) bool {
+func isVariable(s string) bool {
 	return variableNameRe.MatchString(s)
 }
 
 // detectTokenType classifies the text between "{{" and "}}". Control tags match
 // on a word boundary, so an ordinary name like "elsewhere" stays a variable.
-func (p *StringParser) detectTokenType(s string) TokenType {
+func detectTokenType(s string) TokenType {
 	s = strings.TrimSpace(s)
 
 	switch {
@@ -280,7 +281,7 @@ func (p *StringParser) detectTokenType(s string) TokenType {
 	case s == "else":
 		// bare tag only, an ElseToken carries no expression so "else if" cannot work
 		return ElseToken
-	case p.isVariable(s):
+	case isVariable(s):
 		return VariableToken
 	case strings.Contains(s, "|"):
 		return FilteredVariableToken
@@ -305,7 +306,7 @@ func splitAndGetFirst(s string) string {
 	return ""
 }
 
-func (p *StringParser) createToken(tokenType TokenType, value string) Token {
+func createToken(tokenType TokenType, value string) Token {
 	switch tokenType {
 	case VariableToken:
 		return BaseToken{TokenType: VariableToken, RawValue: strings.TrimSpace(value), Var: strings.TrimSpace(value)}
@@ -373,4 +374,18 @@ func parseForExpr(s string) (string, string) {
 		lhs = strings.Join(parts, ",")
 	}
 	return lhs, expr
+}
+
+// parseExpr parses the body of a "{{ ... }}" without its delimiters into the
+// single token it denotes. Anything that is not a variable reference or a
+// modifier pipeline fails with ErrNotAnExpression.
+func parseExpr(expr string) (Token, error) {
+	expr = strings.TrimSpace(expr)
+
+	tt := detectTokenType(expr)
+	if tt != VariableToken && tt != FilteredVariableToken {
+		return nil, fmt.Errorf("failed to parse expression %q: %w", expr, ErrNotAnExpression)
+	}
+
+	return createToken(tt, expr), nil
 }

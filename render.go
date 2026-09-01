@@ -41,7 +41,6 @@ type Func struct {
 type TokenRenderer struct {
 	funcs    map[string]GlobalModifier
 	ctxFuncs map[string]ContextualModifier
-	parser   *StringParser
 	maxDepth int
 	depth    int
 }
@@ -60,7 +59,6 @@ func newTokenRenderer(cfg *config) *TokenRenderer {
 	return &TokenRenderer{
 		funcs:    cfg.funcs,
 		ctxFuncs: cfg.ctxFuncs,
-		parser:   NewStringParser(),
 		maxDepth: cfg.maxDepth,
 	}
 }
@@ -95,7 +93,7 @@ func (r *TokenRenderer) renderNested(template string, vars map[string]any) (any,
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse nested template: %w", err)
 	}
-	child := &TokenRenderer{funcs: r.funcs, ctxFuncs: r.ctxFuncs, parser: r.parser, maxDepth: r.maxDepth, depth: r.depth + 1}
+	child := &TokenRenderer{funcs: r.funcs, ctxFuncs: r.ctxFuncs, maxDepth: r.maxDepth, depth: r.depth + 1}
 	return child.Render(tokens, vars)
 }
 
@@ -185,47 +183,25 @@ func controlName(t TokenType) string {
 	return "?"
 }
 
-// findIfEnd locates the matching `endif` for the IfToken at index `start`. it also
-// records the index of the (top-level) `else` if one exists. nested ifs are
-// counted correctly.
+// findIfEnd locates the matching `endif` for the IfToken at index `start`, and
+// the index of its top-level `else` where it has one.
 func findIfEnd(tokens []Token, start, end int) (elseIdx, endIdx int, err error) {
-	elseIdx = -1
-	depth := 0
-	for j := start + 1; j < end; j++ {
-		switch tokens[j].Type() {
-		case IfToken:
-			depth++
-		case IfEndToken:
-			if depth == 0 {
-				return elseIdx, j, nil
-			}
-			depth--
-		case ElseToken:
-			if depth == 0 && elseIdx == -1 {
-				elseIdx = j
-			}
-		default:
-		}
+	elseIdx, endIdx, ok := blockEnd(tokens, start, end)
+	if !ok {
+		return -1, -1, fmt.Errorf("unterminated if block: %w", ErrUnterminatedIf)
 	}
-	return -1, -1, fmt.Errorf("unterminated if block: %w", ErrUnterminatedIf)
+
+	return elseIdx, endIdx, nil
 }
 
 // findForEnd locates the matching `endfor` for the ForToken at index `start`.
 func findForEnd(tokens []Token, start, end int) (int, error) {
-	depth := 0
-	for j := start + 1; j < end; j++ {
-		switch tokens[j].Type() {
-		case ForToken:
-			depth++
-		case ForEndToken:
-			if depth == 0 {
-				return j, nil
-			}
-			depth--
-		default:
-		}
+	_, endIdx, ok := blockEnd(tokens, start, end)
+	if !ok {
+		return -1, fmt.Errorf("unterminated for block: %w", ErrUnterminatedFor)
 	}
-	return -1, fmt.Errorf("unterminated for block: %w", ErrUnterminatedFor)
+
+	return endIdx, nil
 }
 
 func (r *TokenRenderer) renderIf(tokens []Token, start, end int, vars map[string]any) (string, int, error) {
@@ -265,16 +241,12 @@ func (r *TokenRenderer) renderFor(tokens []Token, start, end int, vars map[strin
 		return "", start, err
 	}
 	tok := tokens[start]
-	spec := tok.Name()
+	loop := parseLoopSpec(tok)
 	expr := tok.LoopExpr()
-	if spec == "" || expr == "" {
+	if loop.Element == "" || expr == "" {
 		return "", start, fmt.Errorf("for expression %q is incomplete: %w", tok.Raw(), ErrInvalidForExpr)
 	}
-	keyName, loopVar := "", spec
-	if idx := strings.IndexByte(spec, ','); idx >= 0 {
-		keyName = spec[:idx]
-		loopVar = spec[idx+1:]
-	}
+	keyName, loopVar := loop.Position, loop.Element
 
 	iterable, err := r.evalExpr(expr, vars)
 	if err != nil {
@@ -293,11 +265,11 @@ func (r *TokenRenderer) renderFor(tokens []Token, start, end int, vars map[strin
 		rv = rv.Elem()
 	}
 
-	// the loop-binding key names are constant across iterations, so build them once
-	// rather than re-concatenating loopVar+"_index" etc. on every pass.
-	idxKey := loopVar + "_index"
-	firstKey := loopVar + "_first"
-	lastKey := loopVar + "_last"
+	// the loop-binding key names are constant across iterations, and ParseloopSpec
+	// built them once rather than re-concatenating loopVar+"_index" on every pass.
+	idxKey := loop.Index
+	firstKey := loop.First
+	lastKey := loop.Last
 
 	// one child scope, reused across every iteration. The bindings below are
 	// overwritten each pass, so a fresh copy per iteration is unnecessary. this
@@ -339,7 +311,7 @@ func (r *TokenRenderer) renderFor(tokens []Token, start, end int, vars map[strin
 				return fmt.Sprint(keys[a].Interface()) < fmt.Sprint(keys[b].Interface())
 			})
 		}
-		keyKey := loopVar + "_key"
+		keyKey := loop.MapKey
 		n := len(keys)
 		for i, k := range keys {
 			child[loopVar] = rv.MapIndex(k).Interface()
@@ -405,11 +377,11 @@ func (r *TokenRenderer) evalExpr(expr string, vars map[string]any) (any, error) 
 	if expr == "" {
 		return nil, nil //nolint:nilnil // deliberate, an empty expression evaluates to nil, not an error
 	}
-	tt := r.parser.detectTokenType(expr)
-	if tt != VariableToken && tt != FilteredVariableToken {
-		return nil, fmt.Errorf("expression %q did not parse to a variable", expr)
+	token, err := parseExpr(expr)
+	if err != nil {
+		return nil, err
 	}
-	value, err := r.renderVariable(r.parser.createToken(tt, expr), vars)
+	value, err := r.renderVariable(token, vars)
 	if err != nil {
 		if errors.Is(err, functions.ErrAllowsDefaultFunc) {
 			return nil, nil //nolint:nilnil // deliberate, absent data is nil here, which reads as false and iterates nothing

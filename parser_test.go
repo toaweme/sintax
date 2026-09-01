@@ -173,11 +173,9 @@ func Test_DetectTokenType_Classification(t *testing.T) {
 		{name: "else with a trailing condition", input: "else if active", expected: UndefinedToken},
 	}
 
-	p := NewStringParser()
-
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			got := p.detectTokenType(tt.input)
+			got := detectTokenType(tt.input)
 			assert.Equal(t, tt.expected, got)
 		})
 	}
