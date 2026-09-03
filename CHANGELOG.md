@@ -5,6 +5,17 @@ All notable changes to this project are documented here, newest first.
 Entries are generated from [Conventional Commits](https://www.conventionalcommits.org)
 and grouped by change type. This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-09-03
+
+### Features
+
+- Refuse a boolean modifier handed nil unless a default supplied one by [@iberflow](https://github.com/iberflow) in [ca7df18](https://github.com/toaweme/sintax/commit/ca7df18f139d729eba1c0f0800e1b962b8e02237).
+- Carry the failing template and its position on a modifier error by [@iberflow](https://github.com/iberflow) in [e12e491](https://github.com/toaweme/sintax/commit/e12e491001368c2e9f1dcd670d1b5d04edc14e42).
+- Answer what a template references behind one export by [@iberflow](https://github.com/iberflow) in [c59d8a8](https://github.com/toaweme/sintax/commit/c59d8a84897c8f3c1d95ece882d6480527cbc261).
+- Add the date and from_date modifiers with layout guessing by [@iberflow](https://github.com/iberflow) in [374897d](https://github.com/toaweme/sintax/commit/374897dd2640f6d6ca141d86c2b341325e601497).
+- Read dotted variable names as paths and add neq, and, or, when and clean by [@iberflow](https://github.com/iberflow) in [fb06a6a](https://github.com/toaweme/sintax/commit/fb06a6ac4b8fe8ba1074b6297c7b7261fc14bce5).
+- Add the hash modifier with a required algorithm parameter by [@iberflow](https://github.com/iberflow) in [9859d79](https://github.com/toaweme/sintax/commit/9859d79a44a58033f18eee311b5190e421d2f7ab).
+
 ## [0.6.0] - 2026-07-24
 
 ### Fixes
@@ -139,6 +150,7 @@ and grouped by change type. This project adheres to [Semantic Versioning](https:
 - Fix linter issues by [@iberflow](https://github.com/iberflow) in [79c2a53](https://github.com/toaweme/sintax/commit/79c2a53df09c87782bc16832572312826bd2985e).
 - Rollback go.mod to 1.22 by [@iberflow](https://github.com/iberflow) in [4be0329](https://github.com/toaweme/sintax/commit/4be0329a7a690ebcc5a80b9c4aa0689ea0f0c5d5).
 
+[0.7.0]: https://github.com/toaweme/sintax/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/toaweme/sintax/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/toaweme/sintax/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/toaweme/sintax/compare/v0.3.0...v0.4.0
