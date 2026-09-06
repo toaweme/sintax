@@ -17,6 +17,7 @@ import (
 	"github.com/toaweme/sintax/functions/control"
 	"github.com/toaweme/sintax/functions/convert/parse"
 	"github.com/toaweme/sintax/functions/convert/serialize"
+	"github.com/toaweme/sintax/functions/datetime"
 	"github.com/toaweme/sintax/functions/escape"
 	"github.com/toaweme/sintax/functions/format"
 	"github.com/toaweme/sintax/functions/fs"
@@ -44,6 +45,7 @@ func New(safeDirs ...string) map[string]functions.GlobalModifier {
 		serialize.Modifiers(),
 		parse.Modifiers(),
 		format.Modifiers(),
+		datetime.Modifiers(),
 		boolean.Modifiers(),
 		escape.Modifiers(),
 		pathquery.Modifiers(),
