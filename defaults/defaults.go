@@ -21,6 +21,7 @@ import (
 	"github.com/toaweme/sintax/functions/escape"
 	"github.com/toaweme/sintax/functions/format"
 	"github.com/toaweme/sintax/functions/fs"
+	"github.com/toaweme/sintax/functions/math"
 	pathedit "github.com/toaweme/sintax/functions/path/edit"
 	pathquery "github.com/toaweme/sintax/functions/path/query"
 	"github.com/toaweme/sintax/functions/render"
@@ -46,6 +47,7 @@ func New(safeDirs ...string) map[string]functions.GlobalModifier {
 		parse.Modifiers(),
 		format.Modifiers(),
 		datetime.Modifiers(),
+		math.Modifiers(),
 		boolean.Modifiers(),
 		escape.Modifiers(),
 		pathquery.Modifiers(),
