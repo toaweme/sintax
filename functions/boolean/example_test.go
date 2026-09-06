@@ -2,6 +2,7 @@ package boolean_test
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/toaweme/sintax"
 	"github.com/toaweme/sintax/functions/boolean"
@@ -243,6 +244,42 @@ func ExampleOr_bool() {
 	fmt.Println(render(`{{ name | or:fallback }}`, map[string]any{
 		"name":     "",
 		"fallback": "anonymous",
+	}))
+	// Output: true
+}
+
+// ExampleLt reports whether a number is below a threshold.
+func ExampleLt() {
+	fmt.Println(render(`{{ stock | lt:5 }}`, map[string]any{
+		"stock": 2,
+	}))
+	// Output: true
+}
+
+// ExampleLte reads a warning window off a day count, which is how a template
+// asks whether something is expiring soon.
+func ExampleLte() {
+	fmt.Println(render(`{{ days_left | lte:14 }}`, map[string]any{
+		"days_left": 12,
+	}))
+	// Output: true
+}
+
+// ExampleGtTime compares two dates, so a template can ask whether a deadline is
+// still ahead. Both sides have to be real dates rather than printed ones.
+func ExampleGtTime() {
+	fmt.Println(render(`{{ expires_at | gt:today }}`, map[string]any{
+		"expires_at": time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC),
+		"today":      time.Date(2024, 3, 14, 0, 0, 0, 0, time.UTC),
+	}))
+	// Output: true
+}
+
+// ExampleLtTime asks whether a date has passed.
+func ExampleLtTime() {
+	fmt.Println(render(`{{ starts_at | lt:today }}`, map[string]any{
+		"starts_at": time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC),
+		"today":     time.Date(2024, 3, 14, 0, 0, 0, 0, time.UTC),
 	}))
 	// Output: true
 }

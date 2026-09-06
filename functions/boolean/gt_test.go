@@ -2,6 +2,7 @@ package boolean
 
 import (
 	"testing"
+	"time"
 
 	"github.com/toaweme/sintax/assert"
 	"github.com/toaweme/sintax/functions"
@@ -61,5 +62,57 @@ func Test_Gt_Modifier(t *testing.T) {
 	t.Run("non-numeric param", func(t *testing.T) {
 		_, err := gt(3, []any{"abc"})
 		assert.ErrorIs(t, err, functions.ErrInvalidParamType)
+	})
+}
+
+// Test_GtTime asserts a date is compared as a date, so a template can ask
+// whether a deadline is still ahead without pushing the question into a query.
+func Test_GtTime(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    time.Time
+		than     time.Time
+		expected bool
+	}{
+		{"later is after", later, moment, true},
+		{"earlier is not after", earlier, moment, false},
+		{"the same instant is not after", moment, moment, false},
+		{"a second later is after", moment.Add(time.Second), moment, true},
+		{"the same instant in another zone is not after", moment.In(time.FixedZone("CET", 2*60*60)), moment, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			out, err := GtTime(tt.value, tt.than)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, out)
+		})
+	}
+}
+
+// Test_Gt_Dates_Modifier asserts the registered modifier picks the date clause
+// for a pair of dates, and refuses a pair the clauses cannot make sense of
+// rather than falling back on a number.
+func Test_Gt_Dates_Modifier(t *testing.T) {
+	t.Run("two dates compare", func(t *testing.T) {
+		out, err := gtModifier(later, []any{moment})
+		assert.NoError(t, err)
+		assert.Equal(t, true, out)
+	})
+	t.Run("a printed date is not a date", func(t *testing.T) {
+		_, err := gtModifier("2024-03-15", []any{moment})
+		assert.ErrorIs(t, err, functions.ErrInvalidValueType)
+	})
+	t.Run("a date against a number", func(t *testing.T) {
+		_, err := gtModifier(moment, []any{5})
+		assert.ErrorIs(t, err, functions.ErrInvalidParamType)
+	})
+	t.Run("a number against a date", func(t *testing.T) {
+		_, err := gtModifier(5, []any{moment})
+		assert.ErrorIs(t, err, functions.ErrInvalidParamType)
+	})
+	t.Run("numbers still compare", func(t *testing.T) {
+		out, err := gtModifier(91, []any{90.5})
+		assert.NoError(t, err)
+		assert.Equal(t, true, out)
 	})
 }
