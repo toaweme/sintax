@@ -5,6 +5,16 @@ All notable changes to this project are documented here, newest first.
 Entries are generated from [Conventional Commits](https://www.conventionalcommits.org)
 and grouped by change type. This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-09-07
+
+### Features
+
+- Add date arithmetic, number arithmetic and the comparisons they need by [@iberflow](https://github.com/iberflow) in [#8](https://github.com/toaweme/sintax/pull/8).
+
+### CI & Build
+
+- Pin the quality gate toolchain to Go 1.26 by [@iberflow](https://github.com/iberflow) in [e086039](https://github.com/toaweme/sintax/commit/e086039bf2d906e06934dff10472d5ca1b622f35).
+
 ## [0.7.0] - 2026-09-03
 
 ### Features
@@ -150,6 +160,7 @@ and grouped by change type. This project adheres to [Semantic Versioning](https:
 - Fix linter issues by [@iberflow](https://github.com/iberflow) in [79c2a53](https://github.com/toaweme/sintax/commit/79c2a53df09c87782bc16832572312826bd2985e).
 - Rollback go.mod to 1.22 by [@iberflow](https://github.com/iberflow) in [4be0329](https://github.com/toaweme/sintax/commit/4be0329a7a690ebcc5a80b9c4aa0689ea0f0c5d5).
 
+[0.8.0]: https://github.com/toaweme/sintax/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/toaweme/sintax/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/toaweme/sintax/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/toaweme/sintax/compare/v0.4.0...v0.5.0
