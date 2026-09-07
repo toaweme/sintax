@@ -2,6 +2,7 @@ package boolean
 
 import (
 	"testing"
+	"time"
 
 	"github.com/toaweme/sintax/assert"
 	"github.com/toaweme/sintax/functions"
@@ -55,6 +56,48 @@ func Test_Gte_Modifier(t *testing.T) {
 	})
 	t.Run("non-numeric param", func(t *testing.T) {
 		_, err := gte(1, []any{"abc"})
+		assert.ErrorIs(t, err, functions.ErrInvalidParamType)
+	})
+}
+
+// Test_GteTime asserts a date is compared as a date, where equality is the same
+// instant rather than the same calendar day.
+func Test_GteTime(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    time.Time
+		than     time.Time
+		expected bool
+	}{
+		{"later is on or after", later, moment, true},
+		{"the same instant is on or after", moment, moment, true},
+		{"earlier is not", earlier, moment, false},
+		{"a second earlier is not", moment.Add(-time.Second), moment, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			out, err := GteTime(tt.value, tt.than)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, out)
+		})
+	}
+}
+
+// Test_Gte_Dates_Modifier asserts the registered modifier reaches the date
+// clause and still takes numbers.
+func Test_Gte_Dates_Modifier(t *testing.T) {
+	t.Run("two dates compare", func(t *testing.T) {
+		out, err := gteModifier(moment, []any{moment})
+		assert.NoError(t, err)
+		assert.Equal(t, true, out)
+	})
+	t.Run("numbers still compare", func(t *testing.T) {
+		out, err := gteModifier(1, []any{1})
+		assert.NoError(t, err)
+		assert.Equal(t, true, out)
+	})
+	t.Run("a date against a number", func(t *testing.T) {
+		_, err := gteModifier(moment, []any{5})
 		assert.ErrorIs(t, err, functions.ErrInvalidParamType)
 	})
 }

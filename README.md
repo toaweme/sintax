@@ -267,8 +267,10 @@ Compare values for use inside if/else blocks and conditional expressions.
 | --- | --- | --- |
 | `and` | And returns true if both the value and the given parameter are truthy. | `{{ enabled \| and:has_rows }}` |
 | `eq` | Eq returns true if the value equals the given parameter. | `{{ status \| eq:'active' }}` |
-| `gt` | Gt returns true if the numeric value is greater than the threshold. | `{{ items_in_cart \| gt:0 }}` |
-| `gte` | Gte returns true if the numeric value is greater than or equal to the threshold. | `{{ qty \| gte:1 }}` |
+| `gt` | Gt returns true if the value is greater than the threshold. Two numbers compare numerically and two dates compare as dates, so `gt` on a date asks whether it falls after the other. | `{{ items_in_cart \| gt:0 }}` |
+| `gte` | Gte returns true if the value is greater than or equal to the threshold, over numbers or over dates. | `{{ qty \| gte:1 }}` |
+| `lt` | Lt returns true if the value is below the threshold, over numbers or over dates, so `lt` on a date asks whether it has passed. | `{{ starts_at \| lt:now }}` |
+| `lte` | Lte returns true if the value is at or below the threshold, over numbers or over dates. | `{{ days_left \| lte:14 }}` |
 | `neq` | Neq returns true if the value differs from the given parameter. | `{{ status \| neq:'archived' }}` |
 | `not` | Not inverts the truthiness of the value. | `{{ is_active \| not }}` |
 | `or` | Or returns true if either the value or the given parameter is truthy. | `{{ draft \| not \| or:published }}` |
@@ -322,6 +324,45 @@ value. Pass the layout to settle it, `from_date:'d/m/Y'` or `from_date:'m/d/Y'`.
 
 A value carrying its own offset keeps it. Anything else is read as UTC, so a date-only value lands
 on midnight UTC rather than on whatever zone the process happens to run in.
+
+### Dates
+
+Shift a date forward or back, and measure the distance between two.
+
+| Item | Description | Example |
+| --- | --- | --- |
+| `add_days` | AddDays shifts a date by a whole number of days, forward on a positive amount and back on a negative one. | `{{ now \| add_days:14 \| date:'Y-m-d' }}` |
+| `add_months` | AddMonths shifts a date by whole calendar months, clamping a day the target month does not have onto its last day. | `{{ charged_on \| add_months:1 \| date:'Y-m-d' }}` |
+| `add_years` | AddYears shifts a date by whole years, clamping the 29th of February onto the 28th where the target year has no leap day. | `{{ bought_on \| add_years:2 \| date:'Y-m-d' }}` |
+| `days_between` | DaysBetween counts the whole days from the value to the argument, negative when the argument is the earlier of the two. | `{{ now \| days_between:expires_at }}` |
+
+Every one of them takes a real date and refuses a string, the same stance `date` takes, so a printed
+date goes through `from_date` first. The amount is signed rather than split across an add and a
+subtract, because it is usually a field whose sign the template author does not know when they write
+the pipe.
+
+An argument is a name or a literal and never a pipe, so a date the template computes cannot itself be
+the other side of a comparison. `days_between` is what makes the question reachable, since a count of
+days is a number:
+
+```
+{{ if now | days_between:expires_at | lte:14 }}{{ name }} expires in {{ now | days_between:expires_at }} days{{ endif }}
+```
+
+### Arithmetic
+
+Add, subtract, multiply, and divide a number.
+
+| Item | Description | Example |
+| --- | --- | --- |
+| `add` | Add returns the value plus the given number. | `{{ subtotal \| add:shipping }}` |
+| `subtract` | Subtract returns the value less the given number. | `{{ seats \| subtract:booked }}` |
+| `multiply` | Multiply returns the value scaled by the given number. | `{{ net \| multiply:1.21 }}` |
+| `divide` | Divide returns the value split by the given number, and dividing by zero is an error rather than an infinity. | `{{ total \| divide:orders }}` |
+
+A numeric string is accepted, since a number read out of a store or a form often arrives as text, and
+anything that is not a number is refused rather than counted as zero. Results are floats, so pair them
+with `decimal` to write one out at a fixed precision.
 
 ### File System
 
