@@ -1,5 +1,6 @@
 // Package escape provides modifiers that make a string safe to embed in a
-// target output context, one modifier per context (HTML, URL, JavaScript).
+// target output context, one modifier per context (HTML, URL, JavaScript, and
+// a backslash escape whose characters the template names).
 //
 // Escaping here is deliberately explicit, unlike html/template's contextual
 // auto-escaping. html/template inspects where a value lands (an HTML text node,
@@ -33,6 +34,10 @@ const (
 	ModifierNameURL functions.ModifierName = "escape_url"
 	// ModifierNameJS is the template name for the JS modifier.
 	ModifierNameJS functions.ModifierName = "escape_js"
+	// ModifierNameBackslash is the template name for the Backslash modifier.
+	ModifierNameBackslash functions.ModifierName = "escape_backslash"
+	// ModifierNameUnbackslash is the template name for the Unbackslash modifier.
+	ModifierNameUnbackslash functions.ModifierName = "unescape_backslash"
 )
 
 // HTML escapes a value for an HTML text node or a quoted attribute value. It is

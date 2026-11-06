@@ -110,3 +110,20 @@ func ExampleJS_unicode() {
 	}))
 	// Output: café
 }
+
+// ExampleBackslash escapes quotes and line breaks anywhere and an @ only where it opens the value, the way Android resource strings are escaped.
+func ExampleBackslash() {
+	fmt.Println(render(`{{ text | escape_backslash:'\\"n','@' }}`, map[string]any{
+		"text": "@home \"now\"\nok",
+	}))
+	// Output: \@home \"now\"\nok
+}
+
+// ExampleUnbackslash reads the same escapes back in one pass.
+func ExampleUnbackslash() {
+	fmt.Println(render(`{{ text | unescape_backslash:'\\"n@' }}`, map[string]any{
+		"text": `\@home \"now\"\nok`,
+	}))
+	// Output: @home "now"
+	// ok
+}
