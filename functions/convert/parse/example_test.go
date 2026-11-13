@@ -37,7 +37,7 @@ func show(out any) string {
 	return fmt.Sprintf("%v", out)
 }
 
-// ExampleFromJSON parses a JSON object string into a map, so a serialized
+// ExampleFromJSON parses a JSON string into the value it holds, so a serialized
 // payload becomes data that later template steps can index into.
 func ExampleFromJSON() {
 	fmt.Println(render(`{{ body | from_json }}`, map[string]any{

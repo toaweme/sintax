@@ -14,8 +14,8 @@ var (
 // a parameter, because a format parameter has to be dispatched on at run time.
 // That costs every caller a typed signature, since the return shape would depend
 // on a string argument, and turns an unknown format into a render-time error. A
-// name per format declares its return type up front, so from_json is a map and
-// from_csv is a list of rows.
+// name per format declares its return type up front, so from_json is whatever
+// JSON value the input holds and from_csv is a list of rows.
 //
 // from_yaml is registered alongside them but ships as a stub, since parsing YAML
 // needs a codec this dependency-free package will not pick. It is named and

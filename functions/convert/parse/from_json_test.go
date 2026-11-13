@@ -10,7 +10,7 @@ func Test_FromJSON(t *testing.T) {
 	tests := []struct {
 		name        string
 		value       string
-		expected    map[string]any
+		expected    any
 		expectedErr bool
 	}{
 		{
@@ -36,13 +36,51 @@ func Test_FromJSON(t *testing.T) {
 			expected: map[string]any{},
 		},
 		{
-			name:        "top-level array is not an object",
-			value:       `[1, 2, 3]`,
-			expectedErr: true,
+			name:  "array of objects",
+			value: `[{"id": 1, "name": "a"}, {"id": 2, "name": "b"}]`,
+			expected: []any{
+				map[string]any{"id": int64(1), "name": "a"},
+				map[string]any{"id": int64(2), "name": "b"},
+			},
+		},
+		{
+			name:     "array of numbers",
+			value:    `[1, 2.5, 3]`,
+			expected: []any{int64(1), 2.5, int64(3)},
+		},
+		{
+			name:     "string",
+			value:    `"hello"`,
+			expected: "hello",
+		},
+		{
+			name:     "integer",
+			value:    `42`,
+			expected: int64(42),
+		},
+		{
+			name:     "float",
+			value:    `4.2`,
+			expected: 4.2,
+		},
+		{
+			name:     "bool",
+			value:    `true`,
+			expected: true,
+		},
+		{
+			name:     "null",
+			value:    `null`,
+			expected: nil,
 		},
 		{
 			name:        "malformed input",
 			value:       `not json`,
+			expectedErr: true,
+		},
+		{
+			name:        "unterminated array",
+			value:       `[1, 2`,
 			expectedErr: true,
 		},
 		{
