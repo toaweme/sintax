@@ -40,6 +40,18 @@ func Test_Merge(t *testing.T) {
 			},
 		},
 		{
+			name: "a list of untyped elements holding maps, the shape each and locals produce",
+			value: []any{
+				map[string]any{"id": "u1", "name": "Alice"},
+				map[string]any{"id": "u2", "name": "Bob"},
+			},
+			params: []any{"id"},
+			expected: map[string]map[string]any{
+				"u1": {"id": "u1", "name": "Alice"},
+				"u2": {"id": "u2", "name": "Bob"},
+			},
+		},
+		{
 			name:     "empty slice yields empty map",
 			value:    []map[string]any{},
 			params:   []any{"id"},
@@ -57,7 +69,7 @@ func Test_Merge(t *testing.T) {
 
 // Test_Merge_MatchesMap proves merge is a behavioral alias of map.
 func Test_Merge_MatchesMap(t *testing.T) {
-	value := []map[string]any{{"id": "a", "n": 1}, {"id": "b", "n": 2}}
+	value := []any{map[string]any{"id": "a", "n": 1}, map[string]any{"id": "b", "n": 2}}
 	mapped, err := Map(value, "id")
 	assert.NoError(t, err)
 	merged, err := Merge(value, "id")

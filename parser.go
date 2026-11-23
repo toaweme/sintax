@@ -284,11 +284,37 @@ func detectTokenType(s string) TokenType {
 		return ElseToken
 	case isVariable(s):
 		return VariableToken
+	case isQuotedLiteral(s):
+		// a lone literal is a pipeline with no modifiers, whose head is the value
+		return FilteredVariableToken
 	case strings.Contains(s, "|"):
 		return FilteredVariableToken
 	}
 
 	return UndefinedToken
+}
+
+// isQuotedLiteral reports whether s is one whole string literal, quoted with
+// single or double quotes, with any quote of the same kind inside escaped.
+func isQuotedLiteral(s string) bool {
+	if len(s) < 2 || (s[0] != '\'' && s[0] != '"') || s[len(s)-1] != s[0] {
+		return false
+	}
+	quote := s[0]
+	for i := 1; i < len(s)-1; i++ {
+		if s[i] == '\\' {
+			// an escape that swallows the closing quote leaves the literal open
+			if i+1 == len(s)-1 {
+				return false
+			}
+			i++
+			continue
+		}
+		if s[i] == quote {
+			return false
+		}
+	}
+	return true
 }
 
 func trimPrefix(s string, prefix string) string {
@@ -299,14 +325,6 @@ func trimPrefix(s string, prefix string) string {
 	return s
 }
 
-func splitAndGetFirst(s string) string {
-	parts := strings.Split(s, "|")
-	if len(parts) > 0 {
-		return parts[0]
-	}
-	return ""
-}
-
 func createToken(tokenType TokenType, value string) Token {
 	switch tokenType {
 	case VariableToken:
@@ -315,12 +333,13 @@ func createToken(tokenType TokenType, value string) Token {
 		token := BaseToken{
 			TokenType: FilteredVariableToken,
 			RawValue:  strings.TrimSpace(value),
-			Var:       strings.TrimSpace(splitAndGetFirst(value)),
 		}
 
 		// extract the modifier variables and cache the parse so renderVariable can
-		// skip re-splitting RawValue on every render.
+		// skip re-splitting RawValue on every render. The head is split with
+		// quotes respected, so a literal holding a pipe stays one head.
 		varName, funcs := getVarAndFunctions(token)
+		token.Var = varName
 		token.parsedVar = varName
 		token.parsedFuncs = funcs
 		for _, f := range funcs {

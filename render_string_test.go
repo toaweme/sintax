@@ -26,6 +26,31 @@ func Test_RenderString(t *testing.T) {
 			expected: "ADA",
 		},
 		{
+			name:     "a single quoted literal at the head",
+			template: "{{ 'ada' | upper }}",
+			expected: "ADA",
+		},
+		{
+			name:     "a double quoted literal at the head",
+			template: `{{ "ada" | upper }}`,
+			expected: "ADA",
+		},
+		{
+			name:     "a quoted literal holding a pipe",
+			template: "{{ 'a|b' | upper }}",
+			expected: "A|B",
+		},
+		{
+			name:     "a lone quoted literal",
+			template: "{{ 'ada' }}",
+			expected: "ada",
+		},
+		{
+			name:     "a lone quoted literal among text",
+			template: "Hi {{ 'ada' }}!",
+			expected: "Hi ada!",
+		},
+		{
 			name:     "a lone bool renders like it does inline",
 			template: "{{ flag }}",
 			vars:     map[string]any{"flag": true},

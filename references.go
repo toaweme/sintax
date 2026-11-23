@@ -98,7 +98,8 @@ func (s *refScan) expr(expr string, optional bool) error {
 }
 
 func (s *refScan) record(token Token, optional bool) {
-	if name := token.Name(); name != "" && !s.isBound(name) {
+	// a quoted literal at the head is a value written in place, not a name
+	if name := token.Name(); name != "" && !isQuotedLiteral(name) && !s.isBound(name) {
 		s.out = append(s.out, Reference{Name: name, Root: rootName(name), Optional: optional, Default: hasDefault(token)})
 	}
 

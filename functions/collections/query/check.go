@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/toaweme/sintax/functions"
 )
@@ -15,8 +16,12 @@ const ModifierNameHas functions.ModifierName = "has"
 // ModifierNameIs is the template name for the Is modifier.
 const ModifierNameIs functions.ModifierName = "is"
 
-// Has reports whether a collection contains something, and what "contains"
-// means depends on the shape of the value.
+// Has reports whether a collection or a string contains something, and what
+// "contains" means depends on the shape of the value.
+//
+// For a string, every parameter must be a string and Has is true when any of
+// them is a substring, matched case-sensitively. This lets a subject line or an
+// address be tested with the same filter a list is.
 //
 // For a plain slice, a single parameter is the element to look for, and Has is
 // true when any element equals it. For a slice of maps, the first parameter is a
@@ -41,6 +46,10 @@ func Has(value any, params []any) (any, error) {
 		return nil, functions.RefuseNil(ModifierNameHas)
 	}
 
+	if s, ok := value.(string); ok {
+		return hasInString(s, params)
+	}
+
 	v := reflect.ValueOf(value)
 
 	switch v.Kind() {
@@ -49,8 +58,21 @@ func Has(value any, params []any) (any, error) {
 	case reflect.Map:
 		return hasInMap(v, params)
 	default:
-		return false, fmt.Errorf("expected slice, array, or map, got %T", value)
+		return false, fmt.Errorf("expected a string, slice, array or map, got %T: %w", value, functions.ErrInvalidValueType)
 	}
+}
+
+func hasInString(s string, params []any) (bool, error) {
+	for i, param := range params {
+		sub, ok := param.(string)
+		if !ok {
+			return false, fmt.Errorf("has on a string expected a string at parameter %d, got %T: %w", i, param, functions.ErrInvalidParamType)
+		}
+		if strings.Contains(s, sub) {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // Is reports whether the value equals any one of the given candidates, a compact

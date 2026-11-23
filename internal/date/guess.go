@@ -2,6 +2,7 @@ package date
 
 import (
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -33,8 +34,6 @@ var guessLayouts = []string{
 	"2006-01-02 15:04:05",
 	"2006-01-02 15:04",
 	"2006-01-02",
-	time.RFC1123Z,
-	time.RFC1123,
 	"Monday, January 2, 2006 15:04",
 	"Monday, January 2, 2006",
 	"January 2, 2006 15:04:05",
@@ -49,6 +48,85 @@ var guessLayouts = []string{
 	"2006/01/02 15:04:05",
 	"2006/01/02 15:04",
 	"2006/01/02",
+}
+
+// rfc5322Layouts are the forms a mail date header takes once guessRFC5322 has
+// dropped its comments, folded its whitespace and turned an obsolete zone name
+// into an offset. The weekday and the seconds are optional, and the unpadded
+// day reads a zero-padded one too.
+var rfc5322Layouts = []string{
+	"Mon, 2 Jan 2006 15:04:05 -0700",
+	"2 Jan 2006 15:04:05 -0700",
+	"Mon, 2 Jan 2006 15:04 -0700",
+	"2 Jan 2006 15:04 -0700",
+	"Monday, 2 Jan 2006 15:04:05 -0700",
+	"Monday, 2 Jan 2006 15:04 -0700",
+}
+
+// obsoleteZones maps the zone names RFC 5322 still lets a date header carry to
+// their offsets. UTC is not one of them, but servers write it anyway. Any other
+// name is refused, because Go reads an unknown abbreviation as a zero offset
+// and the time would be silently wrong.
+var obsoleteZones = map[string]string{
+	"UT":  "+0000",
+	"UTC": "+0000",
+	"GMT": "+0000",
+	"Z":   "+0000",
+	"EST": "-0500",
+	"EDT": "-0400",
+	"CST": "-0600",
+	"CDT": "-0500",
+	"MST": "-0700",
+	"MDT": "-0600",
+	"PST": "-0800",
+	"PDT": "-0700",
+}
+
+// guessRFC5322 reads value as a mail date header, reporting false when it is
+// not one. The zone is part of the form, so the result never takes a location
+// from the caller.
+func guessRFC5322(value string) (time.Time, bool) {
+	stripped, ok := stripComments(value)
+	if !ok {
+		return time.Time{}, false
+	}
+	fields := strings.Fields(stripped)
+	if len(fields) < 4 {
+		return time.Time{}, false
+	}
+	zone := fields[len(fields)-1]
+	if offset, known := obsoleteZones[strings.ToUpper(zone)]; known {
+		fields[len(fields)-1] = offset
+	}
+	normalised := strings.Join(fields, " ")
+	for _, layout := range rfc5322Layouts {
+		if parsed, err := time.Parse(layout, normalised); err == nil {
+			return parsed, true
+		}
+	}
+	return time.Time{}, false
+}
+
+// stripComments drops every parenthesised comment from value, the way RFC 5322
+// lets one trail a date header as in +0100 (CET). It reports false for a
+// comment left open.
+func stripComments(value string) (string, bool) {
+	var out strings.Builder
+	depth := 0
+	for _, r := range value {
+		switch {
+		case r == '(':
+			depth++
+		case r == ')' && depth > 0:
+			depth--
+			if depth == 0 {
+				out.WriteByte(' ')
+			}
+		case depth == 0:
+			out.WriteRune(r)
+		}
+	}
+	return out.String(), depth == 0
 }
 
 // ambiguousLayouts are the numeric forms whose first two fields could be the
@@ -69,7 +147,9 @@ var ambiguousLayouts = [][2]string{
 // written in, using loc for a value carrying no zone of its own.
 //
 // The layouts in guessLayouts are tried in their listed order and the first
-// that parses the value whole wins. The numeric day-and-month forms come last
+// that parses the value whole wins. A mail date header in any form RFC 5322
+// allows comes next, with an optional weekday, a one or two digit day,
+// optional seconds, a numeric or obsolete named zone and comments. The numeric day-and-month forms come last
 // and are handled as pairs, so 25/12/2026 reads as December 25 because only
 // the day-first reading gives a real date, while 03/04/2026 reads two ways and
 // is refused with ErrAmbiguousDate rather than guessed. A wrong-but-plausible
@@ -83,6 +163,9 @@ func Guess(value string, loc *time.Location) (time.Time, error) {
 		if parsed, err := time.ParseInLocation(layout, value, loc); err == nil {
 			return parsed, nil
 		}
+	}
+	if parsed, ok := guessRFC5322(value); ok {
+		return parsed, nil
 	}
 	for _, pair := range ambiguousLayouts {
 		dayFirst, dayErr := time.ParseInLocation(pair[0], value, loc)

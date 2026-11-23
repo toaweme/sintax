@@ -33,6 +33,21 @@ func Test_References(t *testing.T) {
 			want:     []Reference{{Name: "name", Root: "name", Default: true}, {Name: "fallback", Root: "fallback"}},
 		},
 		{
+			name:     "a quoted literal at the head reads nothing",
+			template: "{{ 'x' | upper }}{{ \"y\" | upper }}{{ 'z' }}",
+			want:     nil,
+		},
+		{
+			name:     "a quoted literal at the head still reports its arguments",
+			template: "{{ 'a|b' | replace:'|',sep }}",
+			want:     []Reference{{Name: "sep", Root: "sep"}},
+		},
+		{
+			name:     "a quoted literal in an if condition reads nothing",
+			template: "{{ if 'x' | eq:name }}y{{ endif }}",
+			want:     []Reference{{Name: "name", Root: "name", Optional: true}},
+		},
+		{
 			name:     "a loop reads its collection and binds its own names",
 			template: "{{ for row in rows }}{{ row.title }}{{ row_index }}{{ endfor }}",
 			want:     []Reference{{Name: "rows", Root: "rows"}},
@@ -73,7 +88,7 @@ func Test_References(t *testing.T) {
 		},
 		{
 			name:     "a condition that is not an expression is refused",
-			template: "{{ if 'literal' }}{{ endif }}",
+			template: "{{ if 'a' 'b' }}{{ endif }}",
 			wantErr:  ErrNotAnExpression,
 		},
 	}

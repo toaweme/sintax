@@ -67,6 +67,55 @@ func Test_Guess(t *testing.T) {
 	}
 }
 
+// Test_Guess_RFC5322 asserts the date header forms mail servers write read
+// with no layout given. RFC 5322 makes the weekday and the seconds optional,
+// lets the day be one digit, allows the obsolete zone names and a trailing
+// comment, and real mail uses every one of those.
+func Test_Guess_RFC5322(t *testing.T) {
+	plusOne := time.FixedZone("", 60*60)
+	minusFive := time.FixedZone("", -5*60*60)
+	minusSeven := time.FixedZone("", -7*60*60)
+
+	tests := []struct {
+		name  string
+		value string
+		want  time.Time
+	}{
+		{"no weekday", "19 Nov 2026 15:11:49 -0000", time.Date(2026, time.November, 19, 15, 11, 49, 0, time.UTC)},
+		{"one digit day with a weekday and a comment", "Wed, 5 Nov 2026 09:01:02 +0100 (CET)", time.Date(2026, time.November, 5, 9, 1, 2, 0, plusOne)},
+		{"one digit day with a weekday", "Thu, 5 Nov 2026 09:01:02 +0100", time.Date(2026, time.November, 5, 9, 1, 2, 0, plusOne)},
+		{"one digit day without a weekday", "5 Nov 2026 09:01:02 +0100", time.Date(2026, time.November, 5, 9, 1, 2, 0, plusOne)},
+		{"zero padded day", "Thu, 05 Nov 2026 09:01:02 +0100", time.Date(2026, time.November, 5, 9, 1, 2, 0, plusOne)},
+		{"no seconds", "Thu, 5 Nov 2026 09:01 +0100", time.Date(2026, time.November, 5, 9, 1, 0, 0, plusOne)},
+		{"no seconds and no weekday", "5 Nov 2026 09:01 +0100", time.Date(2026, time.November, 5, 9, 1, 0, 0, plusOne)},
+		{"obsolete zone GMT", "Thu, 5 Nov 2026 09:01:02 GMT", time.Date(2026, time.November, 5, 9, 1, 2, 0, time.UTC)},
+		{"obsolete zone UT", "5 Nov 2026 09:01:02 UT", time.Date(2026, time.November, 5, 9, 1, 2, 0, time.UTC)},
+		{"obsolete zone EST", "Thu, 5 Nov 2026 09:01:02 EST", time.Date(2026, time.November, 5, 9, 1, 2, 0, minusFive)},
+		{"obsolete zone PDT", "Thu, 5 Nov 2026 09:01:02 PDT", time.Date(2026, time.November, 5, 9, 1, 2, 0, minusSeven)},
+		{"obsolete zone with a padded day", "Fri, 26 Jun 2026 14:30:00 EST", time.Date(2026, time.June, 26, 14, 30, 0, 0, minusFive)},
+		{"comment after an obsolete zone", "Thu, 5 Nov 2026 09:01:02 GMT (Greenwich)", time.Date(2026, time.November, 5, 9, 1, 2, 0, time.UTC)},
+		{"folded whitespace", "Thu,  5 Nov 2026\t09:01:02  +0100", time.Date(2026, time.November, 5, 9, 1, 2, 0, plusOne)},
+		{"long weekday is not rfc 5322 but servers write it", "Thursday, 5 Nov 2026 09:01:02 +0100", time.Date(2026, time.November, 5, 9, 1, 2, 0, plusOne)},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := Guess(tt.value, time.UTC)
+			if err != nil {
+				t.Fatalf("Guess(%q) returned an error: %v", tt.value, err)
+			}
+			if !got.Equal(tt.want) {
+				t.Fatalf("Guess(%q) = %v, want %v", tt.value, got, tt.want)
+			}
+			_, gotOffset := got.Zone()
+			_, wantOffset := tt.want.Zone()
+			if gotOffset != wantOffset {
+				t.Fatalf("Guess(%q) offset = %d, want %d", tt.value, gotOffset, wantOffset)
+			}
+		})
+	}
+}
+
 // Test_Guess_Ambiguous asserts a numeric value that reads as a real date with
 // the day and the month either way round is refused. Picking one would write a
 // date that is wrong half the time and says nothing about it.
@@ -116,6 +165,8 @@ func Test_Guess_Unknown(t *testing.T) {
 		{"a time on its own", "14:30"},
 		{"a year on its own", "2026"},
 		{"mixed separators", "25/12.2026"},
+		{"unclosed comment", "5 Nov 2026 09:01:02 +0100 (CET"},
+		{"unknown zone name", "5 Nov 2026 09:01:02 XYZ"},
 	}
 
 	for _, tt := range tests {

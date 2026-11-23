@@ -198,3 +198,29 @@ func unpositioned(tokens []Token) []Token {
 
 	return out
 }
+
+func Test_IsQuotedLiteral(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want bool
+	}{
+		{"single quoted", `'x'`, true},
+		{"double quoted", `"x"`, true},
+		{"empty literal", `''`, true},
+		{"escaped quote inside", `'it\'s'`, true},
+		{"other quote inside", `'say "hi"'`, true},
+		{"two literals", `'a' 'b'`, false},
+		{"mismatched quotes", `'x"`, false},
+		{"escaped closing quote", `'x\'`, false},
+		{"bare name", `name`, false},
+		{"lone quote", `'`, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isQuotedLiteral(tt.in); got != tt.want {
+				t.Fatalf("isQuotedLiteral(%q) = %v, want %v", tt.in, got, tt.want)
+			}
+		})
+	}
+}

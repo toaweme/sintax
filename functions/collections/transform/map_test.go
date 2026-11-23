@@ -41,6 +41,18 @@ func Test_Map(t *testing.T) {
 			},
 		},
 		{
+			name: "a list of untyped elements holding maps, the shape each and locals produce",
+			value: []any{
+				map[string]any{"id": "u1", "name": "Alice"},
+				map[string]any{"id": "u2", "name": "Bob"},
+			},
+			params: []any{"id"},
+			expected: map[string]map[string]any{
+				"u1": {"id": "u1", "name": "Alice"},
+				"u2": {"id": "u2", "name": "Bob"},
+			},
+		},
+		{
 			name:     "empty slice yields empty map",
 			value:    []map[string]any{},
 			params:   []any{"id"},

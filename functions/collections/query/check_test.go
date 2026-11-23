@@ -86,8 +86,34 @@ func Test_Has_Map(t *testing.T) {
 	}
 }
 
+// Test_Has_String asserts a string is searched for a substring, so a subject
+// line or an address reads with the same filter a list does.
+func Test_Has_String(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    any
+		params   []any
+		expected bool
+	}{
+		{"substring present", "Invoice #42 from Acme", []any{"Invoice"}, true},
+		{"substring absent", "Invoice #42 from Acme", []any{"Receipt"}, false},
+		{"case sensitive", "Invoice #42 from Acme", []any{"invoice"}, false},
+		{"any of several present", "billing@acme.test", []any{"@other.test", "@acme.test"}, true},
+		{"none of several present", "billing@acme.test", []any{"@other.test", "@else.test"}, false},
+		{"empty substring is always present", "anything", []any{""}, true},
+		{"empty string holds nothing else", "", []any{"x"}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			out, err := Has(tt.value, tt.params)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, out)
+		})
+	}
+}
+
 // Test_Has_Errors covers the input-validation error paths: no parameters, a
-// value that is neither a collection, and a slice of maps addressed with a
+// value that is neither a collection nor a string, and a slice of maps addressed with a
 // single parameter (which needs both a key and at least one value).
 func Test_Has_Errors(t *testing.T) {
 	t.Run("no parameters", func(t *testing.T) {
@@ -96,8 +122,13 @@ func Test_Has_Errors(t *testing.T) {
 		assert.Equal(t, false, out)
 	})
 
-	t.Run("value is a scalar", func(t *testing.T) {
-		_, err := Has("hello", []any{"h"})
+	t.Run("value is a number", func(t *testing.T) {
+		_, err := Has(42, []any{"4"})
+		assert.Error(t, err)
+	})
+
+	t.Run("string searched for a number", func(t *testing.T) {
+		_, err := Has("order 42", []any{42})
 		assert.Error(t, err)
 	})
 

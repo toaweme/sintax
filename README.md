@@ -141,6 +141,7 @@ guarding against a template that renders itself. It defaults to 10.
 | Modifier with args | `{{ items \| join:',' }}` |
 | Variable as argument | `{{ text \| trim_prefix:prefix_var }}` |
 | Fallback to literal | `{{ value \| default:'n/a' }}` |
+| Literal at the head | `{{ 'Re: ' \| concat:subject }}` |
 | Fallback to empty array | `{{ items \| default:[] }}` |
 | Fallback to empty object | `{{ user \| default:{} }}` |
 | If / else | `{{ if active }}yes{{ else }}no{{ endif }}` |
@@ -248,11 +249,11 @@ Sort, filter, find, and reshape arrays and maps.
 | `find` | Find returns the first element in a slice or map where a field equals the given value. | `{{ users \| find:'id',42 }}` |
 | `first` | First returns the first character of a string or the first element of a slice. | `{{ items \| first }}` |
 | `flatten` | Flatten flattens a slice of slices by one level. | `{{ groups \| pluck:'items' \| flatten }}` |
-| `has` | Has returns true if the slice or map contains the given value. | `{{ tags \| has:'featured' }}` |
+| `has` | Has returns true if the slice or map contains the given value, or the string contains the given substring. | `{{ tags \| has:'featured' }}` |
 | `is` | Is returns true if the value equals any of the given parameters. | `{{ status \| is:'active' }}` |
 | `key` | Key extracts a value from a map or slice by key path or index. | `{{ user \| key:'name' }}` |
 | `last` | Last returns the last character of a string or the last element of a slice. | `{{ items \| last }}` |
-| `map` | Map converts a slice of maps into a map keyed by the given field's string value. | `{{ users \| map:'id' }}` |
+| `map` | Map converts a list of maps, typed or untyped, into a map keyed by the given field's string value. | `{{ users \| map:'id' }}` |
 | `merge` | Merge converts a slice of maps into a map keyed by the given field's string value. | `{{ users \| merge:'id' }}` |
 | `pluck` | Pluck extracts a single field from each element of a slice of maps and returns a slice of values. | `{{ users \| pluck:'id' }}` |
 | `sort` | Sort sorts a slice in ascending or descending order. | `{{ names \| sort }}` |
@@ -310,7 +311,10 @@ none is given. It tries these forms in order, and the first one that reads the v
 1. RFC 3339 and ISO 8601, with or without a zone, such as `2026-06-26T14:30:00Z` and `2026-06-26`.
 2. The space-separated form `date` itself writes, `2026-06-26 14:30:00`, so a value survives the
    round trip with nothing given either way.
-3. RFC 1123, such as `Fri, 26 Jun 2026 14:30:00 +0200`.
+3. Mail date headers in every form RFC 5322 allows, such as `Fri, 26 Jun 2026 14:30:00 +0200`,
+   `19 Nov 2026 15:11:49 -0000` and `Wed, 5 Nov 2026 09:01:02 +0100 (CET)`. The weekday and the
+   seconds are optional, the day may be one digit, and the zone is an offset or one of the obsolete
+   names such as `GMT` or `EST`. Any other zone name is refused rather than read as UTC.
 4. The forms a month name spells out, such as `June 26, 2026`, `26 June 2026`, `Jun 26, 2026` and
    `Friday, June 26, 2026`, each with an optional time.
 5. Year-first numeric forms, such as `2026/06/26`.
