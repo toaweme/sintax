@@ -5,6 +5,23 @@ All notable changes to this project are documented here, newest first.
 Entries are generated from [Conventional Commits](https://www.conventionalcommits.org)
 and grouped by change type. This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-11-23
+
+### Features
+
+- Let from_json parse any JSON value by [@iberflow](https://github.com/iberflow) in [2794b46](https://github.com/toaweme/sintax/commit/2794b4652a1d4c15aa3f65aa0f2cba9b907c1af8).
+- Add backslash escape and unescape filters by [@iberflow](https://github.com/iberflow) in [66aee23](https://github.com/toaweme/sintax/commit/66aee2373cb75e13218d826aedf48a5470a65b3d).
+
+### Fixes
+
+- Read rfc 5322 dates, quoted literals and untyped lists by [@iberflow](https://github.com/iberflow) in [ab7da6e](https://github.com/toaweme/sintax/commit/ab7da6efebd7f36c4656d3001e95e3787db500ef).
+
+### CI & Build
+
+- Publish the code view with codereport by [@iberflow](https://github.com/iberflow) in [0cd5293](https://github.com/toaweme/sintax/commit/0cd529352e9886ba75042428330d63b931f5c45a).
+- Bump care to v0.9.6 by [@iberflow](https://github.com/iberflow) in [bb8d74c](https://github.com/toaweme/sintax/commit/bb8d74c7c18b24fc03a288e25cc352baa3698da3).
+- Bump care to v0.9.5 and pin actions to latest by [@iberflow](https://github.com/iberflow) in [595db6d](https://github.com/toaweme/sintax/commit/595db6dae9d1a41948943fbf788535a5b2c1d34e).
+
 ## [0.8.0] - 2026-09-07
 
 ### Features
@@ -160,6 +177,7 @@ and grouped by change type. This project adheres to [Semantic Versioning](https:
 - Fix linter issues by [@iberflow](https://github.com/iberflow) in [79c2a53](https://github.com/toaweme/sintax/commit/79c2a53df09c87782bc16832572312826bd2985e).
 - Rollback go.mod to 1.22 by [@iberflow](https://github.com/iberflow) in [4be0329](https://github.com/toaweme/sintax/commit/4be0329a7a690ebcc5a80b9c4aa0689ea0f0c5d5).
 
+[0.9.0]: https://github.com/toaweme/sintax/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/toaweme/sintax/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/toaweme/sintax/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/toaweme/sintax/compare/v0.5.0...v0.6.0
